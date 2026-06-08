@@ -1,0 +1,15 @@
+# Python virtual environments
+.venv/
+venv/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Regenerated processed data (rebuilt from data_raw/ by run_analysis.py).
+# Large (~6-7 GB) and fully derivable — do not commit.
+/data/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
