@@ -1,0 +1,27 @@
+Running pyMANGA v3.1.0 -  2026-06-05 20:53:00 
+============================================== 
+Simulation Settings: 
+--------------------
+INFO: set above-ground parameter curved_crown to default:  True
+[AsymmetricZOI] WARNING: <backend_type>cpp</backend_type> set, but C++ core not found. Falling back to python.
+Above-ground resources: AsymmetricZOI.
+[SymmetricZOI] WARNING: <backend_type>cpp</backend_type> set, but C++ core not found. Falling back to python.
+Below-ground resources: Merge.
+Plant mortality: Memory.
+> Set mortality parameter 'probability' to default: 0.0016
+Plant mortality: Random.
+Plant mortality: SizeThreshold.
+Plant dynamics: Saltmarsh.
+INFO: Default value for <Production><FixedRate><per_individual> is used. Default:  None
+INFO: Default value for <Production><FixedRate><per_ha> is used. Default:  None
+INFO: Default value for <production><nth_timestep> is used. Default:  1
+Time loop: Simple.
+Disturbance: None.
+Visualization: NONE.
+Output file path: C:\Users\Jonas\Documents\MASCOT\SourceCode\pyMANGA-1\../data_and_results/data_raw/one_plant/static/0.140/PFT_1
+Model output: OneFile.
+--------------------
+pyMANGA started at 2026-06-05 20:53:00.554347
+Running pyMANGA project file: C:\Users\Jonas\Documents\MASCOT\SourceCode\data_and_results\data_model_input\xml_control_files\oneplant_static_0.140_pft1.xml
+Calculated timesteps: 0 % (0.00 d - 1.00 d)
+INFO: MANGA execution stopped because all plants died and no new plant were recruited.
