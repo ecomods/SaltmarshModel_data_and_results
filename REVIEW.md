@@ -52,7 +52,7 @@ publish as a digital appendix to the manuscript.
 
 ---
 
-## Findings
+## Findingss
 
 ### Environment (E)
 
