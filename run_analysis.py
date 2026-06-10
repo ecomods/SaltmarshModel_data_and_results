@@ -30,13 +30,13 @@
 # Useful commands
 # ---------------
 # Full analysis and all figures:
-#     py -3.12 run_analysis.py
+#     python run_analysis.py
 #
 # Only aggregate/process data, no figures:
-#     py -3.12 run_analysis.py --prepare-data-only
+#     python run_analysis.py --prepare-data-only
 #
 # Only regenerate figures from existing processed data:
-#     py -3.12 run_analysis.py --figures-only
+#     python run_analysis.py --figures-only
 # =============================================================================
 
 """

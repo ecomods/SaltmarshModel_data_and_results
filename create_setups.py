@@ -32,11 +32,12 @@
 # Typical usage
 # -------------
 # Run from the repository root:
-#     py -3.12 create_setups.py
+#     python create_setups.py
 #
 # Expected result
 # ---------------
 # - 300 XML files in data_model_input/xml_control_files/.
+# - One random_seed tag per XML file.
 # - Matching empty output folders in data_raw/.
 # =============================================================================
 
@@ -248,6 +249,13 @@ def add_domain(parent):
     ET.SubElement(domain, "y_2").text = str(d["y_2"])
 
 
+def add_random_seed(project, seed):
+    """Add the random seed as the first project-level XML element."""
+    seed_element = ET.Element("random_seed")
+    seed_element.text = str(seed)
+    project.insert(0, seed_element)
+
+
 def add_resources(project, salinity_text):
     resources = ET.SubElement(project, "resources")
 
@@ -393,6 +401,7 @@ def write_xml(filepath, project):
 
 def write_community_static(filepath, salinity, replicate):
     project = ET.Element("MangaProject")
+    add_random_seed(project, replicate)
     add_resources(project, f"{salinity:.3f} {salinity:.3f}")
 
     population = ET.SubElement(project, "population")
@@ -422,6 +431,7 @@ def write_community_static(filepath, salinity, replicate):
 
 def write_community_dynamic(filepath, salinity_id, replicate):
     project = ET.Element("MangaProject")
+    add_random_seed(project, replicate)
     add_resources(project, f"{CONFIG['paths']['salinity_dir']}/{salinity_id}.csv")
 
     population = ET.SubElement(project, "population")
@@ -451,6 +461,7 @@ def write_community_dynamic(filepath, salinity_id, replicate):
 
 def write_monoculture_static(filepath, salinity, replicate, pft_idx):
     project = ET.Element("MangaProject")
+    add_random_seed(project, replicate)
     add_resources(project, f"{salinity:.3f} {salinity:.3f}")
 
     population = ET.SubElement(project, "population")
@@ -479,6 +490,7 @@ def write_monoculture_static(filepath, salinity, replicate, pft_idx):
 
 def write_oneplant_static(filepath, salinity, pft_idx):
     project = ET.Element("MangaProject")
+    add_random_seed(project, 1)
     add_resources(project, f"{salinity:.3f} {salinity:.3f}")
 
     population = ET.SubElement(project, "population")
@@ -506,6 +518,7 @@ def write_oneplant_static(filepath, salinity, pft_idx):
 
 def write_oneplant_dynamic(filepath, salinity, version, pft_idx):
     project = ET.Element("MangaProject")
+    add_random_seed(project, 1)
     add_resources(project, f"{CONFIG['paths']['salinity_dir']}/{salinity}_{version}.csv")
 
     population = ET.SubElement(project, "population")
