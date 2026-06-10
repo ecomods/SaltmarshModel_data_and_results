@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <MangaProject>
+    <random_seed>9</random_seed>
     <resources>
         <aboveground>
             <type>AsymmetricZOI</type>

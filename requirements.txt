@@ -1,13 +1,25 @@
-# Python 3.12 recommended
+# Tested with Python 3.12.
+# Python 3.10 or newer is recommended.
 #
-# Core dependencies for:
-# - create_setups.py
-# - run_model.py
-# - run_analysis.py
-# - data processing and figure generation
+# Dependencies for this manuscript repository and the associated pyMANGA
+# SaltmarshModel workflow. Standard-library modules such as os, pathlib,
+# subprocess, argparse, shutil, csv, datetime, xml.etree.ElementTree, and
+# importlib are included with Python and are therefore not listed as packages.
 
+# Core scientific Python stack used by the setup, analysis, and plotting scripts
 numpy>=1.26,<3
 pandas>=2.2,<3
 matplotlib>=3.8,<4
 seaborn>=0.13,<1
+scipy>=1.11,<2
 
+# pyMANGA XML parsing and model runtime dependencies
+lxml>=5,<6
+vtk>=9,<10
+
+# Testing, documentation, and code-quality tools used by pyMANGA
+pytest>=8,<9
+pytest-subtests>=0.14,<1
+pdoc>=14,<16
+coverage>=7,<8
+interrogate>=1.7,<2

@@ -33,13 +33,13 @@
 # Useful commands
 # ---------------
 # List selected XMLs without running them:
-#     py -3.12 run_model.py --list-only
+#     python run_model.py --list-only
 #
 # Run only static community simulations:
-#     py -3.12 run_model.py --override-only community_static
+#     python run_model.py --override-only community_static
 #
 # Rerun even if simulations are already logged as OK:
-#     py -3.12 run_model.py --include-done
+#     python run_model.py --include-done
 # =============================================================================
 
 """
@@ -63,6 +63,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 import csv
 import fnmatch
+import sys
 
 from source.utils.paths import (
     XML_CONTROL_FILES,
@@ -78,7 +79,7 @@ from source.utils.paths import (
 
 MANGA_PATH = DEFAULT_MANGA_SCRIPT
 XML_FOLDER = XML_CONTROL_FILES
-PYTHON_EXEC = "py -3.12"
+PYTHON_EXEC = sys.executable
 MAX_WORKERS = 6
 LOG_DIR = DEFAULT_LOG_DIR
 CSV_LOGFILE = SIMULATION_LOG
@@ -125,7 +126,7 @@ def run_simulation(xml_file):
 
     manga_dir = os.path.abspath(os.path.dirname(str(MANGA_PATH)))
     manga_py = os.path.abspath(str(MANGA_PATH))
-    command = f'{PYTHON_EXEC} "{manga_py}" -i "{xml_file}"'
+    command = f'"{PYTHON_EXEC}" "{manga_py}" -i "{xml_file}"'
 
     start_time = datetime.now()
     with open(log_path, "w", encoding="utf-8") as logfile:
