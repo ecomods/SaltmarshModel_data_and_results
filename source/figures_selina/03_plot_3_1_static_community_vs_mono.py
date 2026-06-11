@@ -66,7 +66,10 @@ ensure_dir = _utils.ensure_dir
 # Paths
 # =============================================================================
 
-output_dir = ensure_dir(FIGURES_MAIN)
+# Exploratory figures are written to their own folder so they never overwrite
+# the committed manuscript figures in figures/main/.
+FIGURES_SELINA = os.path.join(os.path.dirname(FIGURES_MAIN), "figures_selina")
+output_dir = ensure_dir(FIGURES_SELINA)
 
 out_png = os.path.join(
     output_dir,
@@ -207,16 +210,18 @@ ax.legend(
 )
 
 
-# # =============================================================================
-# # Save
-# # =============================================================================
+# =============================================================================
+# Show / Save
+# =============================================================================
 
-# plt.tight_layout()
+plt.tight_layout()
 
+# Saving is disabled while iterating interactively. Uncomment these lines to
+# write the figure to figures/figures_selina/ once you are happy with it.
 # plt.savefig(out_png, dpi=600, bbox_inches="tight")
 # plt.savefig(out_pdf, bbox_inches="tight")
 
-# plt.show()
+plt.show()
 # plt.close()
 
 # print("Done: plot_3_1_static_community_vs_mono")
