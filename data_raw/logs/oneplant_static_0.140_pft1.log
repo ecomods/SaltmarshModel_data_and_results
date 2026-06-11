@@ -1,7 +1,10 @@
-Running pyMANGA v3.1.0 -  2026-06-05 20:53:00 
+Running pyMANGA v3.1.0 -  2026-06-11 02:22:46 
 ============================================== 
 Simulation Settings: 
 --------------------
+Random Seed: 1.
+[AsymmetricZOI] Could not import C++ backend:
+cannot import name 'asymzoi' from partially initialized module 'ResourceLib.AboveGround.AsymmetricZOI' (most likely due to a circular import) (C:\Users\Jonas\Documents\MASCOT\SourceCode\pyMANGA-1\ResourceLib\AboveGround\AsymmetricZOI\__init__.py)
 INFO: set above-ground parameter curved_crown to default:  True
 [AsymmetricZOI] WARNING: <backend_type>cpp</backend_type> set, but C++ core not found. Falling back to python.
 Above-ground resources: AsymmetricZOI.
@@ -21,7 +24,7 @@ Visualization: NONE.
 Output file path: C:\Users\Jonas\Documents\MASCOT\SourceCode\pyMANGA-1\../data_and_results/data_raw/one_plant/static/0.140/PFT_1
 Model output: OneFile.
 --------------------
-pyMANGA started at 2026-06-05 20:53:00.554347
+pyMANGA started at 2026-06-11 02:22:46.118882
 Running pyMANGA project file: C:\Users\Jonas\Documents\MASCOT\SourceCode\data_and_results\data_model_input\xml_control_files\oneplant_static_0.140_pft1.xml
 Calculated timesteps: 0 % (0.00 d - 1.00 d)
 INFO: MANGA execution stopped because all plants died and no new plant were recruited.

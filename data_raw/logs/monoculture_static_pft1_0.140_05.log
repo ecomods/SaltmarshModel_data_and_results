@@ -1,7 +1,10 @@
-Running pyMANGA v3.1.0 -  2026-06-05 19:16:24 
+Running pyMANGA v3.1.0 -  2026-06-11 00:58:06 
 ============================================== 
 Simulation Settings: 
 --------------------
+Random Seed: 5.
+[AsymmetricZOI] Could not import C++ backend:
+cannot import name 'asymzoi' from partially initialized module 'ResourceLib.AboveGround.AsymmetricZOI' (most likely due to a circular import) (C:\Users\Jonas\Documents\MASCOT\SourceCode\pyMANGA-1\ResourceLib\AboveGround\AsymmetricZOI\__init__.py)
 INFO: set above-ground parameter curved_crown to default:  True
 [AsymmetricZOI] WARNING: <backend_type>cpp</backend_type> set, but C++ core not found. Falling back to python.
 Above-ground resources: AsymmetricZOI.
@@ -20,7 +23,7 @@ Visualization: NONE.
 Output file path: C:\Users\Jonas\Documents\MASCOT\SourceCode\pyMANGA-1\../data_and_results/data_raw/monoculture/static/0.140/PFT_1/05
 Model output: OneFile.
 --------------------
-pyMANGA started at 2026-06-05 19:16:24.038611
+pyMANGA started at 2026-06-11 00:58:06.009212
 Running pyMANGA project file: C:\Users\Jonas\Documents\MASCOT\SourceCode\data_and_results\data_model_input\xml_control_files\monoculture_static_pft1_0.140_05.xml
 Calculated timesteps: 0 % (0.00 d - 1.00 d)
 Calculated timesteps: 0 % (1.00 d - 2.00 d)
@@ -3674,5 +3677,5 @@ Calculated timesteps: 99 % (3648.00 d - 3649.00 d)
 Calculated timesteps: 99 % (3649.00 d - 3650.00 d)
 Calculated timesteps: 99 % (3650.00 d - 3650.46 d)
 pyMANGA project C:\Users\Jonas\Documents\MASCOT\SourceCode\data_and_results\data_model_input\xml_control_files\monoculture_static_pft1_0.140_05.xml successfully evaluated.
-pyMANGA finished at 2026-06-05 19:18:16.128175
-Total execution took 112 seconds
+pyMANGA finished at 2026-06-11 00:59:33.591447
+Total execution took 87 seconds
