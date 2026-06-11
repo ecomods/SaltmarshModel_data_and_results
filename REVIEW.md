@@ -13,7 +13,8 @@ publish as a digital appendix to the manuscript.
 - **Setups:** `create_setups.py` regenerates the 300 XMLs byte-identical ✅ (Pass 2).
 - **Pending:** Pass 3 (read analysis source for scientific logic); finish Pass 4 hygiene
   (file naming, LICENSE + citation).
-- **Critical handover items:** E2 (pin pyMANGA) and R1 (random seed). See *Questions for Jonas*.
+- **Critical handover items:** E2 (pin pyMANGA). ~~R1 (random seed)~~ **resolved Pass 6** — seeds
+  added, `data_raw/` re-runs byte-for-byte. See *Questions for Jonas*.
 
 **Legend.** Severity: 🔴 blocker · 🟡 should-fix · 🔵 nice-to-have. ID area: **E** environment,
 **A** analysis pipeline, **S** science / analysis logic (Pass 3), **R** reproducibility/provenance,
@@ -26,7 +27,7 @@ publish as a digital appendix to the manuscript.
 | Sev | ID | Issue | Where |
 |-----|----|-------|-------|
 | 🔴 | E2 | pyMANGA version not pinned (personal-fork PR branch) | pyMANGA checkout · README |
-| 🔴 | R1 | No random seed → runs not bit-reproducible | `create_setups.py` / XMLs |
+| ✅ | R1 | Random seed added → runs now bit-reproducible (RESOLVED Pass 6) | `create_setups.py` / XMLs |
 | 🟡 | E1 | `py -3.12` hardcoded but not actually required | `run_model.py:81` · README |
 | 🟡 | E3 | `vtk` is a hidden, undocumented runtime dependency | `requirements.txt` · pyMANGA |
 | 🟡 | E4 | README is not a working recipe for running the model | `readme.md` |
@@ -237,16 +238,25 @@ Visual only — no effect on the underlying numbers.
 
 ### Reproducibility & provenance (R)
 
-#### R1 🔴 No random seed → runs not bit-reproducible
-**Where:** `create_setups.py` / generated XMLs (no `<random_seed>` tag).
-**Problem:** setups use `Random` initial population + `Random` mortality with no seed anywhere, so
-re-running differs numerically from the committed `data_raw/` (one fixed realisation).
-**Fix:** pyMANGA *does* support a seed — a top-level `<random_seed>` tag (`XMLtoProject.py:50` →
-`Project.py:55-57` → `np.random.seed`). Write one per XML from `create_setups.py`, using a
-**distinct seed per replicate** (a shared seed would make all 10 replicates identical). Otherwise,
-document the outputs as a fixed realisation. → Q2.
-**Verified (Pass 5):** a 40-sim `community_static` re-run matched the committed replicate-mean
-biovolume within ~1.6% at every salinity — statistically equivalent, not identical (`compare_reruns.py`).
+#### R1 ✅ Random seed added → runs now bit-reproducible (RESOLVED)
+**Where:** `create_setups.py` / generated XMLs (now carry a `<random_seed>` tag).
+**Problem (original):** setups used `Random` initial population + `Random` mortality with no seed
+anywhere, so re-running differed numerically from the committed `data_raw/` (one fixed realisation).
+**Fix (applied by Jonas):** every XML now has a top-level `<random_seed>` (`XMLtoProject.py:50` →
+`Project.py:55-57` → `np.random.seed`), with a **distinct seed per replicate** — community_static
+replicates `_01`…`_10` use seeds `1`…`10`; single-replicate scenarios (oneplant) use seed `1`. The
+committed `data_raw/` is the seeded output.
+**Verified (Pass 6, 2026-06-11):** re-ran all 10 `community_static_0.035` replicates (seeds 1–10)
+from scratch on this machine (venv Python 3.13 + pyMANGA `pr/jvollhueter/380`). Every freshly written
+`Population.csv` matched the committed `data_raw/` **byte-for-byte** — clean `git diff`, exact
+reproduction (not just statistically equivalent). The seed mechanism works; `data_raw/` is now exactly
+regenerable from the model input.
+**Note:** with seeds in place, the correct reproducibility check is now an **exact `git diff`** of a
+re-run against committed `data_raw/`, not the aggregate-stats comparison in `compare_reruns.py` (that
+script + `data_raw_orig` snapshot were only needed in the no-seed era). Pass 6 covered one salinity on
+one machine; the other 30 community_static runs + monoculture/oneplant were not re-run.
+**Earlier (Pass 5, pre-seed):** a 40-sim re-run matched committed replicate-mean biovolume within
+~1.6% — statistically equivalent only, since no seed existed yet (`compare_reruns.py`).
 
 #### R2 🟡 PFT parameters undocumented; calibration provenance missing
 **Where:** `data_model_input/species/Saltmarsh_*.py`.
@@ -300,10 +310,10 @@ original risk (untracked venv/derived data/caches being committed) is addressed.
 - **Q1 (🔴, E2) — pyMANGA version.** Which exact commit is the manuscript built on? Confirm
   `bab0c0dc` on `pr/jvollhueter/380`. Can we archive a permanent copy (Zenodo/DOI or lab-owned tag)
   and merge PR #380 upstream? Where does the Saltmarsh `vegetation_model_type` code live?
-- **Q2 (🔴, R1) — random seed.** pyMANGA supports `<random_seed>` (`XMLtoProject.py:50` →
-  `Project.py:55-57`); the XMLs just omit it. Should `create_setups.py` set a per-replicate seed for
-  exact reproducibility (shared seed → identical replicates)? Were the committed outputs a single
-  documented run, and how do we describe model reproducibility in the paper?
+- **Q2 (✅, R1) — random seed. RESOLVED.** `create_setups.py` now writes a per-replicate
+  `<random_seed>` (seeds 1–10 across community_static reps; seed 1 for single-replicate scenarios),
+  and the committed `data_raw/` is the seeded output. Verified Pass 6: re-running reproduces it
+  byte-for-byte. Remaining: state the seeding scheme in the paper's reproducibility section.
 - **Q3 (🟡, R2 / S5) — PFT parameters.** Meaning/units of `p_maint, p_grow, salt_effect_d,
   salt_effect_ui, aa, bb, fmin, p_transpiration, volume_thr`? How were the calibrated `p_maint`
   values (PFT 2–4) derived — script/formula? **And resolve S5:** the figure labels PFT2 "high cost"
@@ -333,6 +343,11 @@ original risk (untracked venv/derived data/caches being committed) is addressed.
       (E1); built a Python 3.13 venv (deps incl. `vtk`, E3); re-ran 40 `community_static` sims →
       **40/40 OK** (~70–90 s each, 6 parallel). Aggregate comparison (`compare_reruns.py`) reproduces
       committed behaviour within ~1.6% (R1). Stage 2 confirmed runnable; procedure in `HOW_TO_RUN.md`.
+- [x] **Pass 6 — seed reproducibility (2026-06-11).** After Jonas added `<random_seed>` per XML
+      (seeds 1–10 across community_static replicates), re-ran all 10 `community_static_0.035` reps
+      from scratch → **10/10 OK** (~28 s each); every `Population.csv` matched committed `data_raw/`
+      **byte-for-byte** (clean `git diff`). R1 **resolved** — `data_raw/` is now exactly reproducible.
+      Scope: one salinity, this machine; other static/dynamic scenarios not re-run.
 - [x] **Pass 3 — analysis source / scientific logic.** Read the full `01`→`02`→utils→main→plot
       pipeline. Core science is sound: the biovolume formula matches pyMANGA's `Saltmarsh.plantVolume`
       (S2), the salinity-response curve matches the model's forman implementation (S5), and the
@@ -398,5 +413,5 @@ Confirm the exact pyMANGA commit (E2) before publishing.
 > Add `--include-done` to re-run sims already marked `OK` in `data_raw/logs/simulation_log.csv`;
 > `--override-only community_static` runs one category.
 >
-> **Reproducibility:** runs use unseeded random initial populations/mortality, so a re-run is
-> statistically equivalent — not byte-identical — to the committed data (R1).
+> **Reproducibility:** each XML carries a `<random_seed>` (per-replicate), so a re-run reproduces
+> the committed `data_raw/` exactly — byte-identical (R1, verified Pass 6).

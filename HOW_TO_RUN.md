@@ -121,8 +121,9 @@ Success = it runs to completion (a ~10-year simulation, takes a few minutes) wit
 Python traceback, and refreshes
 `data_raw\community\static\0.035\01\Population.csv`.
 
-⚠️ This **overwrites** the committed manuscript output in that folder. To put the committed
-version back (a re-run will differ anyway — no random seed, REVIEW.md R1):
+⚠️ This **overwrites** the committed manuscript output in that folder. Each XML now carries a
+`<random_seed>`, so a re-run reproduces the committed output **byte-for-byte** (REVIEW.md R1,
+resolved Pass 6) — `git status` stays clean. To restore anyway:
 
 ```powershell
 git checkout -- data_raw/community/static/0.035/01
@@ -167,22 +168,25 @@ Notes:
 
 ### 5c. Compare a re-run against the committed data, then restore
 
-Because there is **no random seed** (REVIEW.md R1), a re-run will *not* match the committed
-output byte-for-byte — comparing raw files with a diff is meaningless. Instead:
+Each XML now carries a per-replicate `<random_seed>` (REVIEW.md R1, resolved Pass 6), so a re-run
+reproduces the committed `data_raw\` **exactly**. The correct check is therefore a plain `git diff`
+— no snapshot or aggregate stats needed:
 
-1. Before running, snapshot the committed data (gitignored, ~1.5 GB):
+1. Run the simulations (Step 5b); fresh output overwrites `data_raw\`.
+2. Check exact reproduction — a **clean** result means byte-for-byte identical to committed:
    ```powershell
-   Copy-Item data_raw data_raw_orig -Recurse
+   git status -s data_raw      # expect: nothing (logs aside)
+   git diff --stat data_raw    # expect: empty
    ```
-2. Run the simulations (Step 5b). The fresh output lands in `data_raw\`, the originals stay in
-   `data_raw_orig\`.
-3. Compare on **aggregates** (e.g. number of plants, total biovolume per scenario), not bytes,
-   to confirm the model reproduces the manuscript *behaviour*.
-4. When done, restore the tracked files and remove the snapshot:
+   Verified Pass 6 (2026-06-11): all 10 `community_static_0.035` replicates re-ran clean.
+3. Restore any overwritten tracked files:
    ```powershell
    git checkout -- data_raw
-   Remove-Item data_raw_orig -Recurse -Force
    ```
+
+> The older aggregate-stats approach (`compare_reruns.py` + a `data_raw_orig\` snapshot) was only
+> needed in the no-seed era, when re-runs differed numerically. It is now superseded by the exact
+> `git diff` above.
 
 ---
 
