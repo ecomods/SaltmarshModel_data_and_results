@@ -1,82 +1,67 @@
-# Title: Figure 3.2 - static community structure
+# Title: Figure 3.2 (median + IQR) - static community structure
 # Date: 2026-06-15
 # Author: Selina Baldauf
-# Purpose: Community structure vs salinity (biovolume per plant, height, AG/BG
-#   ratio, plant count), for the whole community and each PFT.
+# Purpose: Reproduce the median + 25/75 percentile version of Figure 3.2, with
+#   every summarisation step written out explicitly. Shows each PFT and the
+#   whole community.
 
 # Libraries and setup ---------------------------------------------------------
 source("source/figures_selina/figures_config.R")
 
 # Load data -------------------------------------------------------------------
+# One row per plant per timestep per replicate. Keep mature plants (age >= 10
+# days), PFTs 1-4 and the static salinities.
 comm <- read_csv(path_comm_static, show_col_types = FALSE) |>
   add_derived_metrics() |>
-  filter(
-    pfts == "all",
-    age >= 864000,
-    pft %in% pft_levels,
-    salinity %in% sal_static
-  )
+  filter(pfts == "all", age >= 864000, pft %in% pft_levels, salinity %in% sal_static)
 
-# Functions -------------------------------------------------------------------
-# Plant-level metric: median + min/max over individual plants.
-# by_pft = FALSE gives the whole-community series.
-summarise_individuals <- function(df, metric, by_pft) {
-  keys <- if (by_pft) c("salinity", "pft") else "salinity"
-  df |>
-    summarise(
-      med = median(.data[[metric]]),
-      lo = min(.data[[metric]]),
-      hi = max(.data[[metric]]),
-      .by = all_of(keys)
-    )
-}
-
-# Number of plants: count per timestep -> median over time per replicate ->
-# min/max across replicates.
-summarise_num_plants <- function(df, by_pft) {
-  keys <- if (by_pft) c("salinity", "pft") else "salinity"
-  df |>
-    count(across(all_of(c(keys, "n", "time"))), name = "num_plants") |>
-    summarise(rep_med = median(num_plants), .by = all_of(c(keys, "n"))) |>
-    summarise(
-      med = median(rep_med),
-      lo = min(rep_med),
-      hi = max(rep_med),
-      .by = all_of(keys)
-    )
-}
-
-# One tidy table (community + per-PFT rows) for a single metric.
-build_metric <- function(metric_name) {
-  if (metric_name == "num_plants") {
-    per_pft <- summarise_num_plants(comm, by_pft = TRUE)
-    community <- summarise_num_plants(comm, by_pft = FALSE)
-  } else {
-    per_pft <- summarise_individuals(
-      comm,
-      plant_metrics[[metric_name]],
-      by_pft = TRUE
-    )
-    community <- summarise_individuals(
-      comm,
-      plant_metrics[[metric_name]],
-      by_pft = FALSE
-    )
-  }
-  bind_rows(
-    community |> mutate(group = "community"),
-    per_pft |> mutate(group = paste("PFT", pft))
-  ) |>
-    mutate(metric = metric_name)
-}
-
-# Prepare ---------------------------------------------------------------------
-plant_metrics <- c(
-  volume_per_plant = "volume",
-  h_ag = "h_ag",
-  ag_bg_ratio = "ag_bg_ratio"
+# Label every plant twice: once under its own PFT and once as "community". This
+# way the same summaries below produce both the per-PFT and the community series.
+comm <- bind_rows(
+  comm |> mutate(group = paste("PFT", pft)),
+  comm |> mutate(group = "community")
 )
 
+# Trait panels: median + 25/75 percentile over INDIVIDUAL plants --------------
+# The manuscript pools all individual plants (every timestep, every replicate)
+# and groups them only by salinity and group (PFT or community).
+
+# Put the three trait metrics into long format: one row per plant per metric.
+trait_long <- comm |>
+  rename(volume_per_plant = volume) |>
+  pivot_longer(c(volume_per_plant, h_ag, ag_bg_ratio),
+               names_to = "metric", values_to = "value")
+
+# Median and 25/75 percentiles across those individual plants.
+trait_summary <- trait_long |>
+  summarise(
+    median = median(value),
+    lower  = quantile(value, 0.25),
+    upper  = quantile(value, 0.75),
+    .by = c(metric, salinity, group)
+  )
+
+# Number of plants: median + 25/75 percentile ACROSS the 10 replicates --------
+
+# Step 1: number of plants per timestep, within each replicate and group.
+count_per_timestep <- comm |>
+  count(salinity, group, n, time, name = "num_plants")
+
+# Step 2: one typical count per replicate = median over the evaluation period.
+count_per_replicate <- count_per_timestep |>
+  summarise(rep_count = median(num_plants), .by = c(salinity, group, n))
+
+# Step 3: median and 25/75 percentiles across the 10 replicates.
+count_summary <- count_per_replicate |>
+  summarise(
+    median = median(rep_count),
+    lower  = quantile(rep_count, 0.25),
+    upper  = quantile(rep_count, 0.75),
+    .by = c(salinity, group)
+  ) |>
+  mutate(metric = "num_plants")
+
+# Combine for plotting --------------------------------------------------------
 metric_labels <- c(
   volume_per_plant = "Biovolume per plant [m³]",
   h_ag = "Aboveground height [m]",
@@ -84,43 +69,25 @@ metric_labels <- c(
   num_plants = "Number of plants"
 )
 
-community_metrics <- map(names(metric_labels), build_metric) |>
-  list_rbind() |>
+group_colors <- c("community" = "black", setNames(pft_colors, paste("PFT", pft_levels)))
+
+plot_data <- bind_rows(trait_summary, count_summary) |>
   mutate(
-    metric = factor(
-      metric,
-      levels = names(metric_labels),
-      labels = metric_labels
-    ),
+    metric = factor(metric, levels = names(metric_labels), labels = metric_labels),
     group = factor(group, levels = c("community", paste("PFT", pft_levels))),
     salinity = factor(salinity, levels = sal_static)
   )
 
-group_colors <- c(
-  "community" = "black",
-  setNames(pft_colors, paste("PFT", pft_levels))
-)
-
 # Plot ------------------------------------------------------------------------
-p <- ggplot(community_metrics, aes(x = salinity, y = med, colour = group)) +
-  geom_pointrange(
-    aes(ymin = lo, ymax = hi),
-    position = position_dodge(width = 0.6),
-    size = 0.3,
-    linewidth = 0.5
-  ) +
+p <- ggplot(plot_data, aes(x = salinity, y = median, colour = group)) +
+  geom_pointrange(aes(ymin = lower, ymax = upper),
+                  position = position_dodge(width = 0.6), size = 0.3, linewidth = 0.5) +
   facet_wrap(~metric, scales = "free_y", nrow = 2) +
   scale_colour_manual(values = group_colors, name = NULL) +
   labs(x = "Salinity [ppt]", y = NULL) +
   theme_manuscript() +
-  theme(
-    panel.grid.major.y = element_line(
-      linetype = "dotted",
-      linewidth = 0.3,
-      colour = "grey80"
-    ),
-    legend.position = "bottom"
-  )
+  theme(panel.grid.major.y = element_line(linetype = "dotted", linewidth = 0.3, colour = "grey80"),
+        legend.position = "bottom")
 
 print(p)
 
