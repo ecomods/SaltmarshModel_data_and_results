@@ -14,10 +14,16 @@ Outputs in data/derived_figure_data/:
     df_mono_prepared.csv          -> 03_plot_appendix_1_static_monoculture.py
     comm_mat.csv                  -> 03_plot_3_1_static_community_vs_mono.py
     mono_mat.csv                  -> 03_plot_3_1_static_community_vs_mono.py
+    MEAN_comm_mat.csv             -> MEAN_03_plot_3_1_static_community_vs_mono.py
+    MEAN_mono_mat.csv             -> MEAN_03_plot_3_1_static_community_vs_mono.py
     grouped_pft_static.csv        -> 03_plot_3_2_static_community.py
     grouped_all_static.csv        -> 03_plot_3_2_static_community.py
+    MEAN_grouped_pft_static.csv   -> MEAN_03_plot_3_2_static_community.py
+    MEAN_grouped_all_static.csv   -> MEAN_03_plot_3_2_static_community.py
     summary_pft_tv.csv            -> 03_plot_3_3_dynamic_biovolume.py
     median_ts_total_volume.csv    -> 03_plot_3_3_dynamic_biovolume.py
+    MEAN_summary_pft_tv.csv       -> MEAN_03_plot_3_3_dynamic_biovolume.py
+    MEAN_ts_total_volume.csv      -> MEAN_03_plot_3_3_dynamic_biovolume.py
 """
 
 import os
@@ -43,13 +49,17 @@ VARIANT_LEVELS = _config.VARIANT_LEVELS
 complete_grid = _utils.complete_grid
 ensure_dir = _utils.ensure_dir
 grouped_over_time_medians = _utils.grouped_over_time_medians
+grouped_over_time_means = _utils.grouped_over_time_means
 median_ts = _utils.median_ts
+mean_ts = _utils.mean_ts
 normalize_pft_to_int = _utils.normalize_pft_to_int
 prep_dynamic_comm_df = _utils.prep_dynamic_comm_df
 prep_static_comm_df = _utils.prep_static_comm_df
 prep_static_mono_df = _utils.prep_static_mono_df
 replicate_median_over_time_totalvolume_by_pft = _utils.replicate_median_over_time_totalvolume_by_pft
+replicate_mean_over_time_totalvolume_by_pft = _utils.replicate_mean_over_time_totalvolume_by_pft
 summary_minmax = _utils.summary_minmax
+summary_minmax_mean = _utils.summary_minmax_mean
 
 
 # =============================================================================
@@ -94,6 +104,26 @@ comm_mat.to_csv(os.path.join(DERIVED_DIR, "comm_mat.csv"))
 mono_mat.to_csv(os.path.join(DERIVED_DIR, "mono_mat.csv"))
 
 
+# Equivalent mean-based matrices for optional comparison figures. The calculation
+# mirrors the median workflow but uses arithmetic means at each aggregation step.
+mean_comm_sum = replicate_mean_over_time_totalvolume_by_pft(
+    df_comm,
+    group_cols=["salinity"],
+    pft_col="pft",
+)
+mean_mono_sum = replicate_mean_over_time_totalvolume_by_pft(
+    df_mono,
+    group_cols=["salinity"],
+    pft_col="pft",
+)
+
+mean_comm_mat = complete_grid(mean_comm_sum, SAL_STATIC, PFTS)
+mean_mono_mat = complete_grid(mean_mono_sum, SAL_STATIC, PFTS)
+
+mean_comm_mat.to_csv(os.path.join(DERIVED_DIR, "MEAN_comm_mat.csv"))
+mean_mono_mat.to_csv(os.path.join(DERIVED_DIR, "MEAN_mono_mat.csv"))
+
+
 # =============================================================================
 # Figure 3.2: static community 2x2 error-bar figure
 # =============================================================================
@@ -112,6 +142,21 @@ grouped_pft_static.to_csv(
 )
 grouped_all_static.to_csv(
     os.path.join(DERIVED_DIR, "grouped_all_static.csv"),
+    index=False,
+)
+
+
+mean_grouped_pft_static, mean_grouped_all_static = grouped_over_time_means(
+    df_comm,
+    keys_prefix=["salinity"],
+)
+
+mean_grouped_pft_static.to_csv(
+    os.path.join(DERIVED_DIR, "MEAN_grouped_pft_static.csv"),
+    index=False,
+)
+mean_grouped_all_static.to_csv(
+    os.path.join(DERIVED_DIR, "MEAN_grouped_all_static.csv"),
     index=False,
 )
 
@@ -167,6 +212,21 @@ summary_pft_tv = summary_minmax(
 )
 summary_pft_tv.to_csv(os.path.join(DERIVED_DIR, "summary_pft_tv.csv"), index=False)
 
+
+mean_grouped_pft_dyn, _ = grouped_over_time_means(
+    df_dyn,
+    keys_prefix=["salinity", "variant"],
+)
+mean_summary_pft_tv = summary_minmax_mean(
+    mean_grouped_pft_dyn,
+    ["salinity", "variant", "pft"],
+    "total_volume",
+)
+mean_summary_pft_tv.to_csv(
+    os.path.join(DERIVED_DIR, "MEAN_summary_pft_tv.csv"),
+    index=False,
+)
+
 # Values for the PFT time-series panels of Figure 3.3.
 per_timestep_pft_dyn = (
     df_dyn.groupby(["version", "pft", "n", "time_days"], observed=True)
@@ -176,6 +236,12 @@ per_timestep_pft_dyn = (
 median_ts_total_volume = median_ts(per_timestep_pft_dyn, "total_volume")
 median_ts_total_volume.to_csv(
     os.path.join(DERIVED_DIR, "median_ts_total_volume.csv"),
+    index=False,
+)
+
+mean_ts_total_volume = mean_ts(per_timestep_pft_dyn, "total_volume")
+mean_ts_total_volume.to_csv(
+    os.path.join(DERIVED_DIR, "MEAN_ts_total_volume.csv"),
     index=False,
 )
 

@@ -212,9 +212,13 @@ data_and_results/
 │   ├── 03_plot_2_2_forman.py
 │   ├── 03_plot_2_3_growth_pot_maint.py
 │   ├── 03_plot_3_1_static_community_vs_mono.py
+│   ├── MEAN_03_plot_3_1_static_community_vs_mono.py
 │   ├── 03_plot_3_2_static_community.py
+│   ├── MEAN_03_plot_3_2_static_community.py
 │   ├── 03_plot_3_3_dynamic_biovolume.py
-│   └── 03_plot_appendix_1_static_monoculture.py
+│   ├── MEAN_03_plot_3_3_dynamic_biovolume.py
+│   ├── 03_plot_appendix_1_static_monoculture.py
+│   └── MEAN_03_plot_appendix_1_static_monoculture.py
 │
 ├── create_setups.py
 ├── run_model.py
@@ -414,12 +418,20 @@ figures/main/plot_2_3_growth_pot_maint.png
 figures/main/plot_2_3_growth_pot_maint.pdf
 figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.png
 figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.pdf
+figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.png
+figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.pdf
 figures/main/plot_3_2_static_community.png
 figures/main/plot_3_2_static_community.pdf
+figures/main/MEAN_plot_3_2_static_community.png
+figures/main/MEAN_plot_3_2_static_community.pdf
 figures/main/plot_3_3_dynamic_biovolume.png
 figures/main/plot_3_3_dynamic_biovolume.pdf
+figures/main/MEAN_plot_3_3_dynamic_biovolume.png
+figures/main/MEAN_plot_3_3_dynamic_biovolume.pdf
 figures/appendix/plot_appendix_1_static_monoculture.png
 figures/appendix/plot_appendix_1_static_monoculture.pdf
+figures/appendix/MEAN_plot_appendix_1_static_monoculture.png
+figures/appendix/MEAN_plot_appendix_1_static_monoculture.pdf
 ```
 
 ---
@@ -629,9 +641,13 @@ The script runs these source scripts in order:
 03_plot_2_2_forman.py
 03_plot_2_3_growth_pot_maint.py
 03_plot_3_1_static_community_vs_mono.py
+MEAN_03_plot_3_1_static_community_vs_mono.py
 03_plot_3_2_static_community.py
+MEAN_03_plot_3_2_static_community.py
 03_plot_3_3_dynamic_biovolume.py
+MEAN_03_plot_3_3_dynamic_biovolume.py
 03_plot_appendix_1_static_monoculture.py
+MEAN_03_plot_appendix_1_static_monoculture.py
 ```
 
 ---
@@ -791,6 +807,13 @@ figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.png
 figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.pdf
 ```
 
+Mean-based companion output:
+
+```text
+figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.png
+figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.pdf
+```
+
 ### 6.5 `03_plot_3_2_static_community.py`
 
 Creates the static community figure 2.2.
@@ -818,6 +841,13 @@ figures/main/plot_3_2_static_community.png
 figures/main/plot_3_2_static_community.pdf
 ```
 
+Mean-based companion output:
+
+```text
+figures/main/MEAN_plot_3_2_static_community.png
+figures/main/MEAN_plot_3_2_static_community.pdf
+```
+
 ### 6.6 `03_plot_3_3_dynamic_biovolume.py`
 
 Creates the dynamic biovolume time-series and stacked-bar figure 2.3.
@@ -838,7 +868,25 @@ figures/main/plot_3_3_dynamic_biovolume.png
 figures/main/plot_3_3_dynamic_biovolume.pdf
 ```
 
-### 6.7 `03_plot_appendix_1_static_monoculture.py`
+Mean-based companion output:
+
+```text
+figures/main/MEAN_plot_3_3_dynamic_biovolume.png
+figures/main/MEAN_plot_3_3_dynamic_biovolume.pdf
+```
+
+### 6.7 Mean-based `plot_3*` companion scripts
+
+The scripts with prefix `MEAN_` create mean-based versions of the three main result figures and the appendix monoculture figure. They use the same plotting logic and layout as the median-based scripts, but the aggregation statistics are based on arithmetic means. For mean-based figures with error bars, error bars show one standard deviation across the ten replicate simulations.
+
+```text
+MEAN_03_plot_3_1_static_community_vs_mono.py
+MEAN_03_plot_3_2_static_community.py
+MEAN_03_plot_3_3_dynamic_biovolume.py
+MEAN_03_plot_appendix_1_static_monoculture.py
+```
+
+### 6.8 `03_plot_appendix_1_static_monoculture.py`
 
 Creates the static monoculture figure.
 
@@ -847,6 +895,8 @@ Output:
 ```text
 figures/appendix/plot_appendix_1_static_monoculture.png
 figures/appendix/plot_appendix_1_static_monoculture.pdf
+figures/appendix/MEAN_plot_appendix_1_static_monoculture.png
+figures/appendix/MEAN_plot_appendix_1_static_monoculture.pdf
 ```
 
 ---
