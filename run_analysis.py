@@ -18,7 +18,8 @@
 # 3. 03_main_prepare_figure_data.py
 #       Creates compact summary tables used by the plotting scripts.
 # 4. plot_*.py scripts
-#       Create the final manuscript and appendix figures.
+#       Create the final manuscript and appendix figures, including the optional
+#       mean-based versions of the plot_3* figures.
 #
 # Why subprocesses are used
 # -------------------------
@@ -66,9 +67,13 @@ PIPELINE_SCRIPTS = [
     "03_plot_2_2_forman.py",
     "03_plot_2_3_growth_pot_maint.py",
     "03_plot_3_1_static_community_vs_mono.py",
+    "MEAN_03_plot_3_1_static_community_vs_mono.py",
     "03_plot_3_2_static_community.py",
+    "MEAN_03_plot_3_2_static_community.py",
     "03_plot_3_3_dynamic_biovolume.py",
+    "MEAN_03_plot_3_3_dynamic_biovolume.py",
     "03_plot_appendix_1_static_monoculture.py",
+    "MEAN_03_plot_appendix_1_static_monoculture.py",
 ]
 
 
