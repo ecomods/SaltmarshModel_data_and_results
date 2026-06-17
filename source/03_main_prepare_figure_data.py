@@ -11,7 +11,7 @@ Inputs:
 
 Outputs in data/derived_figure_data/:
     df_comm_prepared.csv          -> 03_plot_3_2_static_community.py
-    df_mono_prepared.csv          -> 03_plot_appendix_1_static_monoculture.py
+    df_mono_prepared.csv          -> 03_plot_appendix_3_static_monoculture.py
     comm_mat.csv                  -> 03_plot_3_1_static_community_vs_mono.py
     mono_mat.csv                  -> 03_plot_3_1_static_community_vs_mono.py
     MEAN_comm_mat.csv             -> MEAN_03_plot_3_1_static_community_vs_mono.py

@@ -12,11 +12,10 @@ Used by:
     - source/03_plot_3_1_static_community_vs_mono.py
     - source/03_plot_3_2_static_community.py
     - source/03_plot_3_3_dynamic_biovolume.py
-    - source/03_plot_appendix_1_static_monoculture.py
+    - source/03_plot_appendix_3_static_monoculture.py
 
-The parameterization figures plot_2_1, plot_2_2 and plot_2_3 use
-source.utils.paths directly because they are based on model-input files rather
-than processed model outputs.
+The model-input and parameterization figures use source.utils.paths directly
+because they are based on model-input files rather than processed model outputs.
 """
 
 import matplotlib.pyplot as plt

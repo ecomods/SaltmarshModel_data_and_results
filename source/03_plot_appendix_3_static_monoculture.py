@@ -22,7 +22,7 @@
 # =============================================================================
 
 """
-Appendix Figure 1:
+Appendix Figure 3:
 Static salinity - monoculture metrics with error bars in a 2 x 2 grid.
 
 This script creates one combined figure for the static monoculture setups.
@@ -42,8 +42,8 @@ Error bars:
     25th and 75th percentiles of replicate-level values.
 
 Output:
-    figures/appendix/plot_appendix_1_static_monoculture.png
-    figures/appendix/plot_appendix_1_static_monoculture.pdf
+    figures/appendix/plot_appendix_3_static_monoculture.png
+    figures/appendix/plot_appendix_3_static_monoculture.pdf
 
 """
 
@@ -96,7 +96,7 @@ aggregate_metrics = [
     "num_plants",
 ]
 
-OUTPUT_BASENAME = "plot_appendix_1_static_monoculture"
+OUTPUT_BASENAME = "plot_appendix_3_static_monoculture"
 
 
 # =============================================================================
@@ -397,6 +397,6 @@ plt.show()
 plt.close(fig)
 
 
-print("Done: plot_appendix_1_static_monoculture")
+print("Done: plot_appendix_3_static_monoculture")
 print(f"Saved: figures/appendix/{OUTPUT_BASENAME}.png")
 print(f"Saved: figures/appendix/{OUTPUT_BASENAME}.pdf")

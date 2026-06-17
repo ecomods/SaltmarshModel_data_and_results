@@ -208,17 +208,17 @@ data_and_results/
 │   ├── 03_figure_config.py
 │   ├── 03_figure_utils.py
 │   ├── 03_main_prepare_figure_data.py
-│   ├── 03_plot_2_1_porewater_salinity.py
+│   ├── 03_plot_appendix_2_porewater_salinity.py
 │   ├── 03_plot_2_2_forman.py
-│   ├── 03_plot_2_3_growth_pot_maint.py
+│   ├── 03_plot_appendix_1_growth_pot_maint.py
 │   ├── 03_plot_3_1_static_community_vs_mono.py
 │   ├── MEAN_03_plot_3_1_static_community_vs_mono.py
 │   ├── 03_plot_3_2_static_community.py
 │   ├── MEAN_03_plot_3_2_static_community.py
 │   ├── 03_plot_3_3_dynamic_biovolume.py
 │   ├── MEAN_03_plot_3_3_dynamic_biovolume.py
-│   ├── 03_plot_appendix_1_static_monoculture.py
-│   └── MEAN_03_plot_appendix_1_static_monoculture.py
+│   ├── 03_plot_appendix_3_static_monoculture.py
+│   └── MEAN_03_plot_appendix_3_static_monoculture.py
 │
 ├── create_setups.py
 ├── run_model.py
@@ -410,12 +410,12 @@ figures/appendix/
 The current standardized figure scripts write:
 
 ```text
-figures/main/plot_2_1_porewater_salinity.png
-figures/main/plot_2_1_porewater_salinity.pdf
+figures/appendix/plot_appendix_2_porewater_salinity.png
+figures/appendix/plot_appendix_2_porewater_salinity.pdf
 figures/main/plot_2_2_forman.png
 figures/main/plot_2_2_forman.pdf
-figures/main/plot_2_3_growth_pot_maint.png
-figures/main/plot_2_3_growth_pot_maint.pdf
+figures/appendix/plot_appendix_1_growth_pot_maint.png
+figures/appendix/plot_appendix_1_growth_pot_maint.pdf
 figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.png
 figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.pdf
 figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.png
@@ -428,10 +428,10 @@ figures/main/plot_3_3_dynamic_biovolume.png
 figures/main/plot_3_3_dynamic_biovolume.pdf
 figures/main/MEAN_plot_3_3_dynamic_biovolume.png
 figures/main/MEAN_plot_3_3_dynamic_biovolume.pdf
-figures/appendix/plot_appendix_1_static_monoculture.png
-figures/appendix/plot_appendix_1_static_monoculture.pdf
-figures/appendix/MEAN_plot_appendix_1_static_monoculture.png
-figures/appendix/MEAN_plot_appendix_1_static_monoculture.pdf
+figures/appendix/plot_appendix_3_static_monoculture.png
+figures/appendix/plot_appendix_3_static_monoculture.pdf
+figures/appendix/MEAN_plot_appendix_3_static_monoculture.png
+figures/appendix/MEAN_plot_appendix_3_static_monoculture.pdf
 ```
 
 ---
@@ -637,17 +637,17 @@ The script runs these source scripts in order:
 01_read_raw_data.py
 02_data_processing.py
 03_main_prepare_figure_data.py
-03_plot_2_1_porewater_salinity.py
+03_plot_appendix_2_porewater_salinity.py
 03_plot_2_2_forman.py
-03_plot_2_3_growth_pot_maint.py
+03_plot_appendix_1_growth_pot_maint.py
 03_plot_3_1_static_community_vs_mono.py
 MEAN_03_plot_3_1_static_community_vs_mono.py
 03_plot_3_2_static_community.py
 MEAN_03_plot_3_2_static_community.py
 03_plot_3_3_dynamic_biovolume.py
 MEAN_03_plot_3_3_dynamic_biovolume.py
-03_plot_appendix_1_static_monoculture.py
-MEAN_03_plot_appendix_1_static_monoculture.py
+03_plot_appendix_3_static_monoculture.py
+MEAN_03_plot_appendix_3_static_monoculture.py
 ```
 
 ---
@@ -751,7 +751,7 @@ DEFAULT_MANGA_SCRIPT
 
 ## 6. Figure scripts
 
-### 6.1 `03_plot_2_1_porewater_salinity.py`
+### 6.1 `03_plot_appendix_2_porewater_salinity.py`
 
 Creates the porewater salinity scenario figure 2.1.
 
@@ -764,8 +764,8 @@ data_model_input/salinity/*.csv
 Output:
 
 ```text
-figures/main/plot_2_1_porewater_salinity.png
-figures/main/plot_2_1_porewater_salinity.pdf
+figures/appendix/plot_appendix_2_porewater_salinity.png
+figures/appendix/plot_appendix_2_porewater_salinity.pdf
 ```
 
 ### 6.2 `03_plot_2_2_forman.py`
@@ -785,15 +785,15 @@ figures/main/plot_2_2_forman.png
 figures/main/plot_2_2_forman.pdf
 ```
 
-### 6.3 `03_plot_2_3_growth_pot_maint.py`
+### 6.3 `03_plot_appendix_1_growth_pot_maint.py`
 
 Creates the conceptual growth-potential versus maintenance figure 2.3.
 
 Output:
 
 ```text
-figures/main/plot_2_3_growth_pot_maint.png
-figures/main/plot_2_3_growth_pot_maint.pdf
+figures/appendix/plot_appendix_1_growth_pot_maint.png
+figures/appendix/plot_appendix_1_growth_pot_maint.pdf
 ```
 
 ### 6.4 `03_plot_3_1_static_community_vs_mono.py`
@@ -883,20 +883,20 @@ The scripts with prefix `MEAN_` create mean-based versions of the three main res
 MEAN_03_plot_3_1_static_community_vs_mono.py
 MEAN_03_plot_3_2_static_community.py
 MEAN_03_plot_3_3_dynamic_biovolume.py
-MEAN_03_plot_appendix_1_static_monoculture.py
+MEAN_03_plot_appendix_3_static_monoculture.py
 ```
 
-### 6.8 `03_plot_appendix_1_static_monoculture.py`
+### 6.8 `03_plot_appendix_3_static_monoculture.py`
 
 Creates the static monoculture figure.
 
 Output:
 
 ```text
-figures/appendix/plot_appendix_1_static_monoculture.png
-figures/appendix/plot_appendix_1_static_monoculture.pdf
-figures/appendix/MEAN_plot_appendix_1_static_monoculture.png
-figures/appendix/MEAN_plot_appendix_1_static_monoculture.pdf
+figures/appendix/plot_appendix_3_static_monoculture.png
+figures/appendix/plot_appendix_3_static_monoculture.pdf
+figures/appendix/MEAN_plot_appendix_3_static_monoculture.png
+figures/appendix/MEAN_plot_appendix_3_static_monoculture.pdf
 ```
 
 ---
