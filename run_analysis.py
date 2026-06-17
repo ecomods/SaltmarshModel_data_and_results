@@ -63,17 +63,17 @@ PIPELINE_SCRIPTS = [
     "01_read_raw_data.py",
     "02_data_processing.py",
     "03_main_prepare_figure_data.py",
-    "03_plot_2_1_porewater_salinity.py",
+    "03_plot_appendix_2_porewater_salinity.py",
     "03_plot_2_2_forman.py",
-    "03_plot_2_3_growth_pot_maint.py",
+    "03_plot_appendix_1_growth_pot_maint.py",
     "03_plot_3_1_static_community_vs_mono.py",
     "MEAN_03_plot_3_1_static_community_vs_mono.py",
     "03_plot_3_2_static_community.py",
     "MEAN_03_plot_3_2_static_community.py",
     "03_plot_3_3_dynamic_biovolume.py",
     "MEAN_03_plot_3_3_dynamic_biovolume.py",
-    "03_plot_appendix_1_static_monoculture.py",
-    "MEAN_03_plot_appendix_1_static_monoculture.py",
+    "03_plot_appendix_3_static_monoculture.py",
+    "MEAN_03_plot_appendix_3_static_monoculture.py",
 ]
 
 

@@ -6,7 +6,7 @@
 # Purpose
 # -------
 # This appendix script creates the mean-based 2x2 grid figure for static
-# monoculture simulations. It mirrors 03_plot_appendix_1_static_monoculture.py
+# monoculture simulations. It mirrors 03_plot_appendix_3_static_monoculture.py
 # but uses arithmetic means instead of medians.
 #
 # Error bar interpretation
@@ -20,7 +20,7 @@
 # =============================================================================
 
 """
-Appendix Figure 1:
+Appendix Figure 3:
 Mean-based static salinity - monoculture metrics with error bars in a 2 x 2 grid.
 
 Panel layout:
@@ -30,8 +30,8 @@ Panel layout:
     bottom right: Number of Plants
 
 Output:
-    figures/appendix/MEAN_plot_appendix_1_static_monoculture.png
-    figures/appendix/MEAN_plot_appendix_1_static_monoculture.pdf
+    figures/appendix/MEAN_plot_appendix_3_static_monoculture.png
+    figures/appendix/MEAN_plot_appendix_3_static_monoculture.pdf
 """
 
 import os
@@ -74,7 +74,7 @@ panel_order = [
     "num_plants",
 ]
 
-OUTPUT_BASENAME = "MEAN_plot_appendix_1_static_monoculture"
+OUTPUT_BASENAME = "MEAN_plot_appendix_3_static_monoculture"
 
 
 # =============================================================================
@@ -307,6 +307,6 @@ plt.savefig(
 plt.show()
 plt.close(fig)
 
-print("Done: MEAN_plot_appendix_1_static_monoculture")
+print("Done: MEAN_plot_appendix_3_static_monoculture")
 print(f"Saved: figures/appendix/{OUTPUT_BASENAME}.png")
 print(f"Saved: figures/appendix/{OUTPUT_BASENAME}.pdf")

@@ -16,7 +16,7 @@
 #
 # Output
 # ------
-# The figure is written directly to figures/main/ as PNG and PDF.
+# The figure is written directly to figures/appendix/ as PNG and PDF.
 # =============================================================================
 
 """
@@ -27,8 +27,8 @@ porewater salinity scenarios used in the model setup.
 
 Outputs
 -------
-figures/main/plot_2_1_porewater_salinity.png
-figures/main/plot_2_1_porewater_salinity.pdf
+figures/appendix/plot_appendix_2_porewater_salinity.png
+figures/appendix/plot_appendix_2_porewater_salinity.pdf
 """
 
 
@@ -47,18 +47,18 @@ REPO_ROOT_BOOTSTRAP = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT_BOOTSTRAP) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT_BOOTSTRAP))
 
-from source.utils.paths import FIGURES_MAIN, SALINITY_DIR
+from source.utils.paths import FIGURES_APPENDIX, SALINITY_DIR
 
 
 # =============================================================================
 # Settings
 # =============================================================================
 
-OUT_DIR = FIGURES_MAIN
+OUT_DIR = FIGURES_APPENDIX
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-OUT_PNG = OUT_DIR / "plot_2_1_porewater_salinity.png"
-OUT_PDF = OUT_DIR / "plot_2_1_porewater_salinity.pdf"
+OUT_PNG = OUT_DIR / "plot_appendix_2_porewater_salinity.png"
+OUT_PDF = OUT_DIR / "plot_appendix_2_porewater_salinity.pdf"
 
 SCENARIO_FILES = {
     "35_V1": "35_V1.csv",
