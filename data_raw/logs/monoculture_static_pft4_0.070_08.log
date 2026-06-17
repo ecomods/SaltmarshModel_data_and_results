@@ -1,4 +1,4 @@
-Running pyMANGA v3.1.0 -  2026-06-11 02:01:17 
+Running pyMANGA v3.1.0 -  2026-06-17 14:33:16 
 ============================================== 
 Simulation Settings: 
 --------------------
@@ -23,7 +23,7 @@ Visualization: NONE.
 Output file path: C:\Users\Jonas\Documents\MASCOT\SourceCode\pyMANGA-1\../data_and_results/data_raw/monoculture/static/0.070/PFT_4/08
 Model output: OneFile.
 --------------------
-pyMANGA started at 2026-06-11 02:01:17.824081
+pyMANGA started at 2026-06-17 14:33:16.505757
 Running pyMANGA project file: C:\Users\Jonas\Documents\MASCOT\SourceCode\data_and_results\data_model_input\xml_control_files\monoculture_static_pft4_0.070_08.xml
 Calculated timesteps: 0 % (0.00 d - 1.00 d)
 Calculated timesteps: 0 % (1.00 d - 2.00 d)
@@ -3677,5 +3677,5 @@ Calculated timesteps: 99 % (3648.00 d - 3649.00 d)
 Calculated timesteps: 99 % (3649.00 d - 3650.00 d)
 Calculated timesteps: 99 % (3650.00 d - 3650.46 d)
 pyMANGA project C:\Users\Jonas\Documents\MASCOT\SourceCode\data_and_results\data_model_input\xml_control_files\monoculture_static_pft4_0.070_08.xml successfully evaluated.
-pyMANGA finished at 2026-06-11 02:03:37.644846
-Total execution took 139 seconds
+pyMANGA finished at 2026-06-17 14:36:01.135265
+Total execution took 164 seconds
