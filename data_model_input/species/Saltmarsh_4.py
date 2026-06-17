@@ -13,7 +13,7 @@ def createPlant():
     geometry["r_bg_thr"] = 0.05
     geometry["h_bg"] = 0.1
     geometry['volume_thr'] = 0.0015708
-    parameter["p_maint"] = 2.517150e-06
+    parameter["p_maint"] = 2.517e-06
     parameter["p_grow"] = 5e-9
     parameter["p_dieback"] = 1
     parameter['p_ratio_ag_bg'] = 0.5
