@@ -27,8 +27,8 @@ Mean-based static salinity - community metrics with error bars in a 2 x 2 grid.
 Panel layout:
     top left:     Biovolume per Plant
     top right:    Aboveground Height
-    bottom left:  AG/BG Ratio
-    bottom right: Number of Plants
+    bottom left:  Number of Plants
+    bottom right: AG/BG Ratio
 
 Output:
     figures/main/MEAN_plot_3_2_static_community.png
@@ -71,8 +71,8 @@ metrics_comm = {
 panel_order = [
     "volume_per_plant",
     "h_ag",
-    "ag_bg_ratio",
     "num_plants",
+    "ag_bg_ratio",
 ]
 
 OUTPUT_BASENAME = "MEAN_plot_3_2_static_community"

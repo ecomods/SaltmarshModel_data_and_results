@@ -71,9 +71,9 @@ sal_levels = [35, 70, 105]
 variant_levels = VARIANT_LEVELS
 
 variant_style = {
-    "V0": {"color": "0.25", "linestyle": "--", "linewidth": 1.4},
-    "V1": {"color": "#8c510a", "linestyle": "-", "linewidth": 1.6},
-    "V2": {"color": "#2171b5", "linestyle": "-", "linewidth": 1.6},
+    "V0": {"color": "black", "linestyle": "-", "linewidth": 0.9},
+    "V1": {"color": "#8c510a", "linestyle": "-", "linewidth": 0.9},
+    "V2": {"color": "#2171b5", "linestyle": "-", "linewidth": 0.9},
 }
 
 

@@ -179,7 +179,7 @@ def main():
         )
 
     ax.set_xlabel("Salinity [ppt]")
-    ax.set_ylabel("Belowground Factor [-]")
+    ax.set_ylabel(r"$f_{\mathrm{reslim\_bg,Forman}}$ [-]")
 
     ax.set_xlim(-8, 160)
     ax.set_ylim(0.0, 1.0)
