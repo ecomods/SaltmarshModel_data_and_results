@@ -128,7 +128,7 @@ def load_pft_parameters(pft):
 
     return {
         "p_sun": float(parameter["p_sun"]),
-        "p_water": float(parameter["p_water"]),
+        "p_conv,bg": float(parameter["p_conv,bg"]),
         "p_grow": float(parameter["p_grow"]),
         "p_maint": float(parameter["p_maint"]),
         "p_ratio_ag": float(parameter["p_ratio_ag"]),
@@ -194,7 +194,7 @@ def calculate_growth_pot(geometry, salinity, params):
         belowground_factor
         * geometry["v_bg"]
         * params["p_sun"]
-        * params["p_water"]
+        * params["p_conv,bg"]
         * (1.0 / denominator)
         * TIME
     )

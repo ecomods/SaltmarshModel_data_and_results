@@ -50,7 +50,7 @@ OUTPUT_DIGITS = 6
 
 PARAMETER = {
     "p_sun": 1361.0,
-    "p_water": 1.5,
+    "p_conv,bg": 1.5,
 
     "p_grow": 5e-9,
     "p_dieback": 1.0,
@@ -188,7 +188,7 @@ def calculate_belowground_resources(
         belowground_factor
         * V_bg
         * parameter["p_sun"]
-        * parameter["p_water"]
+        * parameter["p_conv,bg"]
         * 1.0 / (h_ag + 0.5 * h_bg)
         * DT_SECONDS
     )
