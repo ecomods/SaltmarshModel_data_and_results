@@ -30,8 +30,8 @@ This script creates one combined figure for the static monoculture setups.
 Panel layout:
     top left:     Biovolume per Plant
     top right:    Aboveground Height
-    bottom left:  AG/BG Ratio
-    bottom right: Number of Plants
+    bottom left:  Number of Plants
+    bottom right: AG/BG Ratio
 
 Error bars:
 - volume_per_plant, h_ag, ag_bg_ratio:
@@ -82,8 +82,8 @@ metrics_mono = {
 panel_order = [
     "volume_per_plant",
     "h_ag",
-    "ag_bg_ratio",
     "num_plants",
+    "ag_bg_ratio",
 ]
 
 plant_level_metrics = [
