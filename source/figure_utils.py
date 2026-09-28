@@ -12,15 +12,11 @@ The helper functions fall into three groups:
 
 import os
 
-import importlib
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-# Files with numeric prefixes are loaded via importlib because they cannot be
-# imported with standard from-import syntax.
-_config = importlib.import_module("figure_config")
+import figure_config as _config
 PFTS = _config.PFTS
 SAL_DYN = _config.SAL_DYN
 SAL_STATIC = _config.SAL_STATIC

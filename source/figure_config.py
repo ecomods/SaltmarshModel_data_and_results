@@ -9,16 +9,8 @@ manuscript figures.
 Figure scripts call apply_style() before plotting, create figures with
 figsize_mm() and save them with save_figure().
 
-Used by:
-    - source/01_prepare_figure_data.py
-    - source/figure_utils.py
-    - source/03_fig2_community_vs_monoculture.py
-    - source/04_fig3_community_structure.py
-    - source/05_fig4_dynamic_biovolume.py
-    - source/08_figS3_monoculture_structure.py
-
-The model-input and parameterization figures use source.utils.paths directly
-because they are based on model-input files rather than processed model outputs.
+Used by all figure scripts (02_fig1_... to 08_figS3_...), figure_utils.py and
+01_prepare_figure_data.py (scenario and PFT order).
 """
 
 import matplotlib as mpl
@@ -47,14 +39,6 @@ from source.utils.paths import (
 # =============================================================================
 
 MM_TO_INCH = 1 / 25.4
-
-# Compact manuscript figure size. Some multi-panel figures scale these values.
-FIG_W = 85 * MM_TO_INCH
-FIG_H = 60 * MM_TO_INCH
-
-# A4-based dimensions for the large dynamic biovolume figure.
-A4_W_IN = 210 * MM_TO_INCH
-A4_GRID_H_IN = 170 * MM_TO_INCH
 
 # Figure widths for an A4 document with about 160 mm text width. Figures are
 # drawn at these sizes so that font sizes are the same in every figure.
@@ -130,16 +114,6 @@ def save_figure(fig, path):
     print(f"Saved: {path}")
 
 
-# Previous style, still used by the result scripts that do not yet call
-# apply_style(). Remove once all figure scripts use apply_style().
-plt.rcParams.update({
-    "font.size": 8,
-    "axes.labelsize": 8,
-    "xtick.labelsize": 7,
-    "ytick.labelsize": 7,
-    "legend.fontsize": 7,
-    "axes.linewidth": 0.8,
-})
 
 # =============================================================================
 # Scenario and PFT order
