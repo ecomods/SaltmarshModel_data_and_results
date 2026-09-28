@@ -11,8 +11,9 @@
 #
 # Figure layout
 # -------------
-# Rows correspond to salinity levels (35, 70, 105 ppt). Columns 1-4 correspond to
-# PFT 1-4. The final column shows total stacked PFT contributions for V0/V1/V2.
+# Rows correspond to salinity levels (35, 70, 105 ppt), labelled at the right.
+# Columns 1-4 correspond to PFT 1-4. The final column shows total stacked PFT
+# contributions for V0/V1/V2. All panels share one y-axis.
 #
 # Output
 # ------
@@ -40,16 +41,14 @@ Outputs:
 import os
 import numpy as np
 import pandas as pd
-import importlib
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
-_config = importlib.import_module("figure_config")
-_utils = importlib.import_module("figure_utils")
+import figure_config as _config
+import figure_utils as _utils
 
-A4_W_IN = _config.A4_W_IN
-A4_GRID_H_IN = _config.A4_GRID_H_IN
 PFTS = _config.PFTS
 VARIANT_LEVELS = _config.VARIANT_LEVELS
 pft_color_map = _config.pft_color_map
@@ -73,11 +72,20 @@ VERSIONS = {
 sal_levels = [35, 70, 105]
 variant_levels = VARIANT_LEVELS
 
+# Colours outside the PFT palette: the static reference in grey, the two
+# dynamic regimes in black and purple (distinguishable with red-green
+# colour blindness).
 variant_style = {
-    "V0": {"color": "black", "linestyle": "-", "linewidth": 0.9},
-    "V1": {"color": "#8c510a", "linestyle": "-", "linewidth": 0.9},
-    "V2": {"color": "#2171b5", "linestyle": "-", "linewidth": 0.9},
+    "V0": {"color": "#808080", "linestyle": "-", "linewidth": 0.8},
+    "V1": {"color": "black", "linestyle": "-", "linewidth": 0.8},
+    "V2": {"color": "#6a3d9a", "linestyle": "-", "linewidth": 0.8},
 }
+
+# Display names of the salinity variants (data keys stay V0/V1/V2).
+VARIANT_LABELS = {"V0": "Static", "V1": "Seasonal", "V2": "Seasonal + tide"}
+
+DAYS_PER_YEAR = 365
+YEAR_TICKS = [5, 6, 7, 8, 9, 10]
 
 
 # =============================================================================
@@ -98,11 +106,15 @@ def add_salinity_and_variant_columns(median_df):
     return dfm
 
 
-def get_y_limits(median_df):
+def get_y_limits(median_df, bar_totals):
     """
-    Determine shared y-limits from the time-series values.
+    Determine shared y-limits from the time-series values and the stacked
+    bar totals, so that no bar is cut off.
     """
-    vals = median_df["value"].to_numpy(dtype=float)
+    vals = np.concatenate([
+        median_df["value"].to_numpy(dtype=float),
+        np.asarray(bar_totals, dtype=float),
+    ])
     vals = vals[np.isfinite(vals)]
 
     if len(vals) == 0:
@@ -135,47 +147,57 @@ def build_total_volume_lookup(summary_pft_tv, value_col):
     return tv_lookup
 
 
-def add_variant_legend(fig, axes):
-    """
-    Add V0/V1/V2 line legend above the figure.
-    """
-    handles = []
-    labels = []
-
-    for var in variant_levels:
-        h, = axes[0, 0].plot([], [], **variant_style[var])
-        handles.append(h)
-        labels.append(var)
-
-    fig.legend(
-        handles,
-        labels,
-        title="Variant",
-        loc="upper center",
-        ncol=3,
-        frameon=True,
-        fontsize=8,
-        title_fontsize=8,
-    )
-
-
 def add_pft_legend(fig):
-    """
-    Add PFT color legend at the upper right.
-    """
+    """PFT colours in one column, above the figure at the top right."""
     pft_handles = [
-        Patch(facecolor=pft_color_map[pft], edgecolor="black", label=f"PFT {pft}")
+        Patch(facecolor=pft_color_map[pft], edgecolor="none", label=f"PFT {pft}")
         for pft in PFTS
     ]
+    return fig.legend(handles=pft_handles, loc="outside upper right")
 
-    fig.legend(
-        handles=pft_handles,
-        labels=[handle.get_label() for handle in pft_handles],
-        loc="upper right",
-        bbox_to_anchor=(1.01, 1),
-        frameon=True,
-        fontsize=8,
+
+def add_variant_legend(fig, pft_legend):
+    """
+    Salinity-regime lines in one column with a left-aligned header, placed at
+    the top left, mirroring the PFT legend at the top right (same distance to
+    the figure edge, same top). Call after the layout is frozen.
+    """
+    variant_handles = [
+        Line2D([], [], label=VARIANT_LABELS[var], **variant_style[var])
+        for var in variant_levels
+    ]
+    pft_box = pft_legend.get_window_extent().transformed(fig.transFigure.inverted())
+    legend = fig.legend(
+        handles=variant_handles,
+        title="Salinity regime",
+        loc="upper left",
+        bbox_to_anchor=(1 - pft_box.x1, pft_box.y1),
+        borderaxespad=0,
     )
+    legend.set_alignment("left")
+
+
+def center_label_under(fig, axes_row, label):
+    """
+    Replace the x-axis labels of axes_row by one label centred below them.
+
+    Must be called after all other layout elements exist: the figure is laid
+    out once, then the layout is frozen so the space reserved for the
+    (now hidden) axis labels is kept.
+    """
+    for ax in axes_row:
+        ax.set_xlabel(label)
+    fig.canvas.draw()
+    fig.set_layout_engine("none")
+
+    to_fig = fig.transFigure.inverted()
+    y = to_fig.transform(axes_row[0].xaxis.label.get_window_extent())[:, 1].mean()
+    x = (axes_row[0].get_position().x0 + axes_row[-1].get_position().x1) / 2
+    for ax in axes_row:
+        ax.xaxis.label.set_visible(False)
+    fig.text(x, y, label, ha="center", va="center",
+             fontsize=axes_row[0].xaxis.label.get_fontsize(),
+             color=axes_row[0].xaxis.label.get_color())
 
 
 # =============================================================================
@@ -186,16 +208,17 @@ def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, value_col, out_png):
     """
     Create the dynamic total biovolume figure for one statistical version.
     """
-    y_lim = get_y_limits(ts_total_volume)
     dfm = add_salinity_and_variant_columns(ts_total_volume)
+    dfm["time_years"] = dfm["time_days"] / DAYS_PER_YEAR
     tv_lookup = build_total_volume_lookup(summary_pft_tv, value_col)
+    bar_totals = [sum(by_pft.values()) for by_pft in tv_lookup.values()]
+    y_lim = get_y_limits(ts_total_volume, bar_totals)
 
     fig, axes = plt.subplots(
         nrows=len(sal_levels),
         ncols=len(PFTS) + 1,
-        figsize=(A4_W_IN, A4_GRID_H_IN),
-        sharex=False,
-        sharey=False,
+        figsize=_config.figsize_mm(_config.WIDTH_FULL_MM, 135),
+        sharey=True,
         gridspec_kw={"width_ratios": [1, 1, 1, 1, 1.05]},
     )
 
@@ -212,29 +235,17 @@ def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, value_col, out_png):
                     (dfm["salinity"] == sal) &
                     (dfm["pft"] == pft) &
                     (dfm["variant"] == var)
-                ].sort_values("time_days")
+                ].sort_values("time_years")
 
                 if sub.empty:
                     continue
 
-                ax.plot(
-                    sub["time_days"],
-                    sub["value"],
-                    **variant_style[var],
-                )
+                ax.plot(sub["time_years"], sub["value"], **variant_style[var])
 
             if row_i == 0:
-                ax.set_title(f"PFT {pft}", fontsize=9)
+                ax.set_title(f"PFT {pft}")
 
-            if col_i == 0:
-                ax.set_ylabel(f"{sal} ppt\nTotal Biovolume [m³]", fontsize=9)
-
-            ax.grid(True, alpha=0.25)
-            ax.tick_params(labelsize=7)
-            ax.set_ylim(*y_lim)
-
-    for ax in axes[-1, 0:4]:
-        ax.set_xlabel("t [d]", fontsize=8)
+            ax.set_xticks(YEAR_TICKS)
 
     # -------------------------------------------------------------------------
     # Stacked total barplot column: column 4
@@ -250,41 +261,39 @@ def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, value_col, out_png):
                 [float(tv_lookup.get((sal, var), {}).get(pft, 0.0)) for var in variant_levels],
                 dtype=float,
             )
-
-            axb.bar(
-                x,
-                vals_bar,
-                bottom=bottom,
-                color=pft_color_map[pft],
-                edgecolor="black",
-                linewidth=0.6,
-            )
-
+            axb.bar(x, vals_bar, bottom=bottom, color=pft_color_map[pft], linewidth=0)
             bottom += vals_bar
 
         if row_i == 0:
-            axb.set_title("Total", fontsize=9)
+            axb.set_title("Total")
 
-        axb.set_xticks(x)
-        axb.set_xticklabels(variant_levels, rotation=0)
-        axb.grid(axis="y", linestyle=":", linewidth=0.5, alpha=0.8)
-        axb.set_axisbelow(True)
-        axb.set_ylim(*y_lim)
-        axb.tick_params(labelsize=7)
-        axb.set_ylabel("")
+        # Tilted labels: the column is too narrow for horizontal names.
+        axb.set_xticks(
+            x, [VARIANT_LABELS[var] for var in variant_levels],
+            rotation=40, ha="right", rotation_mode="anchor",
+        )
 
-        if row_i == len(sal_levels) - 1:
-            axb.set_xlabel("Variant", fontsize=8)
-        else:
-            axb.set_xlabel("")
+        # Salinity row label at the right edge.
+        axb.yaxis.set_label_position("right")
+        axb.set_ylabel(f"{sal} ppt", rotation=270, va="bottom")
 
-    add_variant_legend(fig, axes)
-    add_pft_legend(fig)
+    for ax in axes.ravel():
+        ax.set_ylim(*y_lim)
+        ax.set_axisbelow(True)
+        ax.grid(axis="y", linewidth=0.5, alpha=0.4)
 
-    plt.tight_layout(rect=[0, 0, 1, 0.90])
+    # Tick marks and labels only on the outer panels (left column, bottom row).
+    for ax in axes[:, 1:].ravel():
+        ax.tick_params(axis="y", left=False)
+    for ax in axes[:-1, :].ravel():
+        ax.tick_params(axis="x", bottom=False, labelbottom=False)
 
-    plt.savefig(out_png, bbox_inches="tight", dpi=300)
+    fig.supylabel("Total biovolume (m³)", fontsize="medium")
+    pft_legend = add_pft_legend(fig)
+    center_label_under(fig, axes[-1, :len(PFTS)], "Time (years)")
+    add_variant_legend(fig, pft_legend)
 
+    _config.save_figure(fig, out_png)
     plt.close(fig)
 
 
@@ -292,12 +301,12 @@ def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, value_col, out_png):
 # Main
 # =============================================================================
 
+_config.apply_style()
+
 for version, (ts_file, summary_file, value_col) in VERSIONS.items():
-    out_png = os.path.join(output_dir, f"fig4_dynamic_biovolume_{version}.png")
     plot_dynamic_biovolume(
         pd.read_csv(os.path.join(DERIVED_DIR, ts_file)),
         pd.read_csv(os.path.join(DERIVED_DIR, summary_file)),
         value_col,
-        out_png,
+        os.path.join(output_dir, f"fig4_dynamic_biovolume_{version}.png"),
     )
-    print(f"Saved: {out_png}")
