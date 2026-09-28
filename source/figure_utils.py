@@ -17,7 +17,6 @@ import importlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from matplotlib.lines import Line2D
 
 # Files with numeric prefixes are loaded via importlib because they cannot be
 # imported with standard from-import syntax.
@@ -465,18 +464,22 @@ def mean_ts(df, col):
 # =============================================================================
 
 def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
-                          panel_order, show_community=True, group_spacing=3.1):
+                          panel_order, show_community=True, group_spacing=3.8,
+                          pft_colors=None):
     """
     Draw the 2 x 2 point/error-bar figure of plant-structure metrics
-    (Figs. 3 and S3) and return the figure.
+    (Figs. 3 and S3) in the shared style and return the figure.
 
     summaries maps each metric to (summary_pft, summary_all). Both tables have
     the columns salinity, value, err_lower and err_upper; summary_pft also has
     pft. summary_all is the community reference and is only used when
     show_community is True. Within each salinity group, points are placed in
-    the order community (optional), PFT 1, ..., PFT 4.
+    the order community (optional), PFT 1, ..., PFT 4. Salinity groups are
+    separated only by a wider gap (group_spacing), not by lines. Panels are labelled
+    a)-d) in panel_order; the legend sits in the top-right panel.
+    pft_colors defaults to the shared PFT palette.
     """
-    pft_color_map = _config.pft_color_map
+    pft_color_map = pft_colors or _config.pft_color_map
 
     x_group = np.arange(len(salinity_levels)) * group_spacing
     sal_to_x = {sal: x_group[i] for i, sal in enumerate(salinity_levels)}
@@ -485,8 +488,6 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
     within_offsets = np.array([0.0, 0.55, 1.10, 1.65, 2.20])[:n_series]
     first_pft_slot = 1 if show_community else 0
 
-    group_left = x_group + within_offsets[0] - 0.28
-    group_right = x_group + within_offsets[-1] + 0.28
     group_centers = x_group + np.mean(within_offsets)
 
     def draw_series(ax, summary, x_offset, color, label):
@@ -495,17 +496,17 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
             summary["value"],
             yerr=[summary["err_lower"], summary["err_upper"]],
             fmt="o",
-            capsize=3,
-            linewidth=1.2,
+            markersize=4,
+            capsize=2,
+            linewidth=0.8,
             color=color,
-            ecolor=color,
             label=label,
         )
 
     fig, axes = plt.subplots(
         nrows=2,
         ncols=2,
-        figsize=(_config.FIG_W * 2.15, _config.FIG_H * 2.35),
+        figsize=_config.figsize_mm(_config.WIDTH_FULL_MM, 110),
         sharex=True,
     )
 
@@ -513,7 +514,7 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
         summary_pft, summary_all = summaries[metric]
 
         if show_community:
-            draw_series(ax, summary_all, within_offsets[0], "black", "community")
+            draw_series(ax, summary_all, within_offsets[0], "black", "Community")
 
         for i, pft in enumerate(pft_levels, start=first_pft_slot):
             dfp = summary_pft[summary_pft["pft"] == pft]
@@ -522,36 +523,18 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
             color = pft_color_map[int(pft)]
             draw_series(ax, dfp, within_offsets[i], color, f"PFT {int(pft)}")
 
-        ax.set_xticks(group_centers)
-        ax.set_xticklabels([str(int(s)) for s in salinity_levels])
+        ax.set_xticks(group_centers, [str(int(s)) for s in salinity_levels])
         # Only the bottom row gets an x-axis label.
-        ax.set_xlabel("Salinity [ppt]" if i_panel >= 2 else "")
+        if i_panel >= 2:
+            ax.set_xlabel("Salinity (ppt)")
         ax.set_ylabel(ylabels[metric])
 
-        for k in range(len(group_centers) - 1):
-            mid = (group_right[k] + group_left[k + 1]) / 2
-            ax.axvline(mid, color="0.55", linewidth=1.0, zorder=1)
-
-        ax.grid(axis="y", linestyle=":", linewidth=0.5, alpha=0.8)
         ax.set_axisbelow(True)
+        ax.grid(axis="y", linewidth=0.5, alpha=0.4)
 
-    # Legend below all panels.
-    legend_colors = [("community", "black")] if show_community else []
-    legend_colors += [(f"PFT {int(p)}", pft_color_map[int(p)]) for p in pft_levels]
-    legend_handles = [
-        Line2D([0], [0], marker="o", color=color, linestyle="None",
-               markersize=5, label=label)
-        for label, color in legend_colors
-    ]
-    fig.legend(
-        handles=legend_handles,
-        labels=[handle.get_label() for handle in legend_handles],
-        loc="lower center",
-        ncol=len(legend_handles),
-        frameon=True,
-        bbox_to_anchor=(0.5, 0.01),
-    )
+    _config.add_panel_labels(axes.ravel())
 
-    plt.tight_layout(rect=[0, 0.08, 1, 1])
+    # Legend inside the top-right panel, using the handles drawn there.
+    axes[0, 1].legend(loc="upper right")
 
     return fig

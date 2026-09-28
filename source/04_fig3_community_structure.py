@@ -34,11 +34,11 @@
 Manuscript Figure 3:
 Static salinity - community metrics with error bars in a 2 x 2 grid.
 
-Panel layout:
-    top left:     Biovolume per Plant
-    top right:    Aboveground Height
-    bottom left:  Number of Plants
-    bottom right: AG/BG Ratio
+Panel layout (as in the manuscript caption):
+    a) top left:     biovolume per plant
+    b) top right:    aboveground height
+    c) bottom left:  AG/BG ratio
+    d) bottom right: number of plants
 
 Output:
     figures/main/fig3_community_structure_median.png
@@ -62,17 +62,17 @@ FIGURES_MAIN = _config.FIGURES_MAIN
 # =============================================================================
 
 metrics_comm = {
-    "volume_per_plant": "Biovolume per Plant [m³]",
-    "h_ag": "Aboveground Height [m]",
-    "ag_bg_ratio": "AG/BG Ratio [-]",
-    "num_plants": "Number of Plants",
+    "volume_per_plant": "Biovolume per plant (m³)",
+    "h_ag": "Aboveground height (m)",
+    "ag_bg_ratio": "AG/BG ratio (–)",
+    "num_plants": "Number of plants",
 }
 
 panel_order = [
     "volume_per_plant",
     "h_ag",
-    "num_plants",
     "ag_bg_ratio",
+    "num_plants",
 ]
 
 plant_level_metrics = [
@@ -212,6 +212,8 @@ VERSIONS = {"median": median_summaries, "mean": mean_summaries}
 # Figures
 # =============================================================================
 
+_config.apply_style()
+
 output_dir = _utils.ensure_dir(FIGURES_MAIN)
 
 for version, get_summaries in VERSIONS.items():
@@ -225,7 +227,8 @@ for version, get_summaries in VERSIONS.items():
         panel_order=panel_order,
     )
 
-    out_png = os.path.join(output_dir, f"fig3_community_structure_{version}.png")
-    plt.savefig(out_png, dpi=600, bbox_inches="tight")
+    _config.save_figure(
+        fig,
+        os.path.join(output_dir, f"fig3_community_structure_{version}.png"),
+    )
     plt.close(fig)
-    print(f"Saved: {out_png}")
