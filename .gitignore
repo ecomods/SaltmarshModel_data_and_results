@@ -1,0 +1,7 @@
+data_raw_pilot/
+*/__pycache__
+*/*/__pycache__
+*.pyc
+
+data_raw/logs
+data/
