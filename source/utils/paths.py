@@ -57,7 +57,7 @@ MONOCULTURE_STATIC_RAW = DATA / "monoculture" / "static" / "raw_data.csv"
 
 # Expected pyMANGA location relative to this repository. Adjust in run_model.py
 # if pyMANGA is stored elsewhere.
-DEFAULT_MANGA_DIR = REPO_ROOT.parent / "pyMANGA-1"
+DEFAULT_MANGA_DIR = REPO_ROOT.parent / "pyMANGA"
 DEFAULT_MANGA_SCRIPT = DEFAULT_MANGA_DIR / "MANGA.py"
 
 
