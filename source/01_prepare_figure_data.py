@@ -22,8 +22,8 @@ if str(REPO_ROOT) not in sys.path:
 
 from source.utils.paths import DATA_RAW, DERIVED_FIGURE_DATA
 
-config = importlib.import_module("03_figure_config")
-utils = importlib.import_module("03_figure_utils")
+config = importlib.import_module("02_figure_config")
+utils = importlib.import_module("02_figure_utils")
 
 SALINITIES = ["0.035", "0.070", "0.105", "0.140"]
 VERSIONS = ["35_V1", "35_V2", "70_V1", "70_V2", "105_V1", "105_V2"]

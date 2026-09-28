@@ -6,7 +6,7 @@
 # Purpose
 # -------
 # This appendix script creates a 2x2 grid figure for static monoculture
-# simulations. It mirrors the structure of 03_plot_3_2_static_community.py but shows
+# simulations. It mirrors the structure of 02_plot_3_2_static_community.py but shows
 # only monoculture PFT results, without a community reference point.
 #
 # Error bar interpretation
@@ -54,8 +54,8 @@ import importlib
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-_config = importlib.import_module("03_figure_config")
-_utils = importlib.import_module("03_figure_utils")
+_config = importlib.import_module("02_figure_config")
+_utils = importlib.import_module("02_figure_utils")
 
 FIG_W = _config.FIG_W
 FIG_H = _config.FIG_H

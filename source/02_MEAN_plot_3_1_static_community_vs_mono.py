@@ -39,8 +39,8 @@ import importlib
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
-_config = importlib.import_module("03_figure_config")
-_utils = importlib.import_module("03_figure_utils")
+_config = importlib.import_module("02_figure_config")
+_utils = importlib.import_module("02_figure_utils")
 
 FIG_W = _config.FIG_W
 FIG_H = _config.FIG_H

@@ -5,15 +5,18 @@
 # =============================================================================
 # Purpose
 # -------
-# This script creates the mean-based 2x2 grid figure for static community
-# simulations. The four panels show biovolume per plant, aboveground height,
-# AG/BG ratio, and number of plants. Total biovolume is shown separately in
-# MEAN_03_plot_3_1_static_community_vs_mono.py.
+# This script creates a 2x2 grid figure for static community simulations. The four
+# panels show biovolume per plant, aboveground height, AG/BG ratio, and number of
+# plants. Total biovolume is intentionally not included here because it is shown
+# separately in 02_plot_3_1_static_community_vs_mono.py.
 #
 # Error bar interpretation
 # ------------------------
-# Points show arithmetic means across the ten replicate simulations. Error bars
-# show one standard deviation across the ten replicate-level values.
+# - For plant-level metrics (biovolume per plant, height, AG/BG ratio), the point
+#   is the median and the error bars extend to the 25th and 75th percentiles of
+#   the individual-plant values.
+# - For number of plants, the point is the median and the error bars extend to
+#   the 25th and 75th percentiles of replicate-level aggregate values.
 #
 # Output
 # ------
@@ -22,7 +25,9 @@
 
 """
 Figure 3.2:
-Mean-based static salinity - community metrics with error bars in a 2 x 2 grid.
+Static salinity - community metrics with error bars in a 2 x 2 grid.
+
+This script creates one combined figure for the static community setups.
 
 Panel layout:
     top left:     Biovolume per Plant
@@ -30,20 +35,29 @@ Panel layout:
     bottom left:  Number of Plants
     bottom right: AG/BG Ratio
 
+Error bars:
+- volume_per_plant, h_ag, ag_bg_ratio:
+    median of individual plants with error bars extending to the 25th and
+    75th percentiles of individual-plant values.
+- num_plants:
+    median of aggregated replicate values with error bars extending to the
+    25th and 75th percentiles of replicate-level values.
+
 Output:
-    figures/main/MEAN_plot_3_2_static_community.png
+    figures/main/plot_3_2_static_community.png
+
 """
 
 import os
-import importlib
-
 import numpy as np
 import pandas as pd
+import importlib
+
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-_config = importlib.import_module("03_figure_config")
-_utils = importlib.import_module("03_figure_utils")
+_config = importlib.import_module("02_figure_config")
+_utils = importlib.import_module("02_figure_utils")
 
 FIG_W = _config.FIG_W
 FIG_H = _config.FIG_H
@@ -51,7 +65,7 @@ pft_color_map = _config.pft_color_map
 DERIVED_DIR = _config.DERIVED_DIR
 FIGURES_MAIN = _config.FIGURES_MAIN
 ensure_dir = _utils.ensure_dir
-summary_mean_std = _utils.summary_mean_std
+summary_minmax = _utils.summary_minmax
 
 
 # =============================================================================
@@ -74,21 +88,33 @@ panel_order = [
     "ag_bg_ratio",
 ]
 
-OUTPUT_BASENAME = "MEAN_plot_3_2_static_community"
+plant_level_metrics = [
+    "volume_per_plant",
+    "h_ag",
+    "ag_bg_ratio",
+]
+
+aggregate_metrics = [
+    "num_plants",
+]
+
+OUTPUT_BASENAME = "plot_3_2_static_community"
 
 
 # =============================================================================
 # Input data
 # =============================================================================
 
-# These tables contain one mean-over-time value per replicate and scenario.
-# Standard deviations are therefore calculated across the replicate dimension.
 grouped_pft_static = pd.read_csv(
-    os.path.join(DERIVED_DIR, "MEAN_grouped_pft_static.csv")
+    os.path.join(DERIVED_DIR, "grouped_pft_static.csv")
 )
 
 grouped_all_static = pd.read_csv(
-    os.path.join(DERIVED_DIR, "MEAN_grouped_all_static.csv")
+    os.path.join(DERIVED_DIR, "grouped_all_static.csv")
+)
+
+df_comm_prepared = pd.read_csv(
+    os.path.join(DERIVED_DIR, "df_comm_prepared.csv")
 )
 
 
@@ -104,42 +130,123 @@ grouped_all_static["salinity"] = pd.to_numeric(
     grouped_all_static["salinity"], errors="coerce"
 )
 
-grouped_pft_static["pft"] = pd.to_numeric(
-    grouped_pft_static["pft"], errors="coerce"
-).astype("Int64")
+df_comm_prepared["salinity"] = pd.to_numeric(
+    df_comm_prepared["salinity"], errors="coerce"
+)
+
+if "pft" in grouped_pft_static.columns:
+    grouped_pft_static["pft"] = pd.to_numeric(
+        grouped_pft_static["pft"], errors="coerce"
+    ).astype("Int64")
+
+if "pft" in df_comm_prepared.columns:
+    df_comm_prepared["pft"] = pd.to_numeric(
+        df_comm_prepared["pft"], errors="coerce"
+    ).astype("Int64")
+
+# In individual-plant data, one row corresponds to one plant.
+# Therefore, volume_per_plant is identical to the plant's own volume.
+if "volume_per_plant" not in df_comm_prepared.columns:
+    if "volume" in df_comm_prepared.columns:
+        df_comm_prepared["volume_per_plant"] = df_comm_prepared["volume"]
+    else:
+        raise KeyError(
+            "Neither 'volume_per_plant' nor 'volume' was found in "
+            "df_comm_prepared.csv."
+        )
 
 
 # =============================================================================
 # Helper functions
 # =============================================================================
 
-def get_summary_tables(metric):
-    """Return mean and standard-deviation summaries for one metric."""
-    summary_pft = summary_mean_std(
-        grouped_pft_static,
-        ["salinity", "pft"],
-        metric,
+def summary_minmax_individuals(df, group_cols, metric):
+    """
+    Summarise individual-plant values by median and interquartile range.
+
+    The returned error bars extend from the median to the 25th and 75th
+    percentiles of the individual-plant values.
+    """
+
+    if metric not in df.columns:
+        raise KeyError(
+            f"Metric '{metric}' was not found in df_comm_prepared.csv."
+        )
+
+    summary = (
+        df
+        .dropna(subset=group_cols + [metric])
+        .groupby(group_cols, as_index=False)[metric]
+        .agg(
+            median_value="median",
+            q25_value=lambda x: x.quantile(0.25),
+            q75_value=lambda x: x.quantile(0.75),
+        )
     )
 
-    summary_all = summary_mean_std(
-        grouped_all_static,
-        ["salinity"],
-        metric,
-    )
+    summary["err_lower"] = summary["median_value"] - summary["q25_value"]
+    summary["err_upper"] = summary["q75_value"] - summary["median_value"]
+
+    return summary
+
+
+def get_summary_tables(metric):
+    """
+    Select the correct summary logic for each metric.
+    """
+
+    if metric in plant_level_metrics:
+        summary_pft = summary_minmax_individuals(
+            df_comm_prepared,
+            ["salinity", "pft"],
+            metric,
+        )
+
+        summary_all = summary_minmax_individuals(
+            df_comm_prepared,
+            ["salinity"],
+            metric,
+        )
+
+    elif metric in aggregate_metrics:
+        summary_pft = summary_minmax(
+            grouped_pft_static,
+            ["salinity", "pft"],
+            metric,
+        )
+
+        summary_all = summary_minmax(
+            grouped_all_static,
+            ["salinity"],
+            metric,
+        )
+
+    else:
+        raise ValueError(
+            f"Metric '{metric}' is neither listed as plant-level nor "
+            "aggregate metric."
+        )
 
     return summary_pft, summary_all
 
 
 def plot_metric_panel(ax, metric, ylabel, show_xlabel=False):
-    """Plot one metric into one panel."""
+    """
+    Plot one metric into one panel.
+    """
+
     summary_pft, summary_all = get_summary_tables(metric)
 
+    # Community summary
     x_all = summary_all["salinity"].map(sal_to_x) + within_offsets_static[0]
 
     ax.errorbar(
         x_all,
-        summary_all["mean_value"],
-        yerr=[summary_all["err_lower"], summary_all["err_upper"]],
+        summary_all["median_value"],
+        yerr=[
+            summary_all["err_lower"],
+            summary_all["err_upper"],
+        ],
         fmt="o",
         capsize=3,
         linewidth=1.2,
@@ -148,18 +255,24 @@ def plot_metric_panel(ax, metric, ylabel, show_xlabel=False):
         label="community",
     )
 
+    # PFT summaries
     for i, pft in enumerate(pft_levels_comm, start=1):
         dfp = summary_pft[summary_pft["pft"] == pft].copy()
 
         if dfp.empty:
             continue
 
-        dfp["x_pos"] = dfp["salinity"].map(sal_to_x) + within_offsets_static[i]
+        dfp["x_pos"] = (
+            dfp["salinity"].map(sal_to_x) + within_offsets_static[i]
+        )
 
         ax.errorbar(
             dfp["x_pos"],
-            dfp["mean_value"],
-            yerr=[dfp["err_lower"], dfp["err_upper"]],
+            dfp["median_value"],
+            yerr=[
+                dfp["err_lower"],
+                dfp["err_upper"],
+            ],
             fmt="o",
             capsize=3,
             linewidth=1.2,
@@ -168,6 +281,7 @@ def plot_metric_panel(ax, metric, ylabel, show_xlabel=False):
             label=f"PFT {int(pft)}",
         )
 
+    # Axes and separators
     ax.set_xticks(group_centers)
     ax.set_xticklabels([str(int(s)) for s in salinity_levels_comm])
 
@@ -180,9 +294,20 @@ def plot_metric_panel(ax, metric, ylabel, show_xlabel=False):
 
     for k in range(len(group_centers) - 1):
         mid = (group_right[k] + group_left[k + 1]) / 2
-        ax.axvline(mid, color="0.55", linewidth=1.0, zorder=1)
+        ax.axvline(
+            mid,
+            color="0.55",
+            linewidth=1.0,
+            zorder=1,
+        )
 
-    ax.grid(axis="y", linestyle=":", linewidth=0.5, alpha=0.8)
+    ax.grid(
+        axis="y",
+        linestyle=":",
+        linewidth=0.5,
+        alpha=0.8,
+    )
+
     ax.set_axisbelow(True)
 
 
@@ -195,7 +320,10 @@ pft_levels_comm = sorted(grouped_pft_static["pft"].dropna().unique())
 
 group_spacing = 3.1
 x_group = np.arange(len(salinity_levels_comm)) * group_spacing
-sal_to_x = {sal: x_group[i] for i, sal in enumerate(salinity_levels_comm)}
+sal_to_x = {
+    sal: x_group[i]
+    for i, sal in enumerate(salinity_levels_comm)
+}
 
 within_offsets_static = np.array([0.0, 0.55, 1.10, 1.65, 2.20])
 
@@ -226,6 +354,7 @@ for ax, metric in zip(axes_flat, panel_order):
         show_xlabel=show_xlabel,
     )
 
+# Legend below all panels.
 legend_handles = [
     Line2D(
         [0],
@@ -276,5 +405,6 @@ plt.savefig(
 plt.show()
 plt.close(fig)
 
-print("Done: MEAN_plot_3_2_static_community")
+
+print("Done: plot_3_2_static_community")
 print(f"Saved: figures/main/{OUTPUT_BASENAME}.png")

@@ -11,11 +11,11 @@ figsize_mm() and save them with save_figure().
 
 Used by:
     - source/01_prepare_figure_data.py
-    - source/03_figure_utils.py
-    - source/03_plot_3_1_static_community_vs_mono.py
-    - source/03_plot_3_2_static_community.py
-    - source/03_plot_3_3_dynamic_biovolume.py
-    - source/03_plot_appendix_3_static_monoculture.py
+    - source/02_figure_utils.py
+    - source/02_plot_3_1_static_community_vs_mono.py
+    - source/02_plot_3_2_static_community.py
+    - source/02_plot_3_3_dynamic_biovolume.py
+    - source/02_plot_appendix_3_static_monoculture.py
 
 The model-input and parameterization figures use source.utils.paths directly
 because they are based on model-input files rather than processed model outputs.

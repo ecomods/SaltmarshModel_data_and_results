@@ -17,7 +17,7 @@ import pandas as pd
 
 # Files with numeric prefixes are loaded via importlib because they cannot be
 # imported with standard from-import syntax.
-_config = importlib.import_module("03_figure_config")
+_config = importlib.import_module("02_figure_config")
 PFTS = _config.PFTS
 SAL_DYN = _config.SAL_DYN
 SAL_STATIC = _config.SAL_STATIC
