@@ -158,10 +158,17 @@ Run the complete analysis and figure pipeline:
 python run_analysis.py
 ```
 
-If you only want to regenerate figures from existing processed data:
+If you want to rebuild figure tables from existing processed data and render
+all figures:
 
 ```powershell
 python run_analysis.py --figures-only
+```
+
+If figure tables already exist and you only want to render all figures:
+
+```powershell
+python run_analysis.py --render-only
 ```
 
 If you only want to aggregate and process raw model output:
@@ -614,11 +621,20 @@ Data preparation only:
 python run_analysis.py --prepare-data-only
 ```
 
-Figures only:
+Rebuild figure tables and render all figures:
 
 ```powershell
 python run_analysis.py --figures-only
 ```
+
+Render all figures from existing figure tables:
+
+```powershell
+python run_analysis.py --render-only
+```
+
+These three mode flags are mutually exclusive. With no flag, the full
+analysis and figure pipeline runs.
 
 The script runs these source scripts in order:
 
@@ -934,10 +950,10 @@ Regenerate figure data and figures:
 python run_analysis.py
 ```
 
-If processed data already exists and only figure styles changed:
+If prepared figure tables already exist and only figure styles changed:
 
 ```powershell
-python run_analysis.py --figures-only
+python run_analysis.py --render-only
 ```
 
 ---
@@ -969,4 +985,5 @@ For debugging:
 python run_model.py --override-only community_static
 python run_analysis.py --prepare-data-only
 python run_analysis.py --figures-only
+python run_analysis.py --render-only
 ```
