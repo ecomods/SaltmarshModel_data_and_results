@@ -6,8 +6,8 @@
 # Purpose
 # -------
 # This script creates the main static community-vs-monoculture total biovolume
-# figure. Community simulations are shown as stacked PFT contributions, while
-# monoculture simulations are shown as hatched PFT-specific bars.
+# figure. Community simulations are shown as stacked PFT contributions in full
+# colour, while monoculture simulations are shown as pale PFT-specific bars.
 #
 # Data basis
 # ----------
@@ -23,7 +23,7 @@
 
 """
 Manuscript Figure 2:
-Static salinity - community (stacked) vs monoculture (hatched)
+Static salinity - community (stacked) vs monoculture (pale bars)
 
 Output:
     figures/main/fig2_community_vs_monoculture_median.png
@@ -35,6 +35,7 @@ import numpy as np
 import pandas as pd
 
 import matplotlib.pyplot as plt
+from matplotlib.colors import to_rgb
 from matplotlib.patches import Patch
 
 import figure_config as _config
@@ -50,7 +51,8 @@ ensure_dir = _utils.ensure_dir
 # Statistical version -> file prefix of its input tables.
 VERSION_PREFIXES = {"median": "", "mean": "MEAN_"}
 
-HATCH = "///"
+# Colour of the neutral legend entries for community / monoculture.
+LEGEND_GREY = "0.4"
 
 
 # =============================================================================
@@ -65,27 +67,41 @@ def read_matrix(filename):
     return mat
 
 
+def pale(color, strength=0.45):
+    """Opaque mix of a colour with white; strength 1 = original colour."""
+    return tuple(1 - strength * (1 - c) for c in to_rgb(color))
+
+
+def community_style(color):
+    """Full colour, no outline."""
+    return {"facecolor": color, "linewidth": 0}
+
+
+def monoculture_style(color):
+    """Pale colour, no outline."""
+    return {"facecolor": pale(color), "linewidth": 0}
+
+
 def draw_figure(comm_mat, mono_mat):
-    """Draw community (stacked) and monoculture (hatched) bars per salinity."""
-    fig, ax = plt.subplots(figsize=_config.figsize_mm(_config.WIDTH_HALF_MM, 65))
+    """Draw community (stacked) and monoculture (pale) bars per salinity."""
+    fig, ax = plt.subplots(figsize=_config.figsize_mm(_config.WIDTH_HALF_MM, 60))
 
     # Per salinity: one community bar followed by four monoculture bars.
     x_base = np.arange(len(SAL_STATIC))
     bar_gap = 0.16
     width = 0.13
     offsets = np.arange(1 + len(PFTS)) * bar_gap
-    bar_style = {"width": width, "edgecolor": "black", "linewidth": 0.5}
 
     bottom = np.zeros(len(SAL_STATIC))
     for pft in PFTS:
         vals = comm_mat.loc[SAL_STATIC, pft].values
-        ax.bar(x_base + offsets[0], vals, bottom=bottom,
-               color=pft_color_map[pft], **bar_style)
+        ax.bar(x_base + offsets[0], vals, width, bottom=bottom,
+               **community_style(pft_color_map[pft]))
         bottom += vals
 
     for i, pft in enumerate(PFTS, start=1):
-        ax.bar(x_base + offsets[i], mono_mat.loc[SAL_STATIC, pft].values,
-               color=pft_color_map[pft], hatch=HATCH, **bar_style)
+        ax.bar(x_base + offsets[i], mono_mat.loc[SAL_STATIC, pft].values, width,
+               **monoculture_style(pft_color_map[pft]))
 
     ax.set_xticks(x_base + offsets.mean(), [str(s) for s in SAL_STATIC])
     ax.set_xlabel("Salinity (ppt)")
@@ -93,13 +109,12 @@ def draw_figure(comm_mat, mono_mat):
     ax.set_axisbelow(True)
     ax.grid(axis="y", linewidth=0.5, alpha=0.4)
 
-    patch_style = {"edgecolor": "black", "linewidth": 0.5}
     handles = [
-        Patch(facecolor=pft_color_map[pft], label=f"PFT {pft}", **patch_style)
+        Patch(facecolor=pft_color_map[pft], edgecolor="none", label=f"PFT {pft}")
         for pft in PFTS
     ] + [
-        Patch(facecolor="white", label="Community", **patch_style),
-        Patch(facecolor="white", hatch=HATCH, label="Monoculture", **patch_style),
+        Patch(label="Community", **community_style(LEGEND_GREY)),
+        Patch(label="Monoculture", **monoculture_style(LEGEND_GREY)),
     ]
     ax.legend(handles=handles, loc="upper right")
 
@@ -111,7 +126,6 @@ def draw_figure(comm_mat, mono_mat):
 # =============================================================================
 
 _config.apply_style()
-plt.rcParams["hatch.linewidth"] = 0.5
 
 output_dir = ensure_dir(FIGURES_MAIN)
 
