@@ -62,7 +62,6 @@ PIPELINE_SCRIPTS = [
     "06_figS1_growth_vs_maintenance.py",
     "07_figS2_porewater_salinity.py",
     "08_figS3_monoculture_structure.py",
-    "08_figS3_monoculture_structure_mean.py",
 ]
 
 

@@ -211,7 +211,6 @@ data_and_results/
 │   ├── 06_figS1_growth_vs_maintenance.py
 │   ├── 07_figS2_porewater_salinity.py
 │   ├── 08_figS3_monoculture_structure.py
-│   ├── 08_figS3_monoculture_structure_mean.py
 │   ├── figure_config.py
 │   └── figure_utils.py
 │
@@ -612,7 +611,6 @@ The script runs these source scripts in order:
 06_figS1_growth_vs_maintenance.py
 07_figS2_porewater_salinity.py
 08_figS3_monoculture_structure.py
-08_figS3_monoculture_structure_mean.py
 ```
 
 ---
@@ -784,8 +782,8 @@ figures/appendix/figS2_porewater_salinity.png
 
 ### 6.7 `08_figS3_monoculture_structure.py` - Figure S3
 
-Creates the static monoculture figure (same panels as Figure 3). The
-mean-based version is created by `08_figS3_monoculture_structure_mean.py`.
+Creates the static monoculture figure (same panels and shared drawing
+function as Figure 3) in both versions (median and mean).
 
 Output:
 

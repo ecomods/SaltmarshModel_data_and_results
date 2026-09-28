@@ -35,7 +35,6 @@ import numpy as np
 import pandas as pd
 
 import matplotlib.pyplot as plt
-from matplotlib.colors import to_rgb
 from matplotlib.patches import Patch
 
 import figure_config as _config
@@ -67,11 +66,6 @@ def read_matrix(filename):
     return mat
 
 
-def pale(color, strength=0.45):
-    """Opaque mix of a colour with white; strength 1 = original colour."""
-    return tuple(1 - strength * (1 - c) for c in to_rgb(color))
-
-
 def community_style(color):
     """Full colour, no outline."""
     return {"facecolor": color, "linewidth": 0}
@@ -79,7 +73,7 @@ def community_style(color):
 
 def monoculture_style(color):
     """Pale colour, no outline."""
-    return {"facecolor": pale(color), "linewidth": 0}
+    return {"facecolor": _config.pale(color), "linewidth": 0}
 
 
 def draw_figure(comm_mat, mono_mat):
