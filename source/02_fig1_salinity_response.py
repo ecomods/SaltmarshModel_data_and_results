@@ -110,7 +110,7 @@ def main():
     # Reference lines at the simulated salinities. The grid is horizontal only,
     # so these are the only vertical lines.
     for salinity in SALINITY_LINES:
-        ax.axvline(salinity, color="0.45", linewidth=0.8, zorder=1)
+        ax.axvline(salinity, color="0.6", linewidth=0.6, zorder=1)
 
     ax.set_xlabel("Salinity (ppt)")
     ax.set_ylabel(r"$f_{\mathrm{reslim\_bg,Forman}}$ (–)")

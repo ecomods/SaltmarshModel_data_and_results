@@ -71,22 +71,43 @@ def figsize_mm(width_mm, height_mm):
 # Global Matplotlib style
 # =============================================================================
 
-def apply_style(base_size=9):
+def apply_style(base_size=8):
     """
     Apply the shared manuscript figure style.
 
     All text sizes are relative to base_size, so changing it scales all text
     together. Figures use constrained layout, so they keep their exact size
     and labels are not cut off. Scripts should not set absolute font sizes.
+
+    Axes, ticks and text are thin and dark grey, without top and right axis
+    lines, so that the data stand out.
     """
+    small_size = base_size * 7 / 8
+    text_color = "0.15"
+    axes_color = "0.35"
+
     mpl.rcdefaults()
     plt.rcParams.update({
         "font.size": base_size,
         "axes.titlesize": "medium",
-        "xtick.labelsize": "small",
-        "ytick.labelsize": "small",
-        "legend.fontsize": "small",
-        "legend.title_fontsize": "small",
+        "xtick.labelsize": small_size,
+        "ytick.labelsize": small_size,
+        "legend.fontsize": small_size,
+        "legend.title_fontsize": small_size,
+        "text.color": text_color,
+        "axes.labelcolor": text_color,
+        "xtick.labelcolor": text_color,
+        "ytick.labelcolor": text_color,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.linewidth": 0.6,
+        "axes.edgecolor": axes_color,
+        "xtick.color": axes_color,
+        "ytick.color": axes_color,
+        "xtick.major.width": 0.6,
+        "ytick.major.width": 0.6,
+        "xtick.major.size": 3,
+        "ytick.major.size": 3,
         # White legend background without border, so gridlines do not show
         # through the legend.
         "legend.edgecolor": "none",
