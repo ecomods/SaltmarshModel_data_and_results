@@ -9,6 +9,13 @@
 # as model input. It reads the dynamic salinity CSV files from data_model_input/
 # salinity/ and compares them with the static V0 reference conditions.
 #
+# Figure layout
+# -------------
+# One panel per mean salinity (35, 70, 105 ppt), stacked with a shared time
+# axis. Each panel shows the static regime (V0, horizontal line), seasonal
+# variation (V1) and seasonal variation with tide (V2) over one year, in the
+# same regime colours as Fig. 4.
+#
 # Figure role in the manuscript
 # -----------------------------
 # This is a model-input/parameterization figure. It explains what the plants
@@ -22,30 +29,20 @@
 """
 Plot porewater salinity input scenarios.
 
-This script creates the conceptual/input-data figure for the dynamic
-porewater salinity scenarios used in the model setup.
+This script creates the conceptual/input-data figure for the static and
+dynamic porewater salinity scenarios used in the model setup.
 
 Outputs
 -------
 figures/appendix/figS2_porewater_salinity.png
 """
 
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.lines import Line2D
 
-
-# Allow this source/ script to be run directly with
-#     python source/<script_name>.py
-# as well as through run_analysis.py.
-import sys
-from pathlib import Path
-
-REPO_ROOT_BOOTSTRAP = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT_BOOTSTRAP) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT_BOOTSTRAP))
-
+import figure_config as _config
 from source.utils.paths import FIGURES_APPENDIX, SALINITY_DIR
 
 
@@ -58,51 +55,9 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 OUT_PNG = OUT_DIR / "figS2_porewater_salinity.png"
 
-SCENARIO_FILES = {
-    "35_V1": "35_V1.csv",
-    "35_V2": "35_V2.csv",
-    "70_V1": "70_V1.csv",
-    "70_V2": "70_V2.csv",
-    "105_V1": "105_V1.csv",
-    "105_V2": "105_V2.csv",
-}
-
-SCENARIO_LABELS = {
-    "35_V1": "35 ppt seasonality",
-    "35_V2": "35 ppt seasonality + tide",
-    "70_V1": "70 ppt seasonality",
-    "70_V2": "70 ppt seasonality + tide",
-    "105_V1": "105 ppt seasonality",
-    "105_V2": "105 ppt seasonality + tide",
-}
-
-SCENARIO_ORDER = [
-    "35_V1",
-    "35_V2",
-    "70_V1",
-    "70_V2",
-    "105_V1",
-    "105_V2",
-]
-
-# Same blue sequence used for the salinity scenarios in earlier figures.
-SCENARIO_COLORS = {
-    "35_V1": "#c6dbef",
-    "35_V2": "#9ecae1",
-    "70_V1": "#6baed6",
-    "70_V2": "#4292c6",
-    "105_V1": "#2171b5",
-    "105_V2": "#084594",
-}
-
-SCENARIO_LINESTYLES = {
-    "35_V1": (0, (4, 2)),
-    "35_V2": (0, (1, 2)),
-    "70_V1": (0, (4, 2)),
-    "70_V2": (0, (1, 2)),
-    "105_V1": (0, (4, 2)),
-    "105_V2": (0, (1, 2)),
-}
+SALINITIES = _config.SAL_DYN
+DYNAMIC_REGIMES = ["V1", "V2"]
+REGIMES = ["V0"] + DYNAMIC_REGIMES
 
 SECONDS_PER_DAY = 86400.0
 DAYS_TO_PLOT = 366
@@ -112,9 +67,9 @@ DAYS_TO_PLOT = 366
 # Functions
 # =============================================================================
 
-def read_salinity_file(scenario, filename):
-    """Read one salinity input file and return a clean plotting table."""
-    input_path = SALINITY_DIR / filename
+def read_salinity_file(salinity, regime):
+    """Read one dynamic salinity input file as days and salinity in ppt."""
+    input_path = SALINITY_DIR / f"{salinity}_{regime}.csv"
     if not input_path.is_file():
         raise FileNotFoundError(f"Missing salinity input file: {input_path}")
 
@@ -131,73 +86,62 @@ def read_salinity_file(scenario, filename):
     # scenario, use the first non-time column, as in the original script.
     value_column = value_columns[0]
 
-    return pd.DataFrame(
-        {
-            "day": df["t_step"] / SECONDS_PER_DAY,
-            "salinity_ppt": df[value_column] * 1000.0,
-            "scenario": scenario,
-            "label": SCENARIO_LABELS[scenario],
-        }
-    )
-
-
-def load_plot_data():
-    """Load all dynamic salinity scenarios."""
-    data_frames = []
-    for scenario in SCENARIO_ORDER:
-        data_frames.append(read_salinity_file(scenario, SCENARIO_FILES[scenario]))
-    return pd.concat(data_frames, ignore_index=True)
+    return df["t_step"] / SECONDS_PER_DAY, df[value_column] * 1000.0
 
 
 def main():
-    plt.rcParams.update(
-        {
-            "font.family": "sans-serif",
-            "font.sans-serif": ["DejaVu Sans", "Arial"],
-            "font.size": 9,
-            "axes.labelsize": 9,
-            "xtick.labelsize": 8,
-            "ytick.labelsize": 8,
-            "legend.fontsize": 7,
-            "axes.linewidth": 0.8,
-        }
+    _config.apply_style()
+
+    fig, axes = plt.subplots(
+        nrows=len(SALINITIES),
+        ncols=1,
+        figsize=_config.figsize_mm(_config.WIDTH_FULL_MM, 120),
+        sharex=True,
+        sharey=True,
     )
 
-    df_long = load_plot_data()
+    y_max = 0.0
+    for ax, salinity in zip(axes, SALINITIES):
+        # Static regime: constant salinity at the mean value.
+        ax.axhline(salinity, color=_config.regime_color_map["V0"], linewidth=1.0)
 
-    fig, ax = plt.subplots(figsize=(7.2, 3.8))
+        for regime in DYNAMIC_REGIMES:
+            day, salinity_ppt = read_salinity_file(salinity, regime)
+            ax.plot(day, salinity_ppt, color=_config.regime_color_map[regime],
+                    linewidth=0.8)
+            y_max = max(y_max, salinity_ppt.max())
 
-    for scenario in SCENARIO_ORDER:
-        subset = df_long[df_long["scenario"] == scenario]
-        ax.plot(
-            subset["day"],
-            subset["salinity_ppt"],
-            label=SCENARIO_LABELS[scenario],
-            color=SCENARIO_COLORS[scenario],
-            linestyle=SCENARIO_LINESTYLES[scenario],
-            linewidth=1.2,
-        )
+        # Mean salinity as a row label at the right edge (as in Fig. 4).
+        ax.yaxis.set_label_position("right")
+        ax.set_ylabel(f"{salinity} ppt", rotation=270, va="bottom")
 
-    ax.set_xlabel("Day of year")
-    ax.set_ylabel("Porewater salinity [ppt]")
-    ax.set_xlim(0, 365)
-    ax.set_xticks(np.arange(0, 361, 60))
-    ax.grid(True, alpha=0.35, linewidth=0.7)
+        ax.set_xlim(0, 365)
+        ax.set_xticks(np.arange(0, 361, 60))
+        ax.set_axisbelow(True)
+        ax.grid(axis="y", linewidth=0.5, alpha=0.4)
 
-    ax.legend(
-        title="Scenario",
-        frameon=True,
-        loc="upper center",
-        bbox_to_anchor=(0.5, 1.27),
-        ncol=3,
-        title_fontsize=8,
-    )
+    # Shared y-range covering all curves of all panels.
+    axes[0].set_ylim(0, y_max * 1.05)
 
-    fig.tight_layout()
-    fig.savefig(OUT_PNG, dpi=300, bbox_inches="tight")
+    # Tick marks only where there are tick labels (bottom row).
+    for ax in axes[:-1]:
+        ax.tick_params(axis="x", bottom=False)
+
+    axes[-1].set_xlabel("Day of year")
+    fig.supylabel("Porewater salinity (ppt)", fontsize="medium")
+
+    handles = [
+        Line2D([], [], color=_config.regime_color_map[regime],
+               label=_config.REGIME_LABELS[regime])
+        for regime in REGIMES
+    ]
+    # Legend below the panels, as in Fig. S1.
+    legend = fig.legend(handles=handles, title="Salinity regime",
+                        loc="outside lower center", ncols=len(handles))
+    legend.set_alignment("left")
+
+    _config.save_figure(fig, OUT_PNG)
     plt.close(fig)
-
-    print(f"Saved: {OUT_PNG}")
 
 
 if __name__ == "__main__":

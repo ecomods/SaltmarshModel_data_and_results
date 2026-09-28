@@ -72,17 +72,13 @@ VERSIONS = {
 sal_levels = [35, 70, 105]
 variant_levels = VARIANT_LEVELS
 
-# Colours outside the PFT palette: the static reference in grey, the two
-# dynamic regimes in black and purple (distinguishable with red-green
-# colour blindness).
+# Regime colours and display names are shared with Fig. S2 (figure_config);
+# data keys stay V0/V1/V2.
 variant_style = {
-    "V0": {"color": "#808080", "linestyle": "-", "linewidth": 0.8},
-    "V1": {"color": "black", "linestyle": "-", "linewidth": 0.8},
-    "V2": {"color": "#6a3d9a", "linestyle": "-", "linewidth": 0.8},
+    var: {"color": color, "linestyle": "-", "linewidth": 0.8}
+    for var, color in _config.regime_color_map.items()
 }
-
-# Display names of the salinity variants (data keys stay V0/V1/V2).
-VARIANT_LABELS = {"V0": "Static", "V1": "Seasonal", "V2": "Seasonal + tide"}
+VARIANT_LABELS = _config.REGIME_LABELS
 
 DAYS_PER_YEAR = 365
 YEAR_TICKS = [5, 6, 7, 8, 9, 10]
