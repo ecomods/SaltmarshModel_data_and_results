@@ -28,11 +28,12 @@ Columns: PFT 1-4 time series plus one stacked total barplot column
 Lines: V0, V1, V2
 Bars: total biovolume by PFT for V0, V1, V2
 
-This script creates only the dynamic total biovolume figure and saves it
-straight to figures/main/.
+This script creates the dynamic total biovolume figure in a median- and a
+mean-based version and saves both straight to figures/main/.
 
 Outputs:
 - figures/main/fig4_dynamic_biovolume_median.png
+- figures/main/fig4_dynamic_biovolume_mean.png
 
 """
 
@@ -63,7 +64,11 @@ ensure_dir = _utils.ensure_dir
 
 output_dir = ensure_dir(FIGURES_MAIN)
 
-OUT_PNG = os.path.join(output_dir, "fig4_dynamic_biovolume_median.png")
+# Statistical version -> (time-series table, bar summary table, value column).
+VERSIONS = {
+    "median": ("median_ts_total_volume.csv", "summary_pft_tv.csv", "median_value"),
+    "mean": ("MEAN_ts_total_volume.csv", "MEAN_summary_pft_tv.csv", "mean_value"),
+}
 
 sal_levels = [35, 70, 105]
 variant_levels = VARIANT_LEVELS
@@ -73,19 +78,6 @@ variant_style = {
     "V1": {"color": "#8c510a", "linestyle": "-", "linewidth": 0.9},
     "V2": {"color": "#2171b5", "linestyle": "-", "linewidth": 0.9},
 }
-
-
-# =============================================================================
-# Input data
-# =============================================================================
-
-median_ts_total_volume = pd.read_csv(
-    os.path.join(DERIVED_DIR, "median_ts_total_volume.csv")
-)
-
-summary_pft_tv = pd.read_csv(
-    os.path.join(DERIVED_DIR, "summary_pft_tv.csv")
-)
 
 
 # =============================================================================
@@ -127,16 +119,16 @@ def get_y_limits(median_df):
     return y_min - pad, y_max + pad
 
 
-def build_total_volume_lookup(summary_pft_tv):
+def build_total_volume_lookup(summary_pft_tv, value_col):
     """
     Convert summary_pft_tv into a lookup dictionary:
-        tv_lookup[(salinity, variant)][pft] = median total biovolume
+        tv_lookup[(salinity, variant)][pft] = median or mean total biovolume
     """
     tv_lookup = {}
 
     for (sal, var), sub in summary_pft_tv.groupby(["salinity", "variant"]):
         tv_lookup[(int(sal), str(var))] = {
-            int(row["pft"]): float(row["median_value"])
+            int(row["pft"]): float(row[value_col])
             for _, row in sub.iterrows()
         }
 
@@ -190,13 +182,13 @@ def add_pft_legend(fig):
 # Plot
 # =============================================================================
 
-def plot_dynamic_biovolume():
+def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, value_col, out_png):
     """
-    Create the dynamic total biovolume figure.
+    Create the dynamic total biovolume figure for one statistical version.
     """
-    y_lim = get_y_limits(median_ts_total_volume)
-    dfm = add_salinity_and_variant_columns(median_ts_total_volume)
-    tv_lookup = build_total_volume_lookup(summary_pft_tv)
+    y_lim = get_y_limits(ts_total_volume)
+    dfm = add_salinity_and_variant_columns(ts_total_volume)
+    tv_lookup = build_total_volume_lookup(summary_pft_tv, value_col)
 
     fig, axes = plt.subplots(
         nrows=len(sal_levels),
@@ -291,9 +283,8 @@ def plot_dynamic_biovolume():
 
     plt.tight_layout(rect=[0, 0, 1, 0.90])
 
-    plt.savefig(OUT_PNG, bbox_inches="tight", dpi=300)
+    plt.savefig(out_png, bbox_inches="tight", dpi=300)
 
-    plt.show()
     plt.close(fig)
 
 
@@ -301,7 +292,12 @@ def plot_dynamic_biovolume():
 # Main
 # =============================================================================
 
-plot_dynamic_biovolume()
-
-print("Done: fig4_dynamic_biovolume_median")
-print(f"Saved: {OUT_PNG}")
+for version, (ts_file, summary_file, value_col) in VERSIONS.items():
+    out_png = os.path.join(output_dir, f"fig4_dynamic_biovolume_{version}.png")
+    plot_dynamic_biovolume(
+        pd.read_csv(os.path.join(DERIVED_DIR, ts_file)),
+        pd.read_csv(os.path.join(DERIVED_DIR, summary_file)),
+        value_col,
+        out_png,
+    )
+    print(f"Saved: {out_png}")

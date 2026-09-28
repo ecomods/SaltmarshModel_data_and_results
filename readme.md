@@ -208,7 +208,6 @@ data_and_results/
 │   ├── 03_fig2_community_vs_monoculture.py
 │   ├── 04_fig3_community_structure.py
 │   ├── 05_fig4_dynamic_biovolume.py
-│   ├── 05_fig4_dynamic_biovolume_mean.py
 │   ├── 06_figS1_growth_vs_maintenance.py
 │   ├── 07_figS2_porewater_salinity.py
 │   ├── 08_figS3_monoculture_structure.py
@@ -610,7 +609,6 @@ The script runs these source scripts in order:
 03_fig2_community_vs_monoculture.py
 04_fig3_community_structure.py
 05_fig4_dynamic_biovolume.py
-05_fig4_dynamic_biovolume_mean.py
 06_figS1_growth_vs_maintenance.py
 07_figS2_porewater_salinity.py
 08_figS3_monoculture_structure.py
@@ -739,8 +737,8 @@ figures/main/fig3_community_structure_mean.png
 
 ### 6.4 `05_fig4_dynamic_biovolume.py` - Figure 4
 
-Creates the dynamic biovolume time-series and stacked-bar figure. The
-mean-based version is created by `05_fig4_dynamic_biovolume_mean.py`.
+Creates the dynamic biovolume time-series and stacked-bar figure in both
+versions (median and mean).
 
 Layout:
 
