@@ -207,7 +207,6 @@ data_and_results/
 │   ├── 02_fig1_salinity_response.py
 │   ├── 03_fig2_community_vs_monoculture.py
 │   ├── 04_fig3_community_structure.py
-│   ├── 04_fig3_community_structure_mean.py
 │   ├── 05_fig4_dynamic_biovolume.py
 │   ├── 05_fig4_dynamic_biovolume_mean.py
 │   ├── 06_figS1_growth_vs_maintenance.py
@@ -610,7 +609,6 @@ The script runs these source scripts in order:
 02_fig1_salinity_response.py
 03_fig2_community_vs_monoculture.py
 04_fig3_community_structure.py
-04_fig3_community_structure_mean.py
 05_fig4_dynamic_biovolume.py
 05_fig4_dynamic_biovolume_mean.py
 06_figS1_growth_vs_maintenance.py
@@ -713,8 +711,8 @@ figures/main/fig2_community_vs_monoculture_mean.png
 
 ### 6.3 `04_fig3_community_structure.py` - Figure 3
 
-Creates the static community figure. The mean-based version is created by
-`04_fig3_community_structure_mean.py`.
+Creates the static community figure in both versions (median and mean). The
+panel drawing is shared via `draw_structure_figure()` in `figure_utils.py`.
 
 Panels:
 
