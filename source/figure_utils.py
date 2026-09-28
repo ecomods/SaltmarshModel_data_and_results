@@ -463,6 +463,29 @@ def mean_ts(df, col):
 # Shared plotting
 # =============================================================================
 
+def center_label_under(fig, axes_row, label):
+    """
+    Replace the x-axis labels of axes_row by one label centred below them.
+
+    Must be called after all other layout elements exist: the figure is laid
+    out once, then the layout is frozen so the space reserved for the
+    (now hidden) axis labels is kept.
+    """
+    for ax in axes_row:
+        ax.set_xlabel(label)
+    fig.canvas.draw()
+    fig.set_layout_engine("none")
+
+    to_fig = fig.transFigure.inverted()
+    y = to_fig.transform(axes_row[0].xaxis.label.get_window_extent())[:, 1].mean()
+    x = (axes_row[0].get_position().x0 + axes_row[-1].get_position().x1) / 2
+    for ax in axes_row:
+        ax.xaxis.label.set_visible(False)
+    fig.text(x, y, label, ha="center", va="center",
+             fontsize=axes_row[0].xaxis.label.get_fontsize(),
+             color=axes_row[0].xaxis.label.get_color())
+
+
 def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
                           panel_order, show_community=True, group_spacing=3.8,
                           pft_colors=None):

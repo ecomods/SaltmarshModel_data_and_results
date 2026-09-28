@@ -177,29 +177,6 @@ def add_variant_legend(fig, pft_legend):
     legend.set_alignment("left")
 
 
-def center_label_under(fig, axes_row, label):
-    """
-    Replace the x-axis labels of axes_row by one label centred below them.
-
-    Must be called after all other layout elements exist: the figure is laid
-    out once, then the layout is frozen so the space reserved for the
-    (now hidden) axis labels is kept.
-    """
-    for ax in axes_row:
-        ax.set_xlabel(label)
-    fig.canvas.draw()
-    fig.set_layout_engine("none")
-
-    to_fig = fig.transFigure.inverted()
-    y = to_fig.transform(axes_row[0].xaxis.label.get_window_extent())[:, 1].mean()
-    x = (axes_row[0].get_position().x0 + axes_row[-1].get_position().x1) / 2
-    for ax in axes_row:
-        ax.xaxis.label.set_visible(False)
-    fig.text(x, y, label, ha="center", va="center",
-             fontsize=axes_row[0].xaxis.label.get_fontsize(),
-             color=axes_row[0].xaxis.label.get_color())
-
-
 # =============================================================================
 # Plot
 # =============================================================================
@@ -290,7 +267,7 @@ def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, value_col, out_png):
 
     fig.supylabel("Total biovolume (m³)", fontsize="medium")
     pft_legend = add_pft_legend(fig)
-    center_label_under(fig, axes[-1, :len(PFTS)], "Time (years)")
+    _utils.center_label_under(fig, axes[-1, :len(PFTS)], "Time (years)")
     add_variant_legend(fig, pft_legend)
 
     _config.save_figure(fig, out_png)

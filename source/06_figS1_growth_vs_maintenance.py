@@ -47,20 +47,13 @@ data_model_input/species/Saltmarsh_4.py
 """
 
 import importlib.util
-import sys
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
 
-
-# Allow this source/ script to be run directly with
-#     python source/<script_name>.py
-# as well as through run_analysis.py.
-REPO_ROOT_BOOTSTRAP = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT_BOOTSTRAP) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT_BOOTSTRAP))
-
+import figure_config as _config
+import figure_utils as _utils
 from source.utils.paths import FIGURES_APPENDIX, SPECIES_DIR
 
 
@@ -79,27 +72,14 @@ OUT_PNG = OUT_DIR / "figS1_growth_vs_maintenance.png"
 # =============================================================================
 
 TIME = 86400.0
-SALINITIES = [35, 70, 105, 140]
+SALINITIES = _config.SAL_STATIC
 
 H_AG_MIN = 0.0
 H_AG_MAX = 1.85
 N_POINTS = 1000
 
-PFTS = [1, 2, 3, 4]
-
-PFT_LABELS = {
-    1: "PFT 1",
-    2: "PFT 2",
-    3: "PFT 3",
-    4: "PFT 4",
-}
-
-SALINITY_COLORS = {
-    35: "#0173b2",
-    70: "#de8f05",
-    105: "#029e73",
-    140: "#d55e00",
-}
+PFTS = _config.PFTS
+SALINITY_COLORS = _config.salinity_color_map
 
 
 # =============================================================================
@@ -266,20 +246,56 @@ def prepare_pft_data(pft, h_ag):
     }
 
 
-def set_common_style():
-    """Apply consistent matplotlib settings for the manuscript figure."""
-    plt.rcParams.update(
-        {
-            "font.family": "sans-serif",
-            "font.sans-serif": ["DejaVu Sans", "Arial"],
-            "font.size": 9,
-            "axes.labelsize": 9,
-            "xtick.labelsize": 8,
-            "ytick.labelsize": 8,
-            "legend.fontsize": 8,
-            "axes.linewidth": 0.8,
-        }
+def panel_title(pft, p_maint):
+    """Panel title with the maintenance parameter in scientific notation."""
+    mantissa, exponent = f"{p_maint:.2e}".split("e")
+    return (
+        rf"PFT {pft} ($p_{{\mathrm{{maint}}}}$ = {mantissa} × "
+        rf"10$^{{{int(exponent)}}}$)"
     )
+
+
+def add_growth_legend(fig):
+    """
+    Salinity colours under the header "Potential growth at", below the
+    panels. Added before the layout is frozen so its space is reserved.
+    """
+    growth_handles = [
+        Line2D([], [], color=SALINITY_COLORS[sal], label=f"{sal} ppt")
+        for sal in SALINITIES
+    ]
+    growth_legend = fig.legend(
+        handles=growth_handles,
+        title="Potential growth at",
+        loc="outside lower center",
+        ncols=len(growth_handles),
+    )
+    growth_legend.set_alignment("left")
+    return growth_legend
+
+
+def add_maintenance_legend(fig, growth_legend):
+    """
+    Black maintenance line as a second legend block; both blocks are then
+    centred side by side below the panels. Call after the layout is frozen.
+    """
+    maintenance_legend = fig.legend(
+        handles=[Line2D([], [], color="black", label="Maintenance")],
+        loc="lower left",
+        borderaxespad=0,
+    )
+    fig.canvas.draw()
+
+    to_fig = fig.transFigure.inverted()
+    growth_box = growth_legend.get_window_extent().transformed(to_fig)
+    maint_width = maintenance_legend.get_window_extent().transformed(to_fig).width
+    gap = 0.07
+    left = 0.5 - (maint_width + gap + growth_box.width) / 2
+
+    maintenance_legend.set_bbox_to_anchor((left, growth_box.y0))
+    growth_legend.set_loc("lower left")
+    growth_legend.borderaxespad = 0
+    growth_legend.set_bbox_to_anchor((left + maint_width + gap, growth_box.y0))
 
 
 # =============================================================================
@@ -287,7 +303,7 @@ def set_common_style():
 # =============================================================================
 
 def main():
-    set_common_style()
+    _config.apply_style()
 
     h_ag = np.linspace(H_AG_MIN, H_AG_MAX, N_POINTS)
 
@@ -307,110 +323,39 @@ def main():
     fig, axes = plt.subplots(
         nrows=2,
         ncols=2,
-        figsize=(8.0, 6.2),
+        figsize=_config.figsize_mm(_config.WIDTH_FULL_MM, 120),
         sharex=True,
         sharey=True,
     )
 
-    axes_flat = axes.ravel()
-
-    legend_handles = []
-    legend_labels = []
-
-    for ax, pft in zip(axes_flat, PFTS):
+    for ax, pft in zip(axes.ravel(), PFTS):
         result = pft_results[pft]
-        params = result["params"]
-        maintenance = result["maintenance"]
-        growth_curves = result["growth_curves"]
-        intersections = result["intersections"]
 
-        maintenance_line, = ax.plot(
-            h_ag,
-            maintenance,
-            color="black",
-            linestyle="-",
-            linewidth=1.2,
-            label="maintenance",
-        )
-
-        if not legend_handles:
-            legend_handles.append(maintenance_line)
-            legend_labels.append("maintenance")
-
+        # Potential growth per salinity (colours), then maintenance on top.
         for salinity in SALINITIES:
-            growth_line, = ax.plot(
-                h_ag,
-                growth_curves[salinity],
-                color=SALINITY_COLORS[salinity],
-                linestyle="--",
-                linewidth=1.1,
-                label=f"growth_pot ({salinity} ppt)",
-            )
+            ax.plot(h_ag, result["growth_curves"][salinity],
+                    color=SALINITY_COLORS[salinity], linewidth=1.0)
+        ax.plot(h_ag, result["maintenance"], color="black", linewidth=1.0)
 
-            if pft == PFTS[0]:
-                legend_handles.append(growth_line)
-                legend_labels.append(f"growth_pot ({salinity} ppt)")
+        # Intersections = potential heights (values listed in Table S1).
+        for intersection in result["intersections"].values():
+            if intersection is not None:
+                ax.scatter(*intersection, color="black", s=10, zorder=5)
 
-        for salinity in SALINITIES:
-            intersection = intersections[salinity]
-
-            if intersection is None:
-                continue
-
-            x_int, y_int = intersection
-
-            ax.scatter(
-                x_int,
-                y_int,
-                color="black",
-                s=16,
-                zorder=5,
-            )
-
-            ax.annotate(
-                f"{x_int:.2f} m",
-                xy=(x_int, y_int),
-                xytext=(4, 4),
-                textcoords="offset points",
-                fontsize=6,
-                bbox=dict(
-                    boxstyle="round,pad=0.15",
-                    fc="white",
-                    ec="gray",
-                    alpha=0.85,
-                ),
-            )
-
-        ax.set_title(
-            f"{PFT_LABELS[pft]} (mf={params['p_maint']:.2e})",
-            fontsize=9,
-        )
-
+        ax.set_title(panel_title(pft, result["params"]["p_maint"]))
         ax.set_xlim(0.0, H_AG_MAX)
         ax.set_ylim(0.0, y_max)
-        ax.grid(True, alpha=0.25)
+        ax.set_axisbelow(True)
+        ax.grid(axis="y", linewidth=0.5, alpha=0.4)
 
-    axes[1, 0].set_xlabel("Above-ground height [m]")
-    axes[1, 1].set_xlabel("Above-ground height [m]")
-    axes[0, 0].set_ylabel("Daily volume increment [m$^3$]")
-    axes[1, 0].set_ylabel("Daily volume increment [m$^3$]")
+    # One shared label per axis for all four panels, legends below them.
+    fig.supylabel("Daily volume increment (m³)", fontsize="medium")
+    growth_legend = add_growth_legend(fig)
+    _utils.center_label_under(fig, axes[1, :], "Aboveground height (m)")
+    add_maintenance_legend(fig, growth_legend)
 
-    fig.legend(
-        legend_handles,
-        legend_labels,
-        loc="lower center",
-        ncol=3,
-        frameon=True,
-        bbox_to_anchor=(0.5, 0.01),
-    )
-
-    fig.tight_layout(rect=[0.0, 0.08, 1.0, 1.0])
-
-    fig.savefig(OUT_PNG, dpi=300, bbox_inches="tight")
-
+    _config.save_figure(fig, OUT_PNG)
     plt.close(fig)
-
-    print(f"Saved: {OUT_PNG}")
 
 
 if __name__ == "__main__":
