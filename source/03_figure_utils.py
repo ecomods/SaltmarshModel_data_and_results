@@ -176,13 +176,16 @@ def complete_grid(summary_df, sal_levels, pft_levels):
     )
 
 
-def grouped_over_time_medians(df, keys_prefix):
+def grouped_over_time_medians(df, keys_prefix, per_timestep_total_pft=None):
     """
     Create replicate-level medians over time for PFTs and the whole community.
 
     This is used for error-bar figures. The returned data are still replicate-
     level summaries; summary_minmax() then calculates median and
     25th/75th percentiles across replicates.
+
+    per_timestep_total_pft may contain the already summed PFT totals grouped
+    by keys_prefix + ["pft", "n", "time"], with a total_volume column.
     """
     dfc = df.copy()
     dfc["volume_per_plant"] = dfc["volume"]
@@ -194,11 +197,14 @@ def grouped_over_time_medians(df, keys_prefix):
     )
     dfc = dfc.merge(plant_counts_pft, on=keys_prefix + ["pft", "n", "time"], how="left")
 
-    per_ts_total_pft = (
-        dfc.groupby(keys_prefix + ["pft", "n", "time"])["volume"]
-        .sum()
-        .reset_index(name="total_volume")
-    )
+    if per_timestep_total_pft is None:
+        per_ts_total_pft = (
+            dfc.groupby(keys_prefix + ["pft", "n", "time"])["volume"]
+            .sum()
+            .reset_index(name="total_volume")
+        )
+    else:
+        per_ts_total_pft = per_timestep_total_pft
 
     per_ts_other_pft = (
         dfc.groupby(keys_prefix + ["pft", "n", "time"])
@@ -271,13 +277,16 @@ def grouped_over_time_medians(df, keys_prefix):
     return grouped_pft, grouped_all
 
 
-def grouped_over_time_means(df, keys_prefix):
+def grouped_over_time_means(df, keys_prefix, per_timestep_total_pft=None):
     """
     Create replicate-level means over time for PFTs and the whole community.
 
     This is used for mean-based error-bar figures. The returned data are still
     replicate-level summaries; summary_mean_std() can calculate mean and
     standard deviation across replicates.
+
+    per_timestep_total_pft has the same grouping and columns as in the median
+    helper, so callers can reuse the same totals for both summaries.
     """
     dfc = df.copy()
     dfc["volume_per_plant"] = dfc["volume"]
@@ -289,11 +298,14 @@ def grouped_over_time_means(df, keys_prefix):
     )
     dfc = dfc.merge(plant_counts_pft, on=keys_prefix + ["pft", "n", "time"], how="left")
 
-    per_ts_total_pft = (
-        dfc.groupby(keys_prefix + ["pft", "n", "time"])["volume"]
-        .sum()
-        .reset_index(name="total_volume")
-    )
+    if per_timestep_total_pft is None:
+        per_ts_total_pft = (
+            dfc.groupby(keys_prefix + ["pft", "n", "time"])["volume"]
+            .sum()
+            .reset_index(name="total_volume")
+        )
+    else:
+        per_ts_total_pft = per_timestep_total_pft
 
     per_ts_other_pft = (
         dfc.groupby(keys_prefix + ["pft", "n", "time"])

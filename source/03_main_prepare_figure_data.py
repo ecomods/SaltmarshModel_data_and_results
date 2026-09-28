@@ -201,9 +201,17 @@ df_dyn["variant"] = pd.Categorical(
 )
 
 # Values for the stacked total bars on the right side of Figure 3.3.
+# Both variants start from the same per-timestep PFT totals. Keep the other
+# replicate-level properties calculated by the helpers for future figures.
+per_timestep_total_pft_dyn = (
+    df_dyn.groupby(["salinity", "variant", "pft", "n", "time"])["volume"]
+    .sum()
+    .reset_index(name="total_volume")
+)
 grouped_pft_dyn, _ = grouped_over_time_medians(
     df_dyn,
     keys_prefix=["salinity", "variant"],
+    per_timestep_total_pft=per_timestep_total_pft_dyn,
 )
 summary_pft_tv = summary_minmax(
     grouped_pft_dyn,
@@ -216,6 +224,7 @@ summary_pft_tv.to_csv(os.path.join(DERIVED_DIR, "summary_pft_tv.csv"), index=Fal
 mean_grouped_pft_dyn, _ = grouped_over_time_means(
     df_dyn,
     keys_prefix=["salinity", "variant"],
+    per_timestep_total_pft=per_timestep_total_pft_dyn,
 )
 mean_summary_pft_tv = summary_minmax_mean(
     mean_grouped_pft_dyn,
