@@ -20,7 +20,7 @@
 #
 # Output
 # ------
-# The figure is written directly to figures/main/ as PNG and PDF.
+# The figure is written directly to figures/main/ as PNG.
 # =============================================================================
 
 """
@@ -45,7 +45,6 @@ Error bars:
 
 Output:
     figures/main/plot_3_2_static_community.png
-    figures/main/plot_3_2_static_community.pdf
 
 """
 
@@ -402,10 +401,6 @@ plt.savefig(
     bbox_inches="tight",
 )
 
-plt.savefig(
-    os.path.join(output_dir, f"{OUTPUT_BASENAME}.pdf"),
-    bbox_inches="tight",
-)
 
 plt.show()
 plt.close(fig)
@@ -413,4 +408,3 @@ plt.close(fig)
 
 print("Done: plot_3_2_static_community")
 print(f"Saved: figures/main/{OUTPUT_BASENAME}.png")
-print(f"Saved: figures/main/{OUTPUT_BASENAME}.pdf")

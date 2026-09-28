@@ -17,7 +17,7 @@
 #
 # Output
 # ------
-# The figure is written directly to figures/main/ as PNG and PDF.
+# The figure is written directly to figures/main/ as PNG.
 # =============================================================================
 
 """
@@ -32,7 +32,6 @@ Panel layout:
 
 Output:
     figures/main/MEAN_plot_3_2_static_community.png
-    figures/main/MEAN_plot_3_2_static_community.pdf
 """
 
 import os
@@ -273,14 +272,9 @@ plt.savefig(
     bbox_inches="tight",
 )
 
-plt.savefig(
-    os.path.join(output_dir, f"{OUTPUT_BASENAME}.pdf"),
-    bbox_inches="tight",
-)
 
 plt.show()
 plt.close(fig)
 
 print("Done: MEAN_plot_3_2_static_community")
 print(f"Saved: figures/main/{OUTPUT_BASENAME}.png")
-print(f"Saved: figures/main/{OUTPUT_BASENAME}.pdf")

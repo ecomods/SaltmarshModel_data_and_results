@@ -17,7 +17,7 @@
 #
 # Output
 # ------
-# The figure is written directly to figures/main/ as PNG and PDF.
+# The figure is written directly to figures/main/ as PNG.
 # =============================================================================
 
 """
@@ -28,7 +28,6 @@ This script creates the static community-vs-monoculture total biovolume figure.
 
 Output:
     figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.png
-    figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.pdf
 
 """
 
@@ -62,10 +61,6 @@ output_dir = ensure_dir(FIGURES_MAIN)
 out_png = os.path.join(
     output_dir,
     "plot_3_1_static_community_vs_mono_biovolume_tot.png",
-)
-out_pdf = os.path.join(
-    output_dir,
-    "plot_3_1_static_community_vs_mono_biovolume_tot.pdf",
 )
 
 
@@ -205,11 +200,9 @@ ax.legend(
 plt.tight_layout()
 
 plt.savefig(out_png, dpi=600, bbox_inches="tight")
-plt.savefig(out_pdf, bbox_inches="tight")
 
 plt.show()
 plt.close()
 
 print("Done: plot_3_1_static_community_vs_mono")
 print(f"Saved: {out_png}")
-print(f"Saved: {out_pdf}")

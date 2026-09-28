@@ -16,7 +16,7 @@
 #
 # Output
 # ------
-# The figure is written directly to figures/main/ as PNG and PDF.
+# The figure is written directly to figures/main/ as PNG.
 # =============================================================================
 
 """
@@ -33,7 +33,6 @@ straight to figures/main/.
 
 Outputs:
 - figures/main/plot_3_3_dynamic_biovolume.png
-- figures/main/plot_3_3_dynamic_biovolume.pdf
 
 """
 
@@ -65,7 +64,6 @@ ensure_dir = _utils.ensure_dir
 output_dir = ensure_dir(FIGURES_MAIN)
 
 OUT_PNG = os.path.join(output_dir, "plot_3_3_dynamic_biovolume.png")
-OUT_PDF = os.path.join(output_dir, "plot_3_3_dynamic_biovolume.pdf")
 
 sal_levels = [35, 70, 105]
 variant_levels = VARIANT_LEVELS
@@ -294,7 +292,6 @@ def plot_dynamic_biovolume():
     plt.tight_layout(rect=[0, 0, 1, 0.90])
 
     plt.savefig(OUT_PNG, bbox_inches="tight", dpi=300)
-    plt.savefig(OUT_PDF, bbox_inches="tight")
 
     plt.show()
     plt.close(fig)
@@ -308,4 +305,3 @@ plot_dynamic_biovolume()
 
 print("Done: plot_3_3_dynamic_biovolume")
 print(f"Saved: {OUT_PNG}")
-print(f"Saved: {OUT_PDF}")

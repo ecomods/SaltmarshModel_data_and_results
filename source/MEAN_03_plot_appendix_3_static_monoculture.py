@@ -16,7 +16,7 @@
 #
 # Output
 # ------
-# The figure is written to figures/appendix/ as PNG and PDF.
+# The figure is written to figures/appendix/ as PNG.
 # =============================================================================
 
 """
@@ -31,7 +31,6 @@ Panel layout:
 
 Output:
     figures/appendix/MEAN_plot_appendix_3_static_monoculture.png
-    figures/appendix/MEAN_plot_appendix_3_static_monoculture.pdf
 """
 
 import os
@@ -299,14 +298,9 @@ plt.savefig(
     bbox_inches="tight",
 )
 
-plt.savefig(
-    os.path.join(output_dir, f"{OUTPUT_BASENAME}.pdf"),
-    bbox_inches="tight",
-)
 
 plt.show()
 plt.close(fig)
 
 print("Done: MEAN_plot_appendix_3_static_monoculture")
 print(f"Saved: figures/appendix/{OUTPUT_BASENAME}.png")
-print(f"Saved: figures/appendix/{OUTPUT_BASENAME}.pdf")

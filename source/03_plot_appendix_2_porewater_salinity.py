@@ -16,7 +16,7 @@
 #
 # Output
 # ------
-# The figure is written directly to figures/appendix/ as PNG and PDF.
+# The figure is written directly to figures/appendix/ as PNG.
 # =============================================================================
 
 """
@@ -28,7 +28,6 @@ porewater salinity scenarios used in the model setup.
 Outputs
 -------
 figures/appendix/plot_appendix_2_porewater_salinity.png
-figures/appendix/plot_appendix_2_porewater_salinity.pdf
 """
 
 
@@ -58,7 +57,6 @@ OUT_DIR = FIGURES_APPENDIX
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 OUT_PNG = OUT_DIR / "plot_appendix_2_porewater_salinity.png"
-OUT_PDF = OUT_DIR / "plot_appendix_2_porewater_salinity.pdf"
 
 SCENARIO_FILES = {
     "35_V1": "35_V1.csv",
@@ -197,11 +195,9 @@ def main():
 
     fig.tight_layout()
     fig.savefig(OUT_PNG, dpi=300, bbox_inches="tight")
-    fig.savefig(OUT_PDF, bbox_inches="tight")
     plt.close(fig)
 
     print(f"Saved: {OUT_PNG}")
-    print(f"Saved: {OUT_PDF}")
 
 
 if __name__ == "__main__":

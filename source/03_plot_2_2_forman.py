@@ -17,7 +17,6 @@
 # Output
 # ------
 # figures/main/plot_2_2_forman.png
-# figures/main/plot_2_2_forman.pdf
 # =============================================================================
 
 """
@@ -54,7 +53,6 @@ OUT_DIR = FIGURES_MAIN
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 OUT_PNG = OUT_DIR / "plot_2_2_forman.png"
-OUT_PDF = OUT_DIR / "plot_2_2_forman.pdf"
 
 SALINITY_RANGE = np.linspace(0, 160, 1000)
 
@@ -211,15 +209,10 @@ def main():
         bbox_inches="tight",
     )
 
-    fig.savefig(
-        OUT_PDF,
-        bbox_inches="tight",
-    )
 
     plt.close(fig)
 
     print(f"Saved: {OUT_PNG}")
-    print(f"Saved: {OUT_PDF}")
 
 
 if __name__ == "__main__":

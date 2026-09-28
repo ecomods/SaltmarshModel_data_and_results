@@ -18,7 +18,7 @@
 #
 # Output
 # ------
-# The figure is written directly to figures/appendix/ as PNG and PDF.
+# The figure is written directly to figures/appendix/ as PNG.
 # =============================================================================
 
 """
@@ -27,7 +27,6 @@ Plot potential growth and maintenance costs for all four PFTs.
 Outputs
 -------
 figures/appendix/plot_appendix_1_growth_pot_maint.png
-figures/appendix/plot_appendix_1_growth_pot_maint.pdf
 
 The figure contains four panels arranged as a 2 x 2 grid:
 - PFT 1
@@ -73,7 +72,6 @@ OUT_DIR = FIGURES_APPENDIX
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 OUT_PNG = OUT_DIR / "plot_appendix_1_growth_pot_maint.png"
-OUT_PDF = OUT_DIR / "plot_appendix_1_growth_pot_maint.pdf"
 
 
 # =============================================================================
@@ -409,12 +407,10 @@ def main():
     fig.tight_layout(rect=[0.0, 0.08, 1.0, 1.0])
 
     fig.savefig(OUT_PNG, dpi=300, bbox_inches="tight")
-    fig.savefig(OUT_PDF, bbox_inches="tight")
 
     plt.close(fig)
 
     print(f"Saved: {OUT_PNG}")
-    print(f"Saved: {OUT_PDF}")
 
 
 if __name__ == "__main__":
