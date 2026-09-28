@@ -15,14 +15,13 @@
 #
 # Output
 # ------
-# The script writes data.csv files that are used by 03_main_prepare_figure_data.py
-# and by the plotting scripts.
+# The script writes one combined data.csv per simulation family for
+# 03_main_prepare_figure_data.py. Scenario-specific copies are not exported.
 #
 # Important filtering rule
 # ------------------------
-# Very young seedlings are excluded using the manuscript age threshold. This is
-# done before summary statistics are calculated so that all figures are based on
-# the same filtered plant population.
+# The manuscript seedling/age filter is applied later by 03_figure_utils.py,
+# during figure-data preparation. This stage retains all input rows.
 # =============================================================================
 
 """
@@ -54,7 +53,6 @@ from source.utils.paths import (
     COMMUNITY_STATIC_DATA,
     COMMUNITY_DYNAMIC_DATA,
     MONOCULTURE_STATIC_DATA,
-    DATA,
     ensure_directories,
 )
 
@@ -82,17 +80,6 @@ def process_community_static():
     COMMUNITY_STATIC_DATA.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(COMMUNITY_STATIC_DATA, index=False)
 
-    for sal in [35, 70, 105, 140]:
-        outdir = DATA / "community" / "static" / str(sal)
-        outdir.mkdir(parents=True, exist_ok=True)
-
-        df_filtered = df[
-            (df["setup"] == "static") &
-            (df["pfts"] == "all") &
-            (df["salinity"] == sal)
-        ]
-        df_filtered.to_csv(outdir / "data.csv", index=False)
-
     print(f"Saved: {COMMUNITY_STATIC_DATA}")
 
 
@@ -103,18 +90,6 @@ def process_community_dynamic():
     COMMUNITY_DYNAMIC_DATA.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(COMMUNITY_DYNAMIC_DATA, index=False)
 
-    for version in ["35_V1", "35_V2", "70_V1", "70_V2", "105_V1", "105_V2"]:
-        outdir = DATA / "community" / "dynamic" / version
-        outdir.mkdir(parents=True, exist_ok=True)
-
-        df_filtered = df[
-            (df["setup"] == "dynamic") &
-            (df["pfts"] == "all") &
-            (df["salinity"] == int(version.split("_")[0])) &
-            (df["version"] == version)
-        ]
-        df_filtered.to_csv(outdir / "data.csv", index=False)
-
     print(f"Saved: {COMMUNITY_DYNAMIC_DATA}")
 
 
@@ -124,17 +99,6 @@ def process_monoculture_static():
 
     MONOCULTURE_STATIC_DATA.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(MONOCULTURE_STATIC_DATA, index=False)
-
-    for sal in [35, 70, 105, 140]:
-        for pft in ["1", "2", "3", "4"]:
-            outdir = DATA / "monoculture" / "static" / str(sal) / f"PFT_{pft}"
-            outdir.mkdir(parents=True, exist_ok=True)
-
-            df_filtered = df[
-                (df["salinity"] == sal) &
-                (df["pfts"].astype(str) == pft)
-            ]
-            df_filtered.to_csv(outdir / "data.csv", index=False)
 
     print(f"Saved: {MONOCULTURE_STATIC_DATA}")
 
