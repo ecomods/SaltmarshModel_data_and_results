@@ -47,14 +47,6 @@ DERIVED_FIGURE_DATA = DATA / "derived_figure_data"
 FIGURES_MAIN = FIGURES / "main"
 FIGURES_APPENDIX = FIGURES / "appendix"
 
-COMMUNITY_STATIC_DATA = DATA / "community" / "static" / "data.csv"
-COMMUNITY_DYNAMIC_DATA = DATA / "community" / "dynamic" / "data.csv"
-MONOCULTURE_STATIC_DATA = DATA / "monoculture" / "static" / "data.csv"
-
-COMMUNITY_STATIC_RAW = DATA / "community" / "static" / "raw_data.csv"
-COMMUNITY_DYNAMIC_RAW = DATA / "community" / "dynamic" / "raw_data.csv"
-MONOCULTURE_STATIC_RAW = DATA / "monoculture" / "static" / "raw_data.csv"
-
 # Expected pyMANGA location relative to this repository. Adjust in run_model.py
 # if pyMANGA is stored elsewhere.
 DEFAULT_MANGA_DIR = REPO_ROOT.parent / "pyMANGA"

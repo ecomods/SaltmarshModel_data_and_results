@@ -158,20 +158,13 @@ Run the complete analysis and figure pipeline:
 python run_analysis.py
 ```
 
-If you want to rebuild figure tables from existing processed data and render
-all figures:
+If figure tables already exist and you only want to render all figures:
 
 ```powershell
 python run_analysis.py --figures-only
 ```
 
-If figure tables already exist and you only want to render all figures:
-
-```powershell
-python run_analysis.py --render-only
-```
-
-If you only want to aggregate and process raw model output:
+If you only want to prepare figure tables from raw model output:
 
 ```powershell
 python run_analysis.py --prepare-data-only
@@ -210,11 +203,9 @@ data_and_results/
 │   ├── utils/
 │   │   ├── __init__.py
 │   │   └── paths.py
-│   ├── 01_read_raw_data.py
-│   ├── 02_data_processing.py
+│   ├── 01_prepare_figure_data.py
 │   ├── 03_figure_config.py
 │   ├── 03_figure_utils.py
-│   ├── 03_main_prepare_figure_data.py
 │   ├── 03_plot_appendix_2_porewater_salinity.py
 │   ├── 03_plot_2_2_forman.py
 │   ├── 03_plot_appendix_1_growth_pot_maint.py
@@ -379,31 +370,12 @@ This CSV is used to skip simulations that already finished successfully. If `run
 
 ### 2.3 `data/`
 
-This folder stores processed model output and derived figure data.
-
-Expected structure after analysis:
-
-```text
-data/
-├── community/
-│   ├── static/
-│   │   ├── raw_data.csv
-│   │   └── data.csv
-│   └── dynamic/
-│       ├── raw_data.csv
-│       └── data.csv
-│
-├── monoculture/
-│   └── static/
-│       ├── raw_data.csv
-│       └── data.csv
-│
-└── derived_figure_data/
-```
-
-The `raw_data.csv` files are combined versions of many pyMANGA `Population.csv` files. The `data.csv` files contain derived columns such as plant volume and AG/BG ratio.
-
-`data/derived_figure_data/` contains intermediate summary tables used by the figure scripts. These files are not manually edited.
+This folder stores the 14 generated tables in `derived_figure_data/` that the
+plotting scripts read. The two prepared static plant tables retain all source
+and calculated columns; the other 12 are compact summaries. The preparation
+script no longer writes combined `raw_data.csv` or `data.csv` intermediates.
+Older intermediate files may still be present after an in-place rebuild; they
+are not refreshed or used by the current pipeline.
 
 ### 2.4 `figures/`
 
@@ -621,27 +593,19 @@ Data preparation only:
 python run_analysis.py --prepare-data-only
 ```
 
-Rebuild figure tables and render all figures:
+Render all figures from existing figure tables:
 
 ```powershell
 python run_analysis.py --figures-only
 ```
 
-Render all figures from existing figure tables:
-
-```powershell
-python run_analysis.py --render-only
-```
-
-These three mode flags are mutually exclusive. With no flag, the full
-analysis and figure pipeline runs.
+The two mode flags are mutually exclusive. With no flag, preparation runs
+followed by all figure scripts.
 
 The script runs these source scripts in order:
 
 ```text
-01_read_raw_data.py
-02_data_processing.py
-03_main_prepare_figure_data.py
+01_prepare_figure_data.py
 03_plot_appendix_2_porewater_salinity.py
 03_plot_2_2_forman.py
 03_plot_appendix_1_growth_pot_maint.py
@@ -659,67 +623,18 @@ MEAN_03_plot_appendix_3_static_monoculture.py
 
 ## 5. Source scripts
 
-### 5.1 `source/01_read_raw_data.py`
+### 5.1 `source/01_prepare_figure_data.py`
 
-This script reads all `Population.csv` files from `data_raw/` and writes combined raw tables to `data/`.
+This single preparation script reads the 260 community and monoculture
+`Population.csv` inputs under `data_raw/`, adds scenario metadata and derived
+plant metrics, applies the existing manuscript filters, and writes the 14
+figure tables under `data/derived_figure_data/`. It preserves all existing
+columns in the two plant-level tables. No combined raw or processed CSVs are
+written. Dynamic plant rows are summarized for Figure 4 but are not saved as a
+separate plant-level table. Use `--output-dir` on this script to build a
+candidate in another directory without replacing the current figure tables.
 
-It adds metadata that are encoded in folder names, such as:
-
-```text
-salinity
-version
-variant
-replicate
-pft setup
-```
-
-This script intentionally fails if an expected `Population.csv` file is missing. This makes incomplete model runs visible immediately.
-
-### 5.2 `source/02_data_processing.py`
-
-This script reads the combined raw tables and calculates derived variables:
-
-```text
-ag_volume
-bg_volume
-volume
-ag_bg_ratio
-PFT identifiers
-```
-
-It writes one combined `data.csv` for each of `community/static`,
-`community/dynamic`, and `monoculture/static`. These tables retain all input
-rows, including the scenario and replicate labels from the preceding stage.
-Separate scenario-specific copies are no longer exported; their records are
-already contained in the combined tables. Existing copies are left untouched
-and are not refreshed by subsequent runs.
-
-The seedling/age filter is applied later during figure-data preparation by
-`03_figure_utils.py`. The figure helpers also define `volume_per_plant` where
-needed from the plant's `volume`.
-
-### 5.3 `source/03_main_prepare_figure_data.py`
-
-This script prepares all intermediate CSV files needed by the figure scripts.
-
-The current active outputs are:
-
-```text
-df_comm_prepared.csv
-df_mono_prepared.csv
-comm_mat.csv
-mono_mat.csv
-grouped_pft_static.csv
-grouped_all_static.csv
-summary_pft_tv.csv
-median_ts_total_volume.csv
-```
-
-These files are stored in:
-
-```text
-data/derived_figure_data/
-```
+### 5.2 `source/03_figure_config.py`
 
 ### 5.4 `source/03_figure_config.py`
 
@@ -736,11 +651,11 @@ figure output paths
 
 Changing PFT colors or global figure dimensions should be done here.
 
-### 5.5 `source/03_figure_utils.py`
+### 5.3 `source/03_figure_utils.py`
 
 This script stores reusable helper functions for summaries, error bars, directories, and figure preparation.
 
-### 5.6 `source/utils/paths.py`
+### 5.4 `source/utils/paths.py`
 
 This script defines all central repository paths. Scripts should import paths from here rather than hard-coding paths.
 
@@ -953,7 +868,7 @@ python run_analysis.py
 If prepared figure tables already exist and only figure styles changed:
 
 ```powershell
-python run_analysis.py --render-only
+python run_analysis.py --figures-only
 ```
 
 ---
@@ -985,5 +900,4 @@ For debugging:
 python run_model.py --override-only community_static
 python run_analysis.py --prepare-data-only
 python run_analysis.py --figures-only
-python run_analysis.py --render-only
 ```

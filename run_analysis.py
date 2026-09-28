@@ -11,13 +11,9 @@
 #
 # Pipeline order
 # --------------
-# 1. 01_read_raw_data.py
-#       Collects all individual Population.csv files and writes combined raw CSVs.
-# 2. 02_data_processing.py
-#       Adds derived columns such as volume, AG/BG ratio, salinity labels, and PFT.
-# 3. 03_main_prepare_figure_data.py
-#       Creates compact summary tables used by the plotting scripts.
-# 4. plot_*.py scripts
+# 1. 01_prepare_figure_data.py
+#       Reads Population.csv files and writes the 14 plot-facing tables.
+# 2. plot_*.py scripts
 #       Create the final manuscript and appendix figures, including the optional
 #       mean-based versions of the plot_3* figures.
 #
@@ -33,13 +29,11 @@
 # Full analysis and all figures:
 #     python run_analysis.py
 #
-# Only aggregate/process data, no figures:
+# Only prepare the plot-facing tables, no figures:
 #     python run_analysis.py --prepare-data-only
 #
-# Only regenerate figures from existing processed data:
-#     python run_analysis.py --figures-only
 # Only render figures from existing figure tables:
-#     python run_analysis.py --render-only
+#     python run_analysis.py --figures-only
 # =============================================================================
 
 """
@@ -48,10 +42,8 @@ Run the complete manuscript analysis pipeline.
 This script is the top-level entry point for data processing and figure
 creation. It calls the existing source scripts in the required order:
 
-1. Aggregate raw pyMANGA Population.csv files from data_raw/
-2. Create processed data tables in data/
-3. Prepare derived figure data in data/derived_figure_data/
-4. Create manuscript figures in figures/main/ and figures/appendix/
+1. Prepare plot-facing tables directly from pyMANGA Population.csv files
+2. Create manuscript figures in figures/main/ and figures/appendix/
 """
 
 import argparse
@@ -62,9 +54,7 @@ import sys
 from source.utils.paths import REPO_ROOT, ensure_directories
 
 PIPELINE_SCRIPTS = [
-    "01_read_raw_data.py",
-    "02_data_processing.py",
-    "03_main_prepare_figure_data.py",
+    "01_prepare_figure_data.py",
     "03_plot_appendix_2_porewater_salinity.py",
     "03_plot_2_2_forman.py",
     "03_plot_appendix_1_growth_pot_maint.py",
@@ -111,32 +101,25 @@ def main():
     parser = argparse.ArgumentParser(description="Run manuscript analysis pipeline")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
-        "--figures-only",
-        action="store_true",
-        help="Skip raw-data aggregation and data processing; only prepare figure data and create figures.",
-    )
-    mode.add_argument(
         "--prepare-data-only",
         action="store_true",
-        help="Only aggregate and process data; do not prepare figure data or create figures.",
+        help="Prepare the 14 figure tables directly from raw model output; do not render figures.",
     )
     mode.add_argument(
-        "--render-only",
+        "--figures-only",
         action="store_true",
         help="Render all figures from existing figure data without preparing or changing any tables.",
     )
     args = parser.parse_args()
 
-    if not args.render_only:
+    if not args.figures_only:
         ensure_directories()
 
     scripts = PIPELINE_SCRIPTS
-    if args.figures_only:
-        scripts = PIPELINE_SCRIPTS[2:]
-    elif args.prepare_data_only:
-        scripts = PIPELINE_SCRIPTS[:2]
-    elif args.render_only:
-        scripts = PIPELINE_SCRIPTS[3:]
+    if args.prepare_data_only:
+        scripts = PIPELINE_SCRIPTS[:1]
+    elif args.figures_only:
+        scripts = PIPELINE_SCRIPTS[1:]
 
     for script in scripts:
         run_script(script)
