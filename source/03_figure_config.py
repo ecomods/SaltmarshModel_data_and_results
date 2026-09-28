@@ -6,6 +6,9 @@ This module contains shared constants used by the figure and data-preparation
 pipeline. Keeping this file small makes it clear which constants define the
 manuscript figures.
 
+Figure scripts call apply_style() before plotting, create figures with
+figsize_mm() and save them with save_figure().
+
 Used by:
     - source/03_main_prepare_figure_data.py
     - source/03_figure_utils.py
@@ -18,6 +21,7 @@ The model-input and parameterization figures use source.utils.paths directly
 because they are based on model-input files rather than processed model outputs.
 """
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -54,10 +58,58 @@ FIG_H = 60 * MM_TO_INCH
 A4_W_IN = 210 * MM_TO_INCH
 A4_GRID_H_IN = 170 * MM_TO_INCH
 
+# Figure widths for an A4 document with about 160 mm text width. Figures are
+# drawn at these sizes so that font sizes are the same in every figure.
+WIDTH_HALF_MM = 80
+WIDTH_MEDIUM_MM = 120
+WIDTH_FULL_MM = 160
+
+
+def figsize_mm(width_mm, height_mm):
+    """Return a Matplotlib figsize tuple in inches from millimetres."""
+    return (width_mm * MM_TO_INCH, height_mm * MM_TO_INCH)
+
+
 # =============================================================================
 # Global Matplotlib style
 # =============================================================================
 
+def apply_style(base_size=9):
+    """
+    Apply the shared manuscript figure style.
+
+    All text sizes are relative to base_size, so changing it scales all text
+    together. Figures use constrained layout, so they keep their exact size
+    and labels are not cut off. Scripts should not set absolute font sizes.
+    """
+    mpl.rcdefaults()
+    plt.rcParams.update({
+        "font.size": base_size,
+        "axes.titlesize": "medium",
+        "xtick.labelsize": "small",
+        "ytick.labelsize": "small",
+        "legend.fontsize": "small",
+        "legend.title_fontsize": "small",
+        "legend.frameon": False,
+        "figure.constrained_layout.use": True,
+        "savefig.dpi": 600,
+    })
+
+
+def add_panel_labels(axes, labels="abcdefghijklmnopqrstuvwxyz"):
+    """Label panels a), b), ... in bold at the top left of each axis."""
+    for ax, label in zip(axes, labels):
+        ax.set_title(f"{label})", loc="left", fontweight="bold")
+
+
+def save_figure(fig, path):
+    """Save a figure at its exact size, without trimming or padding."""
+    fig.savefig(path)
+    print(f"Saved: {path}")
+
+
+# Previous style, still used by the result scripts that do not yet call
+# apply_style(). Remove once all figure scripts use apply_style().
 plt.rcParams.update({
     "font.size": 8,
     "axes.labelsize": 8,
