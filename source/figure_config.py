@@ -163,6 +163,12 @@ DERIVED_DIR = DERIVED_FIGURE_DATA
 palette = sns.color_palette("colorblind", 4)
 pft_color_map = {pft: palette[i] for i, pft in enumerate(PFTS)}
 
+# Salinity regimes (static V0, seasonal V1, seasonal + tide V2): display names
+# and line colours outside the PFT palette, shared by Figs. 4 and S2. The two
+# dynamic regimes stay distinguishable with red-green colour blindness.
+REGIME_LABELS = {"V0": "Static", "V1": "Seasonal", "V2": "Seasonal + tide"}
+regime_color_map = {"V0": "#808080", "V1": "black", "V2": "#6a3d9a"}
+
 # Ordered blue scale for salinity levels (light = low, dark = high), shared by
 # the figures that colour lines by salinity (Figs. S1 and S2). The darkest
 # shade stays distinguishable from black.
