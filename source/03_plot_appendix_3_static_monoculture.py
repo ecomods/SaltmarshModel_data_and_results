@@ -18,7 +18,7 @@
 #
 # Output
 # ------
-# The figure is written to figures/appendix/ as PNG and PDF.
+# The figure is written to figures/appendix/ as PNG.
 # =============================================================================
 
 """
@@ -43,7 +43,6 @@ Error bars:
 
 Output:
     figures/appendix/plot_appendix_3_static_monoculture.png
-    figures/appendix/plot_appendix_3_static_monoculture.pdf
 
 """
 
@@ -388,10 +387,6 @@ plt.savefig(
     bbox_inches="tight",
 )
 
-plt.savefig(
-    os.path.join(output_dir, f"{OUTPUT_BASENAME}.pdf"),
-    bbox_inches="tight",
-)
 
 plt.show()
 plt.close(fig)
@@ -399,4 +394,3 @@ plt.close(fig)
 
 print("Done: plot_appendix_3_static_monoculture")
 print(f"Saved: figures/appendix/{OUTPUT_BASENAME}.png")
-print(f"Saved: figures/appendix/{OUTPUT_BASENAME}.pdf")

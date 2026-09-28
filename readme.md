@@ -411,27 +411,16 @@ The current standardized figure scripts write:
 
 ```text
 figures/appendix/plot_appendix_2_porewater_salinity.png
-figures/appendix/plot_appendix_2_porewater_salinity.pdf
 figures/main/plot_2_2_forman.png
-figures/main/plot_2_2_forman.pdf
 figures/appendix/plot_appendix_1_growth_pot_maint.png
-figures/appendix/plot_appendix_1_growth_pot_maint.pdf
 figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.png
-figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.pdf
 figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.png
-figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.pdf
 figures/main/plot_3_2_static_community.png
-figures/main/plot_3_2_static_community.pdf
 figures/main/MEAN_plot_3_2_static_community.png
-figures/main/MEAN_plot_3_2_static_community.pdf
 figures/main/plot_3_3_dynamic_biovolume.png
-figures/main/plot_3_3_dynamic_biovolume.pdf
 figures/main/MEAN_plot_3_3_dynamic_biovolume.png
-figures/main/MEAN_plot_3_3_dynamic_biovolume.pdf
 figures/appendix/plot_appendix_3_static_monoculture.png
-figures/appendix/plot_appendix_3_static_monoculture.pdf
 figures/appendix/MEAN_plot_appendix_3_static_monoculture.png
-figures/appendix/MEAN_plot_appendix_3_static_monoculture.pdf
 ```
 
 ---
@@ -765,7 +754,6 @@ Output:
 
 ```text
 figures/appendix/plot_appendix_2_porewater_salinity.png
-figures/appendix/plot_appendix_2_porewater_salinity.pdf
 ```
 
 ### 6.2 `03_plot_2_2_forman.py`
@@ -782,7 +770,6 @@ Output:
 
 ```text
 figures/main/plot_2_2_forman.png
-figures/main/plot_2_2_forman.pdf
 ```
 
 ### 6.3 `03_plot_appendix_1_growth_pot_maint.py`
@@ -793,7 +780,6 @@ Output:
 
 ```text
 figures/appendix/plot_appendix_1_growth_pot_maint.png
-figures/appendix/plot_appendix_1_growth_pot_maint.pdf
 ```
 
 ### 6.4 `03_plot_3_1_static_community_vs_mono.py`
@@ -804,14 +790,12 @@ Output:
 
 ```text
 figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.png
-figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.pdf
 ```
 
 Mean-based companion output:
 
 ```text
 figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.png
-figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.pdf
 ```
 
 ### 6.5 `03_plot_3_2_static_community.py`
@@ -838,14 +822,12 @@ Output:
 
 ```text
 figures/main/plot_3_2_static_community.png
-figures/main/plot_3_2_static_community.pdf
 ```
 
 Mean-based companion output:
 
 ```text
 figures/main/MEAN_plot_3_2_static_community.png
-figures/main/MEAN_plot_3_2_static_community.pdf
 ```
 
 ### 6.6 `03_plot_3_3_dynamic_biovolume.py`
@@ -865,14 +847,12 @@ Output:
 
 ```text
 figures/main/plot_3_3_dynamic_biovolume.png
-figures/main/plot_3_3_dynamic_biovolume.pdf
 ```
 
 Mean-based companion output:
 
 ```text
 figures/main/MEAN_plot_3_3_dynamic_biovolume.png
-figures/main/MEAN_plot_3_3_dynamic_biovolume.pdf
 ```
 
 ### 6.7 Mean-based `plot_3*` companion scripts
@@ -894,9 +874,7 @@ Output:
 
 ```text
 figures/appendix/plot_appendix_3_static_monoculture.png
-figures/appendix/plot_appendix_3_static_monoculture.pdf
 figures/appendix/MEAN_plot_appendix_3_static_monoculture.png
-figures/appendix/MEAN_plot_appendix_3_static_monoculture.pdf
 ```
 
 ---
