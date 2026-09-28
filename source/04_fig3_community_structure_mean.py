@@ -8,7 +8,7 @@
 # This script creates the mean-based 2x2 grid figure for static community
 # simulations. The four panels show biovolume per plant, aboveground height,
 # AG/BG ratio, and number of plants. Total biovolume is shown separately in
-# 02_plot_3_1_static_community_vs_mono.py.
+# 03_fig2_community_vs_monoculture.py.
 #
 # Error bar interpretation
 # ------------------------
@@ -21,7 +21,7 @@
 # =============================================================================
 
 """
-Figure 3.2:
+Manuscript Figure 3:
 Mean-based static salinity - community metrics with error bars in a 2 x 2 grid.
 
 Panel layout:
@@ -31,7 +31,7 @@ Panel layout:
     bottom right: AG/BG Ratio
 
 Output:
-    figures/main/MEAN_plot_3_2_static_community.png
+    figures/main/fig3_community_structure_mean.png
 """
 
 import os
@@ -42,8 +42,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-_config = importlib.import_module("02_figure_config")
-_utils = importlib.import_module("02_figure_utils")
+_config = importlib.import_module("figure_config")
+_utils = importlib.import_module("figure_utils")
 
 FIG_W = _config.FIG_W
 FIG_H = _config.FIG_H
@@ -74,7 +74,7 @@ panel_order = [
     "ag_bg_ratio",
 ]
 
-OUTPUT_BASENAME = "MEAN_plot_3_2_static_community"
+OUTPUT_BASENAME = "fig3_community_structure_mean"
 
 
 # =============================================================================
@@ -276,5 +276,5 @@ plt.savefig(
 plt.show()
 plt.close(fig)
 
-print("Done: MEAN_plot_3_2_static_community")
+print("Done: fig3_community_structure_mean")
 print(f"Saved: figures/main/{OUTPUT_BASENAME}.png")

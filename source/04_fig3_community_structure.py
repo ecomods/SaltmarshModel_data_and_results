@@ -8,7 +8,7 @@
 # This script creates a 2x2 grid figure for static community simulations. The four
 # panels show biovolume per plant, aboveground height, AG/BG ratio, and number of
 # plants. Total biovolume is intentionally not included here because it is shown
-# separately in 02_plot_3_1_static_community_vs_mono.py.
+# separately in 03_fig2_community_vs_monoculture.py.
 #
 # Error bar interpretation
 # ------------------------
@@ -24,7 +24,7 @@
 # =============================================================================
 
 """
-Figure 3.2:
+Manuscript Figure 3:
 Static salinity - community metrics with error bars in a 2 x 2 grid.
 
 This script creates one combined figure for the static community setups.
@@ -44,7 +44,7 @@ Error bars:
     25th and 75th percentiles of replicate-level values.
 
 Output:
-    figures/main/plot_3_2_static_community.png
+    figures/main/fig3_community_structure_median.png
 
 """
 
@@ -56,8 +56,8 @@ import importlib
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-_config = importlib.import_module("02_figure_config")
-_utils = importlib.import_module("02_figure_utils")
+_config = importlib.import_module("figure_config")
+_utils = importlib.import_module("figure_utils")
 
 FIG_W = _config.FIG_W
 FIG_H = _config.FIG_H
@@ -98,7 +98,7 @@ aggregate_metrics = [
     "num_plants",
 ]
 
-OUTPUT_BASENAME = "plot_3_2_static_community"
+OUTPUT_BASENAME = "fig3_community_structure_median"
 
 
 # =============================================================================
@@ -406,5 +406,5 @@ plt.show()
 plt.close(fig)
 
 
-print("Done: plot_3_2_static_community")
+print("Done: fig3_community_structure_median")
 print(f"Saved: figures/main/{OUTPUT_BASENAME}.png")

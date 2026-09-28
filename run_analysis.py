@@ -13,9 +13,9 @@
 # --------------
 # 1. 01_prepare_figure_data.py
 #       Reads Population.csv files and writes the 14 plot-facing tables.
-# 2. plot_*.py scripts
-#       Create the final manuscript and appendix figures, including the optional
-#       mean-based versions of the plot_3* figures.
+# 2. 02_fig1_... to 08_figS3_... scripts
+#       Create the manuscript (fig1-fig4) and supplementary (figS1-figS3)
+#       figures, including median and mean versions of figs 2-4 and S3.
 #
 # Why subprocesses are used
 # -------------------------
@@ -55,16 +55,16 @@ from source.utils.paths import REPO_ROOT, ensure_directories
 
 PIPELINE_SCRIPTS = [
     "01_prepare_figure_data.py",
-    "02_plot_appendix_2_porewater_salinity.py",
-    "02_plot_2_2_forman.py",
-    "02_plot_appendix_1_growth_pot_maint.py",
-    "02_plot_3_1_static_community_vs_mono.py",
-    "02_plot_3_2_static_community.py",
-    "02_MEAN_plot_3_2_static_community.py",
-    "02_plot_3_3_dynamic_biovolume.py",
-    "02_MEAN_plot_3_3_dynamic_biovolume.py",
-    "02_plot_appendix_3_static_monoculture.py",
-    "02_MEAN_plot_appendix_3_static_monoculture.py",
+    "02_fig1_salinity_response.py",
+    "03_fig2_community_vs_monoculture.py",
+    "04_fig3_community_structure.py",
+    "04_fig3_community_structure_mean.py",
+    "05_fig4_dynamic_biovolume.py",
+    "05_fig4_dynamic_biovolume_mean.py",
+    "06_figS1_growth_vs_maintenance.py",
+    "07_figS2_porewater_salinity.py",
+    "08_figS3_monoculture_structure.py",
+    "08_figS3_monoculture_structure_mean.py",
 ]
 
 
