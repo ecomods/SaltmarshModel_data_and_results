@@ -24,6 +24,7 @@ because they are based on model-input files rather than processed model outputs.
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib.colors import to_rgb
 
 
 # Add the repository root to sys.path so this module works when executed
@@ -162,6 +163,16 @@ DERIVED_DIR = DERIVED_FIGURE_DATA
 # Colorblind-friendly palette used consistently for PFT 1-4.
 palette = sns.color_palette("colorblind", 4)
 pft_color_map = {pft: palette[i] for i, pft in enumerate(PFTS)}
+
+
+def pale(color, strength=0.45):
+    """
+    Opaque mix of a colour with white; strength 1 = original colour.
+
+    Used for monocultures where they appear next to community results in full
+    colour (Fig. 2).
+    """
+    return tuple(1 - strength * (1 - c) for c in to_rgb(color))
 
 # Salinity regimes (static V0, seasonal V1, seasonal + tide V2): display names
 # and line colours outside the PFT palette, shared by Figs. 4 and S2. The two

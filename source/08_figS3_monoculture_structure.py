@@ -6,83 +6,74 @@
 # Purpose
 # -------
 # This appendix script creates a 2x2 grid figure for static monoculture
-# simulations. It mirrors the structure of 04_fig3_community_structure.py but shows
-# only monoculture PFT results, without a community reference point.
+# simulations. It uses the same layout as 04_fig3_community_structure.py
+# (shared draw_structure_figure in figure_utils.py) but shows only
+# monoculture PFT results, without a community point. Full PFT colours are
+# used: pale colours only work as contrast to community results in the same
+# figure (as in Fig. 2).
 #
-# Error bar interpretation
-# ------------------------
-# - For plant-level metrics, error bars extend to the 25th and 75th percentiles
-#   of individual-plant values.
-# - For number of plants, error bars extend to the 25th and 75th percentiles of
-#   replicate-level aggregate values.
+# Two statistical versions are written with the same layout:
+#
+# Median version
+# --------------
+# - For plant-level metrics, points are medians and error bars extend to the
+#   25th and 75th percentiles of individual-plant values.
+# - For number of plants, points are medians and error bars extend to the
+#   25th and 75th percentiles of replicate-level medians over time.
+#
+# Mean version
+# ------------
+# Points show arithmetic means across the ten replicate simulations. Error bars
+# show one standard deviation across the replicate-level means over time.
 #
 # Output
 # ------
-# The figure is written to figures/appendix/ as PNG.
+# One PNG per version is written to figures/appendix/.
 # =============================================================================
 
 """
 Supplementary Figure S3:
 Static salinity - monoculture metrics with error bars in a 2 x 2 grid.
 
-This script creates one combined figure for the static monoculture setups.
-
-Panel layout:
-    top left:     Biovolume per Plant
-    top right:    Aboveground Height
-    bottom left:  Number of Plants
-    bottom right: AG/BG Ratio
-
-Error bars:
-- volume_per_plant, h_ag, ag_bg_ratio:
-    median of individual plants with error bars extending to the 25th and
-    75th percentiles of individual-plant values.
-- num_plants:
-    median of aggregated replicate values with error bars extending to the
-    25th and 75th percentiles of replicate-level values.
+Panel layout (as in Fig. 3):
+    a) top left:     biovolume per plant
+    b) top right:    aboveground height
+    c) bottom left:  AG/BG ratio
+    d) bottom right: number of plants
 
 Output:
     figures/appendix/figS3_monoculture_structure_median.png
-
+    figures/appendix/figS3_monoculture_structure_mean.png
 """
 
 import os
-import numpy as np
+
 import pandas as pd
-import importlib
-
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 
-_config = importlib.import_module("figure_config")
-_utils = importlib.import_module("figure_utils")
+import figure_config as _config
+import figure_utils as _utils
 
-FIG_W = _config.FIG_W
-FIG_H = _config.FIG_H
-pft_color_map = _config.pft_color_map
 DERIVED_DIR = _config.DERIVED_DIR
 FIGURES_APPENDIX = _config.FIGURES_APPENDIX
-ensure_dir = _utils.ensure_dir
 
 
 # =============================================================================
 # Settings
 # =============================================================================
 
-output_dir = ensure_dir(FIGURES_APPENDIX)
-
 metrics_mono = {
-    "volume_per_plant": "Biovolume per Plant [m³]",
-    "h_ag": "Aboveground Height [m]",
-    "ag_bg_ratio": "AG/BG Ratio [-]",
-    "num_plants": "Number of Plants",
+    "volume_per_plant": "Biovolume per plant (m³)",
+    "h_ag": "Aboveground height (m)",
+    "ag_bg_ratio": "AG/BG ratio (–)",
+    "num_plants": "Number of plants",
 }
 
 panel_order = [
     "volume_per_plant",
     "h_ag",
-    "num_plants",
     "ag_bg_ratio",
+    "num_plants",
 ]
 
 plant_level_metrics = [
@@ -95,49 +86,50 @@ aggregate_metrics = [
     "num_plants",
 ]
 
-OUTPUT_BASENAME = "figS3_monoculture_structure_median"
+# Four points per salinity group (no community point): smaller group spacing
+# than Fig. 3 gives the same gap between groups.
+GROUP_SPACING = 3.25
 
 
 # =============================================================================
 # Input data
 # =============================================================================
 
-df_mono_prepared = pd.read_csv(
-    os.path.join(DERIVED_DIR, "df_mono_prepared.csv")
-)
+def read_mono_prepared():
+    """Read the monoculture plant table with numeric key columns."""
+    df_mono_prepared = pd.read_csv(
+        os.path.join(DERIVED_DIR, "df_mono_prepared.csv")
+    )
 
+    df_mono_prepared["salinity"] = pd.to_numeric(
+        df_mono_prepared["salinity"], errors="coerce"
+    )
 
-# =============================================================================
-# Data preparation
-# =============================================================================
-
-df_mono_prepared["salinity"] = pd.to_numeric(
-    df_mono_prepared["salinity"], errors="coerce"
-)
-
-df_mono_prepared["pft"] = pd.to_numeric(
-    df_mono_prepared["pft"], errors="coerce"
-).astype("Int64")
-
-if "n" in df_mono_prepared.columns:
-    df_mono_prepared["n"] = pd.to_numeric(
-        df_mono_prepared["n"], errors="coerce"
+    df_mono_prepared["pft"] = pd.to_numeric(
+        df_mono_prepared["pft"], errors="coerce"
     ).astype("Int64")
 
-# In individual-plant data, one row corresponds to one plant.
-# Therefore, volume_per_plant is identical to the plant's own volume.
-if "volume_per_plant" not in df_mono_prepared.columns:
-    if "volume" in df_mono_prepared.columns:
-        df_mono_prepared["volume_per_plant"] = df_mono_prepared["volume"]
-    else:
-        raise KeyError(
-            "Neither 'volume_per_plant' nor 'volume' was found in "
-            "df_mono_prepared.csv."
-        )
+    if "n" in df_mono_prepared.columns:
+        df_mono_prepared["n"] = pd.to_numeric(
+            df_mono_prepared["n"], errors="coerce"
+        ).astype("Int64")
+
+    # In individual-plant data, one row corresponds to one plant.
+    # Therefore, volume_per_plant is identical to the plant's own volume.
+    if "volume_per_plant" not in df_mono_prepared.columns:
+        if "volume" in df_mono_prepared.columns:
+            df_mono_prepared["volume_per_plant"] = df_mono_prepared["volume"]
+        else:
+            raise KeyError(
+                "Neither 'volume_per_plant' nor 'volume' was found in "
+                "df_mono_prepared.csv."
+            )
+
+    return df_mono_prepared
 
 
 # =============================================================================
-# Helper functions
+# Median version
 # =============================================================================
 
 def summary_minmax_individuals(df, group_cols, metric):
@@ -221,176 +213,125 @@ def summary_minmax_num_plants(df):
     return summary
 
 
-def get_summary_table(metric):
+def median_summaries(df_mono_prepared):
+    """Median version: per-metric summary tables with a common value column."""
+    summaries = {}
+    for metric in panel_order:
+        if metric in plant_level_metrics:
+            summary = summary_minmax_individuals(
+                df_mono_prepared, ["salinity", "pft"], metric
+            )
+        elif metric in aggregate_metrics:
+            summary = summary_minmax_num_plants(df_mono_prepared)
+        else:
+            raise ValueError(
+                f"Metric '{metric}' is neither listed as plant-level nor "
+                "aggregate metric."
+            )
+        summaries[metric] = summary.rename(columns={"median_value": "value"})
+    return summaries
+
+
+# =============================================================================
+# Mean version
+# =============================================================================
+
+def build_replicate_level_means(df):
     """
-    Select the correct summary logic for each metric.
+    Create one mean-over-time value per salinity, PFT, replicate, and metric.
+
+    Plant-level metrics are first averaged across plants within each timestep.
+    The resulting timestep values are then averaged over time for each replicate.
+    Plant number is counted per timestep and then averaged over time for each
+    replicate.
     """
-
-    if metric in plant_level_metrics:
-        summary = summary_minmax_individuals(
-            df_mono_prepared,
-            ["salinity", "pft"],
-            metric,
+    required_cols = ["salinity", "pft", "n", "time"]
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise KeyError(
+            "Missing required columns for monoculture summary: "
+            + ", ".join(missing_cols)
         )
 
-    elif metric in aggregate_metrics:
-        summary = summary_minmax_num_plants(df_mono_prepared)
+    dfc = df.copy().dropna(subset=required_cols)
 
-    else:
-        raise ValueError(
-            f"Metric '{metric}' is neither listed as plant-level nor "
-            "aggregate metric."
-        )
-
-    return summary
-
-
-def plot_metric_panel(ax, metric, ylabel, show_xlabel=False):
-    """
-    Plot one monoculture metric into one panel.
-    """
-
-    summary = get_summary_table(metric)
-
-    for i, pft in enumerate(pft_levels_mono):
-        dfp = summary[summary["pft"] == pft].copy()
-
-        if dfp.empty:
-            continue
-
-        dfp["x_pos"] = (
-            dfp["salinity"].map(sal_to_x) + within_offsets_static[i]
-        )
-
-        ax.errorbar(
-            dfp["x_pos"],
-            dfp["median_value"],
-            yerr=[
-                dfp["err_lower"],
-                dfp["err_upper"],
-            ],
-            fmt="o",
-            capsize=3,
-            linewidth=1.2,
-            color=pft_color_map[int(pft)],
-            ecolor=pft_color_map[int(pft)],
-            label=f"PFT {int(pft)}",
-        )
-
-    # Axes and separators
-    ax.set_xticks(group_centers)
-    ax.set_xticklabels([str(int(s)) for s in salinity_levels_mono])
-
-    if show_xlabel:
-        ax.set_xlabel("Salinity [ppt]")
-    else:
-        ax.set_xlabel("")
-
-    ax.set_ylabel(ylabel)
-
-    for k in range(len(group_centers) - 1):
-        mid = (group_right[k] + group_left[k + 1]) / 2
-        ax.axvline(
-            mid,
-            color="0.55",
-            linewidth=1.0,
-            zorder=1,
-        )
-
-    ax.grid(
-        axis="y",
-        linestyle=":",
-        linewidth=0.5,
-        alpha=0.8,
+    plant_metrics = (
+        dfc.groupby(["salinity", "pft", "n", "time"], as_index=False)
+        .agg({
+            "volume_per_plant": "mean",
+            "h_ag": "mean",
+            "ag_bg_ratio": "mean",
+        })
     )
 
-    ax.set_axisbelow(True)
-
-
-# =============================================================================
-# Plot layout
-# =============================================================================
-
-salinity_levels_mono = sorted(df_mono_prepared["salinity"].dropna().unique())
-pft_levels_mono = sorted(df_mono_prepared["pft"].dropna().unique())
-
-group_spacing = 2.75
-x_group = np.arange(len(salinity_levels_mono)) * group_spacing
-sal_to_x = {
-    sal: x_group[i]
-    for i, sal in enumerate(salinity_levels_mono)
-}
-
-within_offsets_static = np.array([0.0, 0.55, 1.10, 1.65])
-
-group_left = x_group + within_offsets_static[0] - 0.28
-group_right = x_group + within_offsets_static[-1] + 0.28
-group_centers = x_group + np.mean(within_offsets_static)
-
-
-# =============================================================================
-# Figure
-# =============================================================================
-
-fig, axes = plt.subplots(
-    nrows=2,
-    ncols=2,
-    figsize=(FIG_W * 2.15, FIG_H * 2.35),
-    sharex=True,
-)
-
-axes_flat = axes.ravel()
-
-for ax, metric in zip(axes_flat, panel_order):
-    show_xlabel = metric in ["ag_bg_ratio", "num_plants"]
-    plot_metric_panel(
-        ax=ax,
-        metric=metric,
-        ylabel=metrics_mono[metric],
-        show_xlabel=show_xlabel,
+    plant_counts = (
+        dfc.groupby(["salinity", "pft", "n", "time"], as_index=False)
+        .size()
+        .rename(columns={"size": "num_plants"})
     )
 
-# Legend below all panels.
-legend_handles = []
+    per_timestep = plant_metrics.merge(
+        plant_counts,
+        on=["salinity", "pft", "n", "time"],
+        how="left",
+    )
 
-for pft in pft_levels_mono:
-    legend_handles.append(
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color=pft_color_map[int(pft)],
-            linestyle="None",
-            markersize=5,
-            label=f"PFT {int(pft)}",
+    replicate_means = (
+        per_timestep.groupby(["salinity", "pft", "n"], as_index=False)
+        .agg({
+            "volume_per_plant": "mean",
+            "h_ag": "mean",
+            "ag_bg_ratio": "mean",
+            "num_plants": "mean",
+        })
+    )
+
+    return replicate_means
+
+
+def mean_summaries(df_mono_prepared):
+    """Mean version: replicate mean and standard deviation for all metrics."""
+    replicate_level_means = build_replicate_level_means(df_mono_prepared)
+    return {
+        metric: _utils.summary_mean_std(
+            replicate_level_means, ["salinity", "pft"], metric
+        ).rename(columns={"mean_value": "value"})
+        for metric in panel_order
+    }
+
+
+# Statistical version -> function returning its summaries.
+VERSIONS = {"median": median_summaries, "mean": mean_summaries}
+
+
+# =============================================================================
+# Figures
+# =============================================================================
+
+def main():
+    _config.apply_style()
+    output_dir = _utils.ensure_dir(FIGURES_APPENDIX)
+    df_mono_prepared = read_mono_prepared()
+
+    for version, get_summaries in VERSIONS.items():
+        summaries = get_summaries(df_mono_prepared)
+
+        fig = _utils.draw_structure_figure(
+            {metric: (summary, None) for metric, summary in summaries.items()},
+            salinity_levels=sorted(df_mono_prepared["salinity"].dropna().unique()),
+            pft_levels=sorted(df_mono_prepared["pft"].dropna().unique()),
+            ylabels=metrics_mono,
+            panel_order=panel_order,
+            show_community=False,
+            group_spacing=GROUP_SPACING,
         )
-    )
 
-fig.legend(
-    handles=legend_handles,
-    labels=[handle.get_label() for handle in legend_handles],
-    loc="lower center",
-    ncol=4,
-    frameon=True,
-    bbox_to_anchor=(0.5, 0.01),
-)
-
-plt.tight_layout(rect=[0, 0.08, 1, 1])
-
-# =============================================================================
-# Output
-# =============================================================================
-
-plt.savefig(
-    os.path.join(output_dir, f"{OUTPUT_BASENAME}.png"),
-    dpi=600,
-    bbox_inches="tight",
-)
+        _config.save_figure(
+            fig,
+            os.path.join(output_dir, f"figS3_monoculture_structure_{version}.png"),
+        )
+        plt.close(fig)
 
 
-plt.show()
-plt.close(fig)
-
-
-print("Done: figS3_monoculture_structure_median")
-print(f"Saved: figures/appendix/{OUTPUT_BASENAME}.png")
+if __name__ == "__main__":
+    main()
