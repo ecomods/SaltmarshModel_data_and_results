@@ -667,13 +667,20 @@ This script reads the combined raw tables and calculates derived variables:
 ag_volume
 bg_volume
 volume
-volume_per_plant
 ag_bg_ratio
-salinity labels
 PFT identifiers
 ```
 
-It also applies the seedling/age filter.
+It writes one combined `data.csv` for each of `community/static`,
+`community/dynamic`, and `monoculture/static`. These tables retain all input
+rows, including the scenario and replicate labels from the preceding stage.
+Separate scenario-specific copies are no longer exported; their records are
+already contained in the combined tables. Existing copies are left untouched
+and are not refreshed by subsequent runs.
+
+The seedling/age filter is applied later during figure-data preparation by
+`03_figure_utils.py`. The figure helpers also define `volume_per_plant` where
+needed from the plant's `volume`.
 
 ### 5.3 `source/03_main_prepare_figure_data.py`
 
