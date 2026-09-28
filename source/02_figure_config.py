@@ -87,7 +87,10 @@ def apply_style(base_size=9):
         "ytick.labelsize": "small",
         "legend.fontsize": "small",
         "legend.title_fontsize": "small",
-        "legend.frameon": False,
+        # White legend background without border, so gridlines do not show
+        # through the legend.
+        "legend.edgecolor": "none",
+        "legend.framealpha": 1,
         "figure.constrained_layout.use": True,
         "savefig.dpi": 600,
     })

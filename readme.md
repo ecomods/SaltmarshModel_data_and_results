@@ -210,7 +210,6 @@ data_and_results/
 │   ├── 02_plot_2_2_forman.py
 │   ├── 02_plot_appendix_1_growth_pot_maint.py
 │   ├── 02_plot_3_1_static_community_vs_mono.py
-│   ├── 02_MEAN_plot_3_1_static_community_vs_mono.py
 │   ├── 02_plot_3_2_static_community.py
 │   ├── 02_MEAN_plot_3_2_static_community.py
 │   ├── 02_plot_3_3_dynamic_biovolume.py
@@ -610,7 +609,6 @@ The script runs these source scripts in order:
 02_plot_2_2_forman.py
 02_plot_appendix_1_growth_pot_maint.py
 02_plot_3_1_static_community_vs_mono.py
-02_MEAN_plot_3_1_static_community_vs_mono.py
 02_plot_3_2_static_community.py
 02_MEAN_plot_3_2_static_community.py
 02_plot_3_3_dynamic_biovolume.py
@@ -730,7 +728,7 @@ Output:
 figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.png
 ```
 
-Mean-based companion output:
+The same script also writes the mean-based version from `MEAN_comm_mat.csv` and `MEAN_mono_mat.csv`:
 
 ```text
 figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.png
@@ -798,11 +796,12 @@ figures/main/MEAN_plot_3_3_dynamic_biovolume.png
 The scripts with prefix `MEAN_` create mean-based versions of the three main result figures and the appendix monoculture figure. They use the same plotting logic and layout as the median-based scripts, but the aggregation statistics are based on arithmetic means. For mean-based figures with error bars, error bars show one standard deviation across the ten replicate simulations.
 
 ```text
-02_MEAN_plot_3_1_static_community_vs_mono.py
 02_MEAN_plot_3_2_static_community.py
 02_MEAN_plot_3_3_dynamic_biovolume.py
 02_MEAN_plot_appendix_3_static_monoculture.py
 ```
+
+`02_plot_3_1_static_community_vs_mono.py` writes both its median and mean versions itself.
 
 ### 6.8 `02_plot_appendix_3_static_monoculture.py`
 

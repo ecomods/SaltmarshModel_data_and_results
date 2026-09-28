@@ -59,7 +59,6 @@ PIPELINE_SCRIPTS = [
     "02_plot_2_2_forman.py",
     "02_plot_appendix_1_growth_pot_maint.py",
     "02_plot_3_1_static_community_vs_mono.py",
-    "02_MEAN_plot_3_1_static_community_vs_mono.py",
     "02_plot_3_2_static_community.py",
     "02_MEAN_plot_3_2_static_community.py",
     "02_plot_3_3_dynamic_biovolume.py",
