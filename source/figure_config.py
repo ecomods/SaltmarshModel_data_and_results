@@ -162,3 +162,11 @@ DERIVED_DIR = DERIVED_FIGURE_DATA
 # Colorblind-friendly palette used consistently for PFT 1-4.
 palette = sns.color_palette("colorblind", 4)
 pft_color_map = {pft: palette[i] for i, pft in enumerate(PFTS)}
+
+# Ordered blue scale for salinity levels (light = low, dark = high), shared by
+# the figures that colour lines by salinity (Figs. S1 and S2). The darkest
+# shade stays distinguishable from black.
+_blues = plt.get_cmap("Blues")
+salinity_color_map = {
+    sal: _blues(level) for sal, level in zip(SAL_STATIC, [0.35, 0.55, 0.75, 0.9])
+}
