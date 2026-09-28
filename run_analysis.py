@@ -55,17 +55,17 @@ from source.utils.paths import REPO_ROOT, ensure_directories
 
 PIPELINE_SCRIPTS = [
     "01_prepare_figure_data.py",
-    "03_plot_appendix_2_porewater_salinity.py",
-    "03_plot_2_2_forman.py",
-    "03_plot_appendix_1_growth_pot_maint.py",
-    "03_plot_3_1_static_community_vs_mono.py",
-    "MEAN_03_plot_3_1_static_community_vs_mono.py",
-    "03_plot_3_2_static_community.py",
-    "MEAN_03_plot_3_2_static_community.py",
-    "03_plot_3_3_dynamic_biovolume.py",
-    "MEAN_03_plot_3_3_dynamic_biovolume.py",
-    "03_plot_appendix_3_static_monoculture.py",
-    "MEAN_03_plot_appendix_3_static_monoculture.py",
+    "02_plot_appendix_2_porewater_salinity.py",
+    "02_plot_2_2_forman.py",
+    "02_plot_appendix_1_growth_pot_maint.py",
+    "02_plot_3_1_static_community_vs_mono.py",
+    "02_MEAN_plot_3_1_static_community_vs_mono.py",
+    "02_plot_3_2_static_community.py",
+    "02_MEAN_plot_3_2_static_community.py",
+    "02_plot_3_3_dynamic_biovolume.py",
+    "02_MEAN_plot_3_3_dynamic_biovolume.py",
+    "02_plot_appendix_3_static_monoculture.py",
+    "02_MEAN_plot_appendix_3_static_monoculture.py",
 ]
 
 

@@ -6,7 +6,7 @@
 # Purpose
 # -------
 # This appendix script creates the mean-based 2x2 grid figure for static
-# monoculture simulations. It mirrors 03_plot_appendix_3_static_monoculture.py
+# monoculture simulations. It mirrors 02_plot_appendix_3_static_monoculture.py
 # but uses arithmetic means instead of medians.
 #
 # Error bar interpretation
@@ -41,8 +41,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-_config = importlib.import_module("03_figure_config")
-_utils = importlib.import_module("03_figure_utils")
+_config = importlib.import_module("02_figure_config")
+_utils = importlib.import_module("02_figure_utils")
 
 FIG_W = _config.FIG_W
 FIG_H = _config.FIG_H

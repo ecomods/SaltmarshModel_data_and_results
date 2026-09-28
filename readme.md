@@ -204,19 +204,19 @@ data_and_results/
 │   │   ├── __init__.py
 │   │   └── paths.py
 │   ├── 01_prepare_figure_data.py
-│   ├── 03_figure_config.py
-│   ├── 03_figure_utils.py
-│   ├── 03_plot_appendix_2_porewater_salinity.py
-│   ├── 03_plot_2_2_forman.py
-│   ├── 03_plot_appendix_1_growth_pot_maint.py
-│   ├── 03_plot_3_1_static_community_vs_mono.py
-│   ├── MEAN_03_plot_3_1_static_community_vs_mono.py
-│   ├── 03_plot_3_2_static_community.py
-│   ├── MEAN_03_plot_3_2_static_community.py
-│   ├── 03_plot_3_3_dynamic_biovolume.py
-│   ├── MEAN_03_plot_3_3_dynamic_biovolume.py
-│   ├── 03_plot_appendix_3_static_monoculture.py
-│   └── MEAN_03_plot_appendix_3_static_monoculture.py
+│   ├── 02_figure_config.py
+│   ├── 02_figure_utils.py
+│   ├── 02_plot_appendix_2_porewater_salinity.py
+│   ├── 02_plot_2_2_forman.py
+│   ├── 02_plot_appendix_1_growth_pot_maint.py
+│   ├── 02_plot_3_1_static_community_vs_mono.py
+│   ├── 02_MEAN_plot_3_1_static_community_vs_mono.py
+│   ├── 02_plot_3_2_static_community.py
+│   ├── 02_MEAN_plot_3_2_static_community.py
+│   ├── 02_plot_3_3_dynamic_biovolume.py
+│   ├── 02_MEAN_plot_3_3_dynamic_biovolume.py
+│   ├── 02_plot_appendix_3_static_monoculture.py
+│   └── 02_MEAN_plot_appendix_3_static_monoculture.py
 │
 ├── create_setups.py
 ├── run_model.py
@@ -286,7 +286,7 @@ Saltmarsh_3.py
 Saltmarsh_4.py
 ```
 
-These files are the source of truth for PFT-specific model parameters. The figure script `03_plot_2_2_forman.py` reads relevant parameters from these files so that the salinity-response figure stays consistent with the active model setup.
+These files are the source of truth for PFT-specific model parameters. The figure script `02_plot_2_2_forman.py` reads relevant parameters from these files so that the salinity-response figure stays consistent with the active model setup.
 
 Always change numerical PFT parameters in the species files, not in figure scripts.
 
@@ -606,17 +606,17 @@ The script runs these source scripts in order:
 
 ```text
 01_prepare_figure_data.py
-03_plot_appendix_2_porewater_salinity.py
-03_plot_2_2_forman.py
-03_plot_appendix_1_growth_pot_maint.py
-03_plot_3_1_static_community_vs_mono.py
-MEAN_03_plot_3_1_static_community_vs_mono.py
-03_plot_3_2_static_community.py
-MEAN_03_plot_3_2_static_community.py
-03_plot_3_3_dynamic_biovolume.py
-MEAN_03_plot_3_3_dynamic_biovolume.py
-03_plot_appendix_3_static_monoculture.py
-MEAN_03_plot_appendix_3_static_monoculture.py
+02_plot_appendix_2_porewater_salinity.py
+02_plot_2_2_forman.py
+02_plot_appendix_1_growth_pot_maint.py
+02_plot_3_1_static_community_vs_mono.py
+02_MEAN_plot_3_1_static_community_vs_mono.py
+02_plot_3_2_static_community.py
+02_MEAN_plot_3_2_static_community.py
+02_plot_3_3_dynamic_biovolume.py
+02_MEAN_plot_3_3_dynamic_biovolume.py
+02_plot_appendix_3_static_monoculture.py
+02_MEAN_plot_appendix_3_static_monoculture.py
 ```
 
 ---
@@ -634,9 +634,9 @@ written. Dynamic plant rows are summarized for Figure 4 but are not saved as a
 separate plant-level table. Use `--output-dir` on this script to build a
 candidate in another directory without replacing the current figure tables.
 
-### 5.2 `source/03_figure_config.py`
+### 5.2 `source/02_figure_config.py`
 
-### 5.4 `source/03_figure_config.py`
+### 5.4 `source/02_figure_config.py`
 
 This script stores shared plotting constants:
 
@@ -651,7 +651,7 @@ figure output paths
 
 Changing PFT colors or global figure dimensions should be done here.
 
-### 5.3 `source/03_figure_utils.py`
+### 5.3 `source/02_figure_utils.py`
 
 This script stores reusable helper functions for summaries, error bars, directories, and figure preparation.
 
@@ -678,7 +678,7 @@ DEFAULT_MANGA_SCRIPT
 
 ## 6. Figure scripts
 
-### 6.1 `03_plot_appendix_2_porewater_salinity.py`
+### 6.1 `02_plot_appendix_2_porewater_salinity.py`
 
 Creates the porewater salinity scenario figure 2.1.
 
@@ -694,7 +694,7 @@ Output:
 figures/appendix/plot_appendix_2_porewater_salinity.png
 ```
 
-### 6.2 `03_plot_2_2_forman.py`
+### 6.2 `02_plot_2_2_forman.py`
 
 Creates the PFT-specific porewater salinity response figure 2.2.
 
@@ -710,7 +710,7 @@ Output:
 figures/main/plot_2_2_forman.png
 ```
 
-### 6.3 `03_plot_appendix_1_growth_pot_maint.py`
+### 6.3 `02_plot_appendix_1_growth_pot_maint.py`
 
 Creates the conceptual growth-potential versus maintenance figure 2.3.
 
@@ -720,7 +720,7 @@ Output:
 figures/appendix/plot_appendix_1_growth_pot_maint.png
 ```
 
-### 6.4 `03_plot_3_1_static_community_vs_mono.py`
+### 6.4 `02_plot_3_1_static_community_vs_mono.py`
 
 Creates the static total biovolume comparison between community and monoculture simulations figure 3.1.
 
@@ -736,7 +736,7 @@ Mean-based companion output:
 figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.png
 ```
 
-### 6.5 `03_plot_3_2_static_community.py`
+### 6.5 `02_plot_3_2_static_community.py`
 
 Creates the static community figure 2.2.
 
@@ -768,7 +768,7 @@ Mean-based companion output:
 figures/main/MEAN_plot_3_2_static_community.png
 ```
 
-### 6.6 `03_plot_3_3_dynamic_biovolume.py`
+### 6.6 `02_plot_3_3_dynamic_biovolume.py`
 
 Creates the dynamic biovolume time-series and stacked-bar figure 2.3.
 
@@ -798,13 +798,13 @@ figures/main/MEAN_plot_3_3_dynamic_biovolume.png
 The scripts with prefix `MEAN_` create mean-based versions of the three main result figures and the appendix monoculture figure. They use the same plotting logic and layout as the median-based scripts, but the aggregation statistics are based on arithmetic means. For mean-based figures with error bars, error bars show one standard deviation across the ten replicate simulations.
 
 ```text
-MEAN_03_plot_3_1_static_community_vs_mono.py
-MEAN_03_plot_3_2_static_community.py
-MEAN_03_plot_3_3_dynamic_biovolume.py
-MEAN_03_plot_appendix_3_static_monoculture.py
+02_MEAN_plot_3_1_static_community_vs_mono.py
+02_MEAN_plot_3_2_static_community.py
+02_MEAN_plot_3_3_dynamic_biovolume.py
+02_MEAN_plot_appendix_3_static_monoculture.py
 ```
 
-### 6.8 `03_plot_appendix_3_static_monoculture.py`
+### 6.8 `02_plot_appendix_3_static_monoculture.py`
 
 Creates the static monoculture figure.
 
