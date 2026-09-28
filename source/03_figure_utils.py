@@ -48,13 +48,13 @@ def normalize_pft_to_int(series):
 
 def prep_static_comm_df(path):
     """
-    Load processed static community data and apply manuscript filters.
+    Apply manuscript filters to static community plant data.
 
-    Expected input: data/community/static/data.csv
+    Input may be a DataFrame or a CSV path.
     Returned rows: community setup only (pfts == 'all'), seedling-filtered,
     static salinities 35/70/105/140, PFTs 1-4.
     """
-    df = pd.read_csv(path)
+    df = path if isinstance(path, pd.DataFrame) else pd.read_csv(path)
     df = df[df["pfts"] == "all"].copy()
     df = df[df["age"] >= 864000].copy()
     df["pft"] = normalize_pft_to_int(df["pft"])
@@ -65,13 +65,13 @@ def prep_static_comm_df(path):
 
 def prep_static_mono_df(path):
     """
-    Load processed static monoculture data and apply manuscript filters.
+    Apply manuscript filters to static monoculture plant data.
 
-    Expected input: data/monoculture/static/data.csv
+    Input may be a DataFrame or a CSV path.
     In monoculture data, the setup PFT is stored in pfts. This value is copied
     to pft so the plotting code can use the same column name throughout.
     """
-    df = pd.read_csv(path)
+    df = path if isinstance(path, pd.DataFrame) else pd.read_csv(path)
     df = df[df["age"] >= 864000].copy()
     df["pft"] = normalize_pft_to_int(df["pfts"])
     df["n"] = df["n"].astype(int)
@@ -81,12 +81,12 @@ def prep_static_mono_df(path):
 
 def prep_dynamic_comm_df(path):
     """
-    Load processed dynamic community data and apply manuscript filters.
+    Apply manuscript filters to dynamic community plant data.
 
-    Expected input: data/community/dynamic/data.csv
+    Input may be a DataFrame or a CSV path.
     Only community rows, PFTs 1-4 and salinities 35/70/105 are retained.
     """
-    df = pd.read_csv(path)
+    df = path if isinstance(path, pd.DataFrame) else pd.read_csv(path)
     if "pfts" in df.columns:
         df = df[df["pfts"] == "all"].copy()
     if "salinity" in df.columns:

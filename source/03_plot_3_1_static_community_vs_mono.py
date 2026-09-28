@@ -12,7 +12,7 @@
 # Data basis
 # ----------
 # The script reads comm_mat.csv and mono_mat.csv from data/derived_figure_data/.
-# Those matrices are prepared by 03_main_prepare_figure_data.py and contain median
+# Those matrices are prepared by 01_prepare_figure_data.py and contain median
 # total biovolume values for each salinity/PFT combination.
 #
 # Output

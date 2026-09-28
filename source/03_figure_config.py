@@ -10,7 +10,7 @@ Figure scripts call apply_style() before plotting, create figures with
 figsize_mm() and save them with save_figure().
 
 Used by:
-    - source/03_main_prepare_figure_data.py
+    - source/01_prepare_figure_data.py
     - source/03_figure_utils.py
     - source/03_plot_3_1_static_community_vs_mono.py
     - source/03_plot_3_2_static_community.py
@@ -36,12 +36,9 @@ if str(REPO_ROOT_BOOTSTRAP) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT_BOOTSTRAP))
 
 from source.utils.paths import (
-    COMMUNITY_DYNAMIC_DATA,
-    COMMUNITY_STATIC_DATA,
     DERIVED_FIGURE_DATA,
     FIGURES_APPENDIX,
     FIGURES_MAIN,
-    MONOCULTURE_STATIC_DATA,
 )
 
 # =============================================================================
@@ -132,9 +129,6 @@ VARIANT_LEVELS = ["V0", "V1", "V2"]
 # Shared paths
 # =============================================================================
 
-COMM_STATIC_PATH = COMMUNITY_STATIC_DATA
-MONO_STATIC_PATH = MONOCULTURE_STATIC_DATA
-DYNAMIC_PATH = COMMUNITY_DYNAMIC_DATA
 DERIVED_DIR = DERIVED_FIGURE_DATA
 
 # =============================================================================
