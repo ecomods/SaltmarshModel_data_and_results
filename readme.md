@@ -204,18 +204,18 @@ data_and_results/
 │   │   ├── __init__.py
 │   │   └── paths.py
 │   ├── 01_prepare_figure_data.py
-│   ├── 02_figure_config.py
-│   ├── 02_figure_utils.py
-│   ├── 02_plot_appendix_2_porewater_salinity.py
-│   ├── 02_plot_2_2_forman.py
-│   ├── 02_plot_appendix_1_growth_pot_maint.py
-│   ├── 02_plot_3_1_static_community_vs_mono.py
-│   ├── 02_plot_3_2_static_community.py
-│   ├── 02_MEAN_plot_3_2_static_community.py
-│   ├── 02_plot_3_3_dynamic_biovolume.py
-│   ├── 02_MEAN_plot_3_3_dynamic_biovolume.py
-│   ├── 02_plot_appendix_3_static_monoculture.py
-│   └── 02_MEAN_plot_appendix_3_static_monoculture.py
+│   ├── 02_fig1_salinity_response.py
+│   ├── 03_fig2_community_vs_monoculture.py
+│   ├── 04_fig3_community_structure.py
+│   ├── 04_fig3_community_structure_mean.py
+│   ├── 05_fig4_dynamic_biovolume.py
+│   ├── 05_fig4_dynamic_biovolume_mean.py
+│   ├── 06_figS1_growth_vs_maintenance.py
+│   ├── 07_figS2_porewater_salinity.py
+│   ├── 08_figS3_monoculture_structure.py
+│   ├── 08_figS3_monoculture_structure_mean.py
+│   ├── figure_config.py
+│   └── figure_utils.py
 │
 ├── create_setups.py
 ├── run_model.py
@@ -285,7 +285,7 @@ Saltmarsh_3.py
 Saltmarsh_4.py
 ```
 
-These files are the source of truth for PFT-specific model parameters. The figure script `02_plot_2_2_forman.py` reads relevant parameters from these files so that the salinity-response figure stays consistent with the active model setup.
+These files are the source of truth for PFT-specific model parameters. The figure script `02_fig1_salinity_response.py` reads relevant parameters from these files so that the salinity-response figure stays consistent with the active model setup.
 
 Always change numerical PFT parameters in the species files, not in figure scripts.
 
@@ -385,20 +385,22 @@ figures/main/
 figures/appendix/
 ```
 
-The current standardized figure scripts write:
+Figure files are named after the manuscript figure (`fig1`-`fig4`,
+`figS1`-`figS3`); `_median` / `_mean` mark the two statistical versions.
+The current figure scripts write:
 
 ```text
-figures/appendix/plot_appendix_2_porewater_salinity.png
-figures/main/plot_2_2_forman.png
-figures/appendix/plot_appendix_1_growth_pot_maint.png
-figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.png
-figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.png
-figures/main/plot_3_2_static_community.png
-figures/main/MEAN_plot_3_2_static_community.png
-figures/main/plot_3_3_dynamic_biovolume.png
-figures/main/MEAN_plot_3_3_dynamic_biovolume.png
-figures/appendix/plot_appendix_3_static_monoculture.png
-figures/appendix/MEAN_plot_appendix_3_static_monoculture.png
+figures/main/fig1_salinity_response.png
+figures/main/fig2_community_vs_monoculture_median.png
+figures/main/fig2_community_vs_monoculture_mean.png
+figures/main/fig3_community_structure_median.png
+figures/main/fig3_community_structure_mean.png
+figures/main/fig4_dynamic_biovolume_median.png
+figures/main/fig4_dynamic_biovolume_mean.png
+figures/appendix/figS1_growth_vs_maintenance.png
+figures/appendix/figS2_porewater_salinity.png
+figures/appendix/figS3_monoculture_structure_median.png
+figures/appendix/figS3_monoculture_structure_mean.png
 ```
 
 ---
@@ -605,16 +607,16 @@ The script runs these source scripts in order:
 
 ```text
 01_prepare_figure_data.py
-02_plot_appendix_2_porewater_salinity.py
-02_plot_2_2_forman.py
-02_plot_appendix_1_growth_pot_maint.py
-02_plot_3_1_static_community_vs_mono.py
-02_plot_3_2_static_community.py
-02_MEAN_plot_3_2_static_community.py
-02_plot_3_3_dynamic_biovolume.py
-02_MEAN_plot_3_3_dynamic_biovolume.py
-02_plot_appendix_3_static_monoculture.py
-02_MEAN_plot_appendix_3_static_monoculture.py
+02_fig1_salinity_response.py
+03_fig2_community_vs_monoculture.py
+04_fig3_community_structure.py
+04_fig3_community_structure_mean.py
+05_fig4_dynamic_biovolume.py
+05_fig4_dynamic_biovolume_mean.py
+06_figS1_growth_vs_maintenance.py
+07_figS2_porewater_salinity.py
+08_figS3_monoculture_structure.py
+08_figS3_monoculture_structure_mean.py
 ```
 
 ---
@@ -632,11 +634,9 @@ written. Dynamic plant rows are summarized for Figure 4 but are not saved as a
 separate plant-level table. Use `--output-dir` on this script to build a
 candidate in another directory without replacing the current figure tables.
 
-### 5.2 `source/02_figure_config.py`
+### 5.2 `source/figure_config.py`
 
-### 5.4 `source/02_figure_config.py`
-
-This script stores shared plotting constants:
+This module stores shared plotting constants:
 
 ```text
 figure sizes
@@ -649,7 +649,7 @@ figure output paths
 
 Changing PFT colors or global figure dimensions should be done here.
 
-### 5.3 `source/02_figure_utils.py`
+### 5.3 `source/figure_utils.py`
 
 This script stores reusable helper functions for summaries, error bars, directories, and figure preparation.
 
@@ -676,25 +676,15 @@ DEFAULT_MANGA_SCRIPT
 
 ## 6. Figure scripts
 
-### 6.1 `02_plot_appendix_2_porewater_salinity.py`
+Scripts are numbered in pipeline order and named after the manuscript figure
+they create. Figures 2-4 and S3 exist in a median-based and a mean-based
+version (`_median` / `_mean` in the PNG name). Mean-based versions use the same
+layout; error bars show one standard deviation across the ten replicate
+simulations.
 
-Creates the porewater salinity scenario figure 2.1.
+### 6.1 `02_fig1_salinity_response.py` - Figure 1
 
-Input:
-
-```text
-data_model_input/salinity/*.csv
-```
-
-Output:
-
-```text
-figures/appendix/plot_appendix_2_porewater_salinity.png
-```
-
-### 6.2 `02_plot_2_2_forman.py`
-
-Creates the PFT-specific porewater salinity response figure 2.2.
+Creates the PFT-specific porewater salinity response figure.
 
 Input:
 
@@ -705,46 +695,34 @@ data_model_input/species/Saltmarsh_*.py
 Output:
 
 ```text
-figures/main/plot_2_2_forman.png
+figures/main/fig1_salinity_response.png
 ```
 
-### 6.3 `02_plot_appendix_1_growth_pot_maint.py`
+### 6.2 `03_fig2_community_vs_monoculture.py` - Figure 2
 
-Creates the conceptual growth-potential versus maintenance figure 2.3.
+Creates the static total biovolume comparison between community and
+monoculture simulations. The script writes both versions, from
+`comm_mat.csv` / `mono_mat.csv` and `MEAN_comm_mat.csv` / `MEAN_mono_mat.csv`.
 
 Output:
 
 ```text
-figures/appendix/plot_appendix_1_growth_pot_maint.png
+figures/main/fig2_community_vs_monoculture_median.png
+figures/main/fig2_community_vs_monoculture_mean.png
 ```
 
-### 6.4 `02_plot_3_1_static_community_vs_mono.py`
+### 6.3 `04_fig3_community_structure.py` - Figure 3
 
-Creates the static total biovolume comparison between community and monoculture simulations figure 3.1.
-
-Output:
-
-```text
-figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.png
-```
-
-The same script also writes the mean-based version from `MEAN_comm_mat.csv` and `MEAN_mono_mat.csv`:
-
-```text
-figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.png
-```
-
-### 6.5 `02_plot_3_2_static_community.py`
-
-Creates the static community figure 2.2.
+Creates the static community figure. The mean-based version is created by
+`04_fig3_community_structure_mean.py`.
 
 Panels:
 
 ```text
 upper left:  biovolume per plant
 upper right: aboveground height
-lower left:  AG/BG ratio
-lower right: number of plants
+lower left:  number of plants
+lower right: AG/BG ratio
 ```
 
 Error bars:
@@ -757,18 +735,14 @@ number of plants: replicate-level aggregate range
 Output:
 
 ```text
-figures/main/plot_3_2_static_community.png
+figures/main/fig3_community_structure_median.png
+figures/main/fig3_community_structure_mean.png
 ```
 
-Mean-based companion output:
+### 6.4 `05_fig4_dynamic_biovolume.py` - Figure 4
 
-```text
-figures/main/MEAN_plot_3_2_static_community.png
-```
-
-### 6.6 `02_plot_3_3_dynamic_biovolume.py`
-
-Creates the dynamic biovolume time-series and stacked-bar figure 2.3.
+Creates the dynamic biovolume time-series and stacked-bar figure. The
+mean-based version is created by `05_fig4_dynamic_biovolume_mean.py`.
 
 Layout:
 
@@ -782,36 +756,46 @@ bars: stacked PFT contributions for V0, V1, V2
 Output:
 
 ```text
-figures/main/plot_3_3_dynamic_biovolume.png
+figures/main/fig4_dynamic_biovolume_median.png
+figures/main/fig4_dynamic_biovolume_mean.png
 ```
 
-Mean-based companion output:
+### 6.5 `06_figS1_growth_vs_maintenance.py` - Figure S1
 
-```text
-figures/main/MEAN_plot_3_3_dynamic_biovolume.png
-```
-
-### 6.7 Mean-based `plot_3*` companion scripts
-
-The scripts with prefix `MEAN_` create mean-based versions of the three main result figures and the appendix monoculture figure. They use the same plotting logic and layout as the median-based scripts, but the aggregation statistics are based on arithmetic means. For mean-based figures with error bars, error bars show one standard deviation across the ten replicate simulations.
-
-```text
-02_MEAN_plot_3_2_static_community.py
-02_MEAN_plot_3_3_dynamic_biovolume.py
-02_MEAN_plot_appendix_3_static_monoculture.py
-```
-
-`02_plot_3_1_static_community_vs_mono.py` writes both its median and mean versions itself.
-
-### 6.8 `02_plot_appendix_3_static_monoculture.py`
-
-Creates the static monoculture figure.
+Creates the conceptual growth-potential versus maintenance figure.
 
 Output:
 
 ```text
-figures/appendix/plot_appendix_3_static_monoculture.png
-figures/appendix/MEAN_plot_appendix_3_static_monoculture.png
+figures/appendix/figS1_growth_vs_maintenance.png
+```
+
+### 6.6 `07_figS2_porewater_salinity.py` - Figure S2
+
+Creates the porewater salinity scenario figure.
+
+Input:
+
+```text
+data_model_input/salinity/*.csv
+```
+
+Output:
+
+```text
+figures/appendix/figS2_porewater_salinity.png
+```
+
+### 6.7 `08_figS3_monoculture_structure.py` - Figure S3
+
+Creates the static monoculture figure (same panels as Figure 3). The
+mean-based version is created by `08_figS3_monoculture_structure_mean.py`.
+
+Output:
+
+```text
+figures/appendix/figS3_monoculture_structure_median.png
+figures/appendix/figS3_monoculture_structure_mean.png
 ```
 
 ---

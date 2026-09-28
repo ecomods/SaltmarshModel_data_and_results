@@ -5,16 +5,14 @@
 # =============================================================================
 # Purpose
 # -------
-# This appendix script creates a 2x2 grid figure for static monoculture
-# simulations. It mirrors the structure of 02_plot_3_2_static_community.py but shows
-# only monoculture PFT results, without a community reference point.
+# This appendix script creates the mean-based 2x2 grid figure for static
+# monoculture simulations. It mirrors 08_figS3_monoculture_structure.py
+# but uses arithmetic means instead of medians.
 #
 # Error bar interpretation
 # ------------------------
-# - For plant-level metrics, error bars extend to the 25th and 75th percentiles
-#   of individual-plant values.
-# - For number of plants, error bars extend to the 25th and 75th percentiles of
-#   replicate-level aggregate values.
+# Points show arithmetic means across the ten replicate simulations. Error bars
+# show one standard deviation across the ten replicate-level values.
 #
 # Output
 # ------
@@ -22,10 +20,8 @@
 # =============================================================================
 
 """
-Appendix Figure 3:
-Static salinity - monoculture metrics with error bars in a 2 x 2 grid.
-
-This script creates one combined figure for the static monoculture setups.
+Supplementary Figure S3:
+Mean-based static salinity - monoculture metrics with error bars in a 2 x 2 grid.
 
 Panel layout:
     top left:     Biovolume per Plant
@@ -33,29 +29,20 @@ Panel layout:
     bottom left:  Number of Plants
     bottom right: AG/BG Ratio
 
-Error bars:
-- volume_per_plant, h_ag, ag_bg_ratio:
-    median of individual plants with error bars extending to the 25th and
-    75th percentiles of individual-plant values.
-- num_plants:
-    median of aggregated replicate values with error bars extending to the
-    25th and 75th percentiles of replicate-level values.
-
 Output:
-    figures/appendix/plot_appendix_3_static_monoculture.png
-
+    figures/appendix/figS3_monoculture_structure_mean.png
 """
 
 import os
-import numpy as np
-import pandas as pd
 import importlib
 
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-_config = importlib.import_module("02_figure_config")
-_utils = importlib.import_module("02_figure_utils")
+_config = importlib.import_module("figure_config")
+_utils = importlib.import_module("figure_utils")
 
 FIG_W = _config.FIG_W
 FIG_H = _config.FIG_H
@@ -63,6 +50,7 @@ pft_color_map = _config.pft_color_map
 DERIVED_DIR = _config.DERIVED_DIR
 FIGURES_APPENDIX = _config.FIGURES_APPENDIX
 ensure_dir = _utils.ensure_dir
+summary_mean_std = _utils.summary_mean_std
 
 
 # =============================================================================
@@ -85,17 +73,7 @@ panel_order = [
     "ag_bg_ratio",
 ]
 
-plant_level_metrics = [
-    "volume_per_plant",
-    "h_ag",
-    "ag_bg_ratio",
-]
-
-aggregate_metrics = [
-    "num_plants",
-]
-
-OUTPUT_BASENAME = "plot_appendix_3_static_monoculture"
+OUTPUT_BASENAME = "figS3_monoculture_structure_mean"
 
 
 # =============================================================================
@@ -124,8 +102,6 @@ if "n" in df_mono_prepared.columns:
         df_mono_prepared["n"], errors="coerce"
     ).astype("Int64")
 
-# In individual-plant data, one row corresponds to one plant.
-# Therefore, volume_per_plant is identical to the plant's own volume.
 if "volume_per_plant" not in df_mono_prepared.columns:
     if "volume" in df_mono_prepared.columns:
         df_mono_prepared["volume_per_plant"] = df_mono_prepared["volume"]
@@ -140,116 +116,70 @@ if "volume_per_plant" not in df_mono_prepared.columns:
 # Helper functions
 # =============================================================================
 
-def summary_minmax_individuals(df, group_cols, metric):
+def build_replicate_level_means(df):
     """
-    Summarise individual-plant values by median and interquartile range.
+    Create one mean-over-time value per salinity, PFT, replicate, and metric.
 
-    The returned error bars extend from the median to the 25th and 75th
-    percentiles of the individual-plant values.
+    Plant-level metrics are first averaged across plants within each timestep.
+    The resulting timestep values are then averaged over time for each replicate.
+    Plant number is counted per timestep and then averaged over time for each
+    replicate.
     """
-
-    if metric not in df.columns:
-        raise KeyError(
-            f"Metric '{metric}' was not found in df_mono_prepared.csv."
-        )
-
-    summary = (
-        df
-        .dropna(subset=group_cols + [metric])
-        .groupby(group_cols, as_index=False)[metric]
-        .agg(
-            median_value="median",
-            q25_value=lambda x: x.quantile(0.25),
-            q75_value=lambda x: x.quantile(0.75),
-        )
-    )
-
-    summary["err_lower"] = summary["median_value"] - summary["q25_value"]
-    summary["err_upper"] = summary["q75_value"] - summary["median_value"]
-
-    return summary
-
-
-def summary_minmax_num_plants(df):
-    """
-    Summarise plant numbers for monoculture setups.
-
-    Step 1: count plants per salinity, PFT, replicate, and timestep.
-    Step 2: calculate the median over time for each replicate.
-    Step 3: calculate the median and 25th/75th percentiles across replicates.
-
-    The returned error bars extend from the median to the 25th and 75th
-    percentiles of replicate-level medians.
-    """
-
     required_cols = ["salinity", "pft", "n", "time"]
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         raise KeyError(
-            "Missing required columns for num_plants summary: "
+            "Missing required columns for monoculture summary: "
             + ", ".join(missing_cols)
         )
 
-    per_timestep = (
-        df
-        .dropna(subset=required_cols)
-        .groupby(required_cols, as_index=False)
+    dfc = df.copy().dropna(subset=required_cols)
+
+    plant_metrics = (
+        dfc.groupby(["salinity", "pft", "n", "time"], as_index=False)
+        .agg({
+            "volume_per_plant": "mean",
+            "h_ag": "mean",
+            "ag_bg_ratio": "mean",
+        })
+    )
+
+    plant_counts = (
+        dfc.groupby(["salinity", "pft", "n", "time"], as_index=False)
         .size()
         .rename(columns={"size": "num_plants"})
     )
 
-    rep_median = (
-        per_timestep
-        .groupby(["salinity", "pft", "n"], as_index=False)["num_plants"]
-        .median()
-        .rename(columns={"num_plants": "rep_median_num_plants"})
+    per_timestep = plant_metrics.merge(
+        plant_counts,
+        on=["salinity", "pft", "n", "time"],
+        how="left",
     )
 
-    summary = (
-        rep_median
-        .groupby(["salinity", "pft"], as_index=False)["rep_median_num_plants"]
-        .agg(
-            median_value="median",
-            q25_value=lambda x: x.quantile(0.25),
-            q75_value=lambda x: x.quantile(0.75),
-        )
+    replicate_means = (
+        per_timestep.groupby(["salinity", "pft", "n"], as_index=False)
+        .agg({
+            "volume_per_plant": "mean",
+            "h_ag": "mean",
+            "ag_bg_ratio": "mean",
+            "num_plants": "mean",
+        })
     )
 
-    summary["err_lower"] = summary["median_value"] - summary["q25_value"]
-    summary["err_upper"] = summary["q75_value"] - summary["median_value"]
-
-    return summary
+    return replicate_means
 
 
 def get_summary_table(metric):
-    """
-    Select the correct summary logic for each metric.
-    """
-
-    if metric in plant_level_metrics:
-        summary = summary_minmax_individuals(
-            df_mono_prepared,
-            ["salinity", "pft"],
-            metric,
-        )
-
-    elif metric in aggregate_metrics:
-        summary = summary_minmax_num_plants(df_mono_prepared)
-
-    else:
-        raise ValueError(
-            f"Metric '{metric}' is neither listed as plant-level nor "
-            "aggregate metric."
-        )
-
-    return summary
+    """Return mean and standard-deviation summaries for one metric."""
+    return summary_mean_std(
+        replicate_level_means,
+        ["salinity", "pft"],
+        metric,
+    )
 
 
 def plot_metric_panel(ax, metric, ylabel, show_xlabel=False):
-    """
-    Plot one monoculture metric into one panel.
-    """
-
+    """Plot one monoculture metric into one panel."""
     summary = get_summary_table(metric)
 
     for i, pft in enumerate(pft_levels_mono):
@@ -258,17 +188,12 @@ def plot_metric_panel(ax, metric, ylabel, show_xlabel=False):
         if dfp.empty:
             continue
 
-        dfp["x_pos"] = (
-            dfp["salinity"].map(sal_to_x) + within_offsets_static[i]
-        )
+        dfp["x_pos"] = dfp["salinity"].map(sal_to_x) + within_offsets_static[i]
 
         ax.errorbar(
             dfp["x_pos"],
-            dfp["median_value"],
-            yerr=[
-                dfp["err_lower"],
-                dfp["err_upper"],
-            ],
+            dfp["mean_value"],
+            yerr=[dfp["err_lower"], dfp["err_upper"]],
             fmt="o",
             capsize=3,
             linewidth=1.2,
@@ -277,7 +202,6 @@ def plot_metric_panel(ax, metric, ylabel, show_xlabel=False):
             label=f"PFT {int(pft)}",
         )
 
-    # Axes and separators
     ax.set_xticks(group_centers)
     ax.set_xticklabels([str(int(s)) for s in salinity_levels_mono])
 
@@ -290,20 +214,9 @@ def plot_metric_panel(ax, metric, ylabel, show_xlabel=False):
 
     for k in range(len(group_centers) - 1):
         mid = (group_right[k] + group_left[k + 1]) / 2
-        ax.axvline(
-            mid,
-            color="0.55",
-            linewidth=1.0,
-            zorder=1,
-        )
+        ax.axvline(mid, color="0.55", linewidth=1.0, zorder=1)
 
-    ax.grid(
-        axis="y",
-        linestyle=":",
-        linewidth=0.5,
-        alpha=0.8,
-    )
-
+    ax.grid(axis="y", linestyle=":", linewidth=0.5, alpha=0.8)
     ax.set_axisbelow(True)
 
 
@@ -311,15 +224,14 @@ def plot_metric_panel(ax, metric, ylabel, show_xlabel=False):
 # Plot layout
 # =============================================================================
 
-salinity_levels_mono = sorted(df_mono_prepared["salinity"].dropna().unique())
-pft_levels_mono = sorted(df_mono_prepared["pft"].dropna().unique())
+replicate_level_means = build_replicate_level_means(df_mono_prepared)
+
+salinity_levels_mono = sorted(replicate_level_means["salinity"].dropna().unique())
+pft_levels_mono = sorted(replicate_level_means["pft"].dropna().unique())
 
 group_spacing = 2.75
 x_group = np.arange(len(salinity_levels_mono)) * group_spacing
-sal_to_x = {
-    sal: x_group[i]
-    for i, sal in enumerate(salinity_levels_mono)
-}
+sal_to_x = {sal: x_group[i] for i, sal in enumerate(salinity_levels_mono)}
 
 within_offsets_static = np.array([0.0, 0.55, 1.10, 1.65])
 
@@ -350,7 +262,6 @@ for ax, metric in zip(axes_flat, panel_order):
         show_xlabel=show_xlabel,
     )
 
-# Legend below all panels.
 legend_handles = []
 
 for pft in pft_levels_mono:
@@ -391,6 +302,5 @@ plt.savefig(
 plt.show()
 plt.close(fig)
 
-
-print("Done: plot_appendix_3_static_monoculture")
+print("Done: figS3_monoculture_structure_mean")
 print(f"Saved: figures/appendix/{OUTPUT_BASENAME}.png")

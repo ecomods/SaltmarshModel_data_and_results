@@ -26,7 +26,7 @@ Plot potential growth and maintenance costs for all four PFTs.
 
 Outputs
 -------
-figures/appendix/plot_appendix_1_growth_pot_maint.png
+figures/appendix/figS1_growth_vs_maintenance.png
 
 The figure contains four panels arranged as a 2 x 2 grid:
 - PFT 1
@@ -71,7 +71,7 @@ from source.utils.paths import FIGURES_APPENDIX, SPECIES_DIR
 OUT_DIR = FIGURES_APPENDIX
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-OUT_PNG = OUT_DIR / "plot_appendix_1_growth_pot_maint.png"
+OUT_PNG = OUT_DIR / "figS1_growth_vs_maintenance.png"
 
 
 # =============================================================================

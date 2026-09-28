@@ -22,24 +22,23 @@
 # =============================================================================
 
 """
-Figure 3.1:
+Manuscript Figure 2:
 Static salinity - community (stacked) vs monoculture (hatched)
 
 Output:
-    figures/main/plot_3_1_static_community_vs_mono_biovolume_tot.png
-    figures/main/MEAN_plot_3_1_static_community_vs_mono_biovolume_tot.png
+    figures/main/fig2_community_vs_monoculture_median.png
+    figures/main/fig2_community_vs_monoculture_mean.png
 """
 
 import os
 import numpy as np
 import pandas as pd
-import importlib
 
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
-_config = importlib.import_module("02_figure_config")
-_utils = importlib.import_module("02_figure_utils")
+import figure_config as _config
+import figure_utils as _utils
 
 SAL_STATIC = _config.SAL_STATIC
 PFTS = _config.PFTS
@@ -48,8 +47,8 @@ DERIVED_DIR = _config.DERIVED_DIR
 FIGURES_MAIN = _config.FIGURES_MAIN
 ensure_dir = _utils.ensure_dir
 
-# File prefix of each statistical version: "" = median, "MEAN_" = mean.
-VERSION_PREFIXES = ["", "MEAN_"]
+# Statistical version -> file prefix of its input tables.
+VERSION_PREFIXES = {"median": "", "mean": "MEAN_"}
 
 HATCH = "///"
 
@@ -116,16 +115,13 @@ plt.rcParams["hatch.linewidth"] = 0.5
 
 output_dir = ensure_dir(FIGURES_MAIN)
 
-for prefix in VERSION_PREFIXES:
+for version, prefix in VERSION_PREFIXES.items():
     fig = draw_figure(
         read_matrix(f"{prefix}comm_mat.csv"),
         read_matrix(f"{prefix}mono_mat.csv"),
     )
     _config.save_figure(
         fig,
-        os.path.join(
-            output_dir,
-            f"{prefix}plot_3_1_static_community_vs_mono_biovolume_tot.png",
-        ),
+        os.path.join(output_dir, f"fig2_community_vs_monoculture_{version}.png"),
     )
     plt.close(fig)

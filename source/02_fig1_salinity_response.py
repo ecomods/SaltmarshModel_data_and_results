@@ -16,7 +16,7 @@
 #
 # Output
 # ------
-# figures/main/plot_2_2_forman.png
+# figures/main/fig1_salinity_response.png
 # =============================================================================
 
 """
@@ -52,7 +52,7 @@ from source.utils.paths import FIGURES_MAIN, SPECIES_DIR
 OUT_DIR = FIGURES_MAIN
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-OUT_PNG = OUT_DIR / "plot_2_2_forman.png"
+OUT_PNG = OUT_DIR / "fig1_salinity_response.png"
 
 SALINITY_RANGE = np.linspace(0, 160, 1000)
 

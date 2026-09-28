@@ -27,7 +27,7 @@ porewater salinity scenarios used in the model setup.
 
 Outputs
 -------
-figures/appendix/plot_appendix_2_porewater_salinity.png
+figures/appendix/figS2_porewater_salinity.png
 """
 
 
@@ -56,7 +56,7 @@ from source.utils.paths import FIGURES_APPENDIX, SALINITY_DIR
 OUT_DIR = FIGURES_APPENDIX
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-OUT_PNG = OUT_DIR / "plot_appendix_2_porewater_salinity.png"
+OUT_PNG = OUT_DIR / "figS2_porewater_salinity.png"
 
 SCENARIO_FILES = {
     "35_V1": "35_V1.csv",
