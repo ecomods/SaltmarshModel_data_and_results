@@ -10,24 +10,29 @@
 # plants. Total biovolume is intentionally not included here because it is shown
 # separately in 03_fig2_community_vs_monoculture.py.
 #
-# Error bar interpretation
-# ------------------------
+# Two statistical versions are written with the same layout:
+#
+# Median version
+# --------------
 # - For plant-level metrics (biovolume per plant, height, AG/BG ratio), the point
 #   is the median and the error bars extend to the 25th and 75th percentiles of
 #   the individual-plant values.
 # - For number of plants, the point is the median and the error bars extend to
 #   the 25th and 75th percentiles of replicate-level aggregate values.
 #
+# Mean version
+# ------------
+# Points show arithmetic means across the ten replicate simulations. Error bars
+# show one standard deviation across the ten replicate-level values.
+#
 # Output
 # ------
-# The figure is written directly to figures/main/ as PNG.
+# One PNG per version is written to figures/main/.
 # =============================================================================
 
 """
 Manuscript Figure 3:
 Static salinity - community metrics with error bars in a 2 x 2 grid.
-
-This script creates one combined figure for the static community setups.
 
 Panel layout:
     top left:     Biovolume per Plant
@@ -35,44 +40,26 @@ Panel layout:
     bottom left:  Number of Plants
     bottom right: AG/BG Ratio
 
-Error bars:
-- volume_per_plant, h_ag, ag_bg_ratio:
-    median of individual plants with error bars extending to the 25th and
-    75th percentiles of individual-plant values.
-- num_plants:
-    median of aggregated replicate values with error bars extending to the
-    25th and 75th percentiles of replicate-level values.
-
 Output:
     figures/main/fig3_community_structure_median.png
-
+    figures/main/fig3_community_structure_mean.png
 """
 
 import os
-import numpy as np
+
 import pandas as pd
-import importlib
-
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 
-_config = importlib.import_module("figure_config")
-_utils = importlib.import_module("figure_utils")
+import figure_config as _config
+import figure_utils as _utils
 
-FIG_W = _config.FIG_W
-FIG_H = _config.FIG_H
-pft_color_map = _config.pft_color_map
 DERIVED_DIR = _config.DERIVED_DIR
 FIGURES_MAIN = _config.FIGURES_MAIN
-ensure_dir = _utils.ensure_dir
-summary_minmax = _utils.summary_minmax
 
 
 # =============================================================================
 # Settings
 # =============================================================================
-
-output_dir = ensure_dir(FIGURES_MAIN)
 
 metrics_comm = {
     "volume_per_plant": "Biovolume per Plant [m³]",
@@ -98,67 +85,19 @@ aggregate_metrics = [
     "num_plants",
 ]
 
-OUTPUT_BASENAME = "fig3_community_structure_median"
-
-
-# =============================================================================
-# Input data
-# =============================================================================
-
-grouped_pft_static = pd.read_csv(
-    os.path.join(DERIVED_DIR, "grouped_pft_static.csv")
-)
-
-grouped_all_static = pd.read_csv(
-    os.path.join(DERIVED_DIR, "grouped_all_static.csv")
-)
-
-df_comm_prepared = pd.read_csv(
-    os.path.join(DERIVED_DIR, "df_comm_prepared.csv")
-)
-
-
-# =============================================================================
-# Data preparation
-# =============================================================================
-
-grouped_pft_static["salinity"] = pd.to_numeric(
-    grouped_pft_static["salinity"], errors="coerce"
-)
-
-grouped_all_static["salinity"] = pd.to_numeric(
-    grouped_all_static["salinity"], errors="coerce"
-)
-
-df_comm_prepared["salinity"] = pd.to_numeric(
-    df_comm_prepared["salinity"], errors="coerce"
-)
-
-if "pft" in grouped_pft_static.columns:
-    grouped_pft_static["pft"] = pd.to_numeric(
-        grouped_pft_static["pft"], errors="coerce"
-    ).astype("Int64")
-
-if "pft" in df_comm_prepared.columns:
-    df_comm_prepared["pft"] = pd.to_numeric(
-        df_comm_prepared["pft"], errors="coerce"
-    ).astype("Int64")
-
-# In individual-plant data, one row corresponds to one plant.
-# Therefore, volume_per_plant is identical to the plant's own volume.
-if "volume_per_plant" not in df_comm_prepared.columns:
-    if "volume" in df_comm_prepared.columns:
-        df_comm_prepared["volume_per_plant"] = df_comm_prepared["volume"]
-    else:
-        raise KeyError(
-            "Neither 'volume_per_plant' nor 'volume' was found in "
-            "df_comm_prepared.csv."
-        )
-
 
 # =============================================================================
 # Helper functions
 # =============================================================================
+
+def read_table(filename):
+    """Read a derived figure table with numeric salinity and PFT columns."""
+    df = pd.read_csv(os.path.join(DERIVED_DIR, filename))
+    df["salinity"] = pd.to_numeric(df["salinity"], errors="coerce")
+    if "pft" in df.columns:
+        df["pft"] = pd.to_numeric(df["pft"], errors="coerce").astype("Int64")
+    return df
+
 
 def summary_minmax_individuals(df, group_cols, metric):
     """
@@ -190,221 +129,103 @@ def summary_minmax_individuals(df, group_cols, metric):
     return summary
 
 
-def get_summary_tables(metric):
+def median_summaries():
     """
-    Select the correct summary logic for each metric.
+    Median version: return per-metric (summary_pft, summary_all) tables with a
+    common value column, plus the salinity and PFT levels.
     """
+    grouped_pft_static = read_table("grouped_pft_static.csv")
+    grouped_all_static = read_table("grouped_all_static.csv")
+    df_comm_prepared = read_table("df_comm_prepared.csv")
 
-    if metric in plant_level_metrics:
-        summary_pft = summary_minmax_individuals(
-            df_comm_prepared,
-            ["salinity", "pft"],
-            metric,
+    # In individual-plant data, one row corresponds to one plant.
+    # Therefore, volume_per_plant is identical to the plant's own volume.
+    if "volume_per_plant" not in df_comm_prepared.columns:
+        if "volume" in df_comm_prepared.columns:
+            df_comm_prepared["volume_per_plant"] = df_comm_prepared["volume"]
+        else:
+            raise KeyError(
+                "Neither 'volume_per_plant' nor 'volume' was found in "
+                "df_comm_prepared.csv."
+            )
+
+    summaries = {}
+    for metric in panel_order:
+        if metric in plant_level_metrics:
+            summary_pft = summary_minmax_individuals(
+                df_comm_prepared, ["salinity", "pft"], metric
+            )
+            summary_all = summary_minmax_individuals(
+                df_comm_prepared, ["salinity"], metric
+            )
+        elif metric in aggregate_metrics:
+            summary_pft = _utils.summary_minmax(
+                grouped_pft_static, ["salinity", "pft"], metric
+            )
+            summary_all = _utils.summary_minmax(
+                grouped_all_static, ["salinity"], metric
+            )
+        else:
+            raise ValueError(
+                f"Metric '{metric}' is neither listed as plant-level nor "
+                "aggregate metric."
+            )
+        summaries[metric] = tuple(
+            s.rename(columns={"median_value": "value"})
+            for s in (summary_pft, summary_all)
         )
 
-        summary_all = summary_minmax_individuals(
-            df_comm_prepared,
-            ["salinity"],
-            metric,
-        )
-
-    elif metric in aggregate_metrics:
-        summary_pft = summary_minmax(
-            grouped_pft_static,
-            ["salinity", "pft"],
-            metric,
-        )
-
-        summary_all = summary_minmax(
-            grouped_all_static,
-            ["salinity"],
-            metric,
-        )
-
-    else:
-        raise ValueError(
-            f"Metric '{metric}' is neither listed as plant-level nor "
-            "aggregate metric."
-        )
-
-    return summary_pft, summary_all
+    return summaries, grouped_pft_static
 
 
-def plot_metric_panel(ax, metric, ylabel, show_xlabel=False):
+def mean_summaries():
     """
-    Plot one metric into one panel.
+    Mean version: replicate mean and standard deviation for all metrics.
+
+    The MEAN tables contain one mean-over-time value per replicate and
+    scenario, so standard deviations are calculated across replicates.
     """
+    grouped_pft_static = read_table("MEAN_grouped_pft_static.csv")
+    grouped_all_static = read_table("MEAN_grouped_all_static.csv")
 
-    summary_pft, summary_all = get_summary_tables(metric)
-
-    # Community summary
-    x_all = summary_all["salinity"].map(sal_to_x) + within_offsets_static[0]
-
-    ax.errorbar(
-        x_all,
-        summary_all["median_value"],
-        yerr=[
-            summary_all["err_lower"],
-            summary_all["err_upper"],
-        ],
-        fmt="o",
-        capsize=3,
-        linewidth=1.2,
-        color="black",
-        ecolor="black",
-        label="community",
-    )
-
-    # PFT summaries
-    for i, pft in enumerate(pft_levels_comm, start=1):
-        dfp = summary_pft[summary_pft["pft"] == pft].copy()
-
-        if dfp.empty:
-            continue
-
-        dfp["x_pos"] = (
-            dfp["salinity"].map(sal_to_x) + within_offsets_static[i]
+    summaries = {}
+    for metric in panel_order:
+        summary_pft = _utils.summary_mean_std(
+            grouped_pft_static, ["salinity", "pft"], metric
+        )
+        summary_all = _utils.summary_mean_std(
+            grouped_all_static, ["salinity"], metric
+        )
+        summaries[metric] = tuple(
+            s.rename(columns={"mean_value": "value"})
+            for s in (summary_pft, summary_all)
         )
 
-        ax.errorbar(
-            dfp["x_pos"],
-            dfp["median_value"],
-            yerr=[
-                dfp["err_lower"],
-                dfp["err_upper"],
-            ],
-            fmt="o",
-            capsize=3,
-            linewidth=1.2,
-            color=pft_color_map[int(pft)],
-            ecolor=pft_color_map[int(pft)],
-            label=f"PFT {int(pft)}",
-        )
+    return summaries, grouped_pft_static
 
-    # Axes and separators
-    ax.set_xticks(group_centers)
-    ax.set_xticklabels([str(int(s)) for s in salinity_levels_comm])
 
-    if show_xlabel:
-        ax.set_xlabel("Salinity [ppt]")
-    else:
-        ax.set_xlabel("")
+# Statistical version -> function returning its summaries.
+VERSIONS = {"median": median_summaries, "mean": mean_summaries}
 
-    ax.set_ylabel(ylabel)
 
-    for k in range(len(group_centers) - 1):
-        mid = (group_right[k] + group_left[k + 1]) / 2
-        ax.axvline(
-            mid,
-            color="0.55",
-            linewidth=1.0,
-            zorder=1,
-        )
+# =============================================================================
+# Figures
+# =============================================================================
 
-    ax.grid(
-        axis="y",
-        linestyle=":",
-        linewidth=0.5,
-        alpha=0.8,
+output_dir = _utils.ensure_dir(FIGURES_MAIN)
+
+for version, get_summaries in VERSIONS.items():
+    summaries, grouped_pft_static = get_summaries()
+
+    fig = _utils.draw_structure_figure(
+        summaries,
+        salinity_levels=sorted(grouped_pft_static["salinity"].dropna().unique()),
+        pft_levels=sorted(grouped_pft_static["pft"].dropna().unique()),
+        ylabels=metrics_comm,
+        panel_order=panel_order,
     )
 
-    ax.set_axisbelow(True)
-
-
-# =============================================================================
-# Plot layout
-# =============================================================================
-
-salinity_levels_comm = sorted(grouped_pft_static["salinity"].dropna().unique())
-pft_levels_comm = sorted(grouped_pft_static["pft"].dropna().unique())
-
-group_spacing = 3.1
-x_group = np.arange(len(salinity_levels_comm)) * group_spacing
-sal_to_x = {
-    sal: x_group[i]
-    for i, sal in enumerate(salinity_levels_comm)
-}
-
-within_offsets_static = np.array([0.0, 0.55, 1.10, 1.65, 2.20])
-
-group_left = x_group + within_offsets_static[0] - 0.28
-group_right = x_group + within_offsets_static[-1] + 0.28
-group_centers = x_group + np.mean(within_offsets_static)
-
-
-# =============================================================================
-# Figure
-# =============================================================================
-
-fig, axes = plt.subplots(
-    nrows=2,
-    ncols=2,
-    figsize=(FIG_W * 2.15, FIG_H * 2.35),
-    sharex=True,
-)
-
-axes_flat = axes.ravel()
-
-for ax, metric in zip(axes_flat, panel_order):
-    show_xlabel = metric in ["ag_bg_ratio", "num_plants"]
-    plot_metric_panel(
-        ax=ax,
-        metric=metric,
-        ylabel=metrics_comm[metric],
-        show_xlabel=show_xlabel,
-    )
-
-# Legend below all panels.
-legend_handles = [
-    Line2D(
-        [0],
-        [0],
-        marker="o",
-        color="black",
-        linestyle="None",
-        markersize=5,
-        label="community",
-    )
-]
-
-for pft in pft_levels_comm:
-    legend_handles.append(
-        Line2D(
-            [0],
-            [0],
-            marker="o",
-            color=pft_color_map[int(pft)],
-            linestyle="None",
-            markersize=5,
-            label=f"PFT {int(pft)}",
-        )
-    )
-
-fig.legend(
-    handles=legend_handles,
-    labels=[handle.get_label() for handle in legend_handles],
-    loc="lower center",
-    ncol=5,
-    frameon=True,
-    bbox_to_anchor=(0.5, 0.01),
-)
-
-plt.tight_layout(rect=[0, 0.08, 1, 1])
-
-# =============================================================================
-# Output
-# =============================================================================
-
-plt.savefig(
-    os.path.join(output_dir, f"{OUTPUT_BASENAME}.png"),
-    dpi=600,
-    bbox_inches="tight",
-)
-
-
-plt.show()
-plt.close(fig)
-
-
-print("Done: fig3_community_structure_median")
-print(f"Saved: figures/main/{OUTPUT_BASENAME}.png")
+    out_png = os.path.join(output_dir, f"fig3_community_structure_{version}.png")
+    plt.savefig(out_png, dpi=600, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved: {out_png}")

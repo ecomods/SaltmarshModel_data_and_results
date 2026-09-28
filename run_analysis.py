@@ -58,7 +58,6 @@ PIPELINE_SCRIPTS = [
     "02_fig1_salinity_response.py",
     "03_fig2_community_vs_monoculture.py",
     "04_fig3_community_structure.py",
-    "04_fig3_community_structure_mean.py",
     "05_fig4_dynamic_biovolume.py",
     "05_fig4_dynamic_biovolume_mean.py",
     "06_figS1_growth_vs_maintenance.py",
