@@ -8,7 +8,7 @@
 # This script creates the mean-based 2x2 grid figure for static community
 # simulations. The four panels show biovolume per plant, aboveground height,
 # AG/BG ratio, and number of plants. Total biovolume is shown separately in
-# 02_MEAN_plot_3_1_static_community_vs_mono.py.
+# 02_plot_3_1_static_community_vs_mono.py.
 #
 # Error bar interpretation
 # ------------------------
