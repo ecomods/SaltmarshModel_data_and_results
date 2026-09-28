@@ -38,6 +38,8 @@
 #
 # Only regenerate figures from existing processed data:
 #     python run_analysis.py --figures-only
+# Only render figures from existing figure tables:
+#     python run_analysis.py --render-only
 # =============================================================================
 
 """
@@ -107,25 +109,34 @@ def run_script(script_name):
 
 def main():
     parser = argparse.ArgumentParser(description="Run manuscript analysis pipeline")
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "--figures-only",
         action="store_true",
         help="Skip raw-data aggregation and data processing; only prepare figure data and create figures.",
     )
-    parser.add_argument(
+    mode.add_argument(
         "--prepare-data-only",
         action="store_true",
         help="Only aggregate and process data; do not prepare figure data or create figures.",
     )
+    mode.add_argument(
+        "--render-only",
+        action="store_true",
+        help="Render all figures from existing figure data without preparing or changing any tables.",
+    )
     args = parser.parse_args()
 
-    ensure_directories()
+    if not args.render_only:
+        ensure_directories()
 
     scripts = PIPELINE_SCRIPTS
     if args.figures_only:
         scripts = PIPELINE_SCRIPTS[2:]
-    if args.prepare_data_only:
+    elif args.prepare_data_only:
         scripts = PIPELINE_SCRIPTS[:2]
+    elif args.render_only:
+        scripts = PIPELINE_SCRIPTS[3:]
 
     for script in scripts:
         run_script(script)
