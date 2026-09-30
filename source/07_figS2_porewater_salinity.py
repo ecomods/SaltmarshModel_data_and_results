@@ -77,7 +77,7 @@ def main():
 
     handles = [
         Line2D([], [], color=config.regime_color_map[regime],
-               label=config.REGIME_LABELS[regime])
+               linewidth=config.REGIME_LINEWIDTH, label=config.REGIME_LABELS[regime])
         for regime in REGIMES
     ]
     # Legend below the panels, as in Fig. S1.
