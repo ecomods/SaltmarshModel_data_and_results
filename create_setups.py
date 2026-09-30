@@ -26,7 +26,6 @@ from source.paths import (
     PLANT_DISTRIBUTION_DIR,
     XML_CONTROL_FILES,
     DEFAULT_MANGA_DIR,
-    ensure_directories,
 )
 
 
@@ -176,10 +175,6 @@ CONFIG = {
 def prettify(elem):
     rough_string = ET.tostring(elem, "utf-8")
     return minidom.parseString(rough_string).toprettyxml(indent="    ")
-
-
-def ensure_dir(path):
-    os.makedirs(path, exist_ok=True)
 
 
 def add_domain(parent):
@@ -332,8 +327,6 @@ def add_output(project, output_dir, output_range, output_each_nth_timestep):
 
 
 def write_xml(filepath, project):
-    ensure_dir(os.path.dirname(filepath))
-
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(prettify(project))
 
@@ -551,8 +544,7 @@ def generate_oneplant_dynamic():
 # ================================================================
 
 def main():
-    ensure_directories()
-    ensure_dir(CONFIG["paths"]["xml_dir"])
+    XML_CONTROL_FILES.mkdir(parents=True, exist_ok=True)
 
     if CONFIG["enabled_setups"]["community_static"]:
         generate_community_static()
