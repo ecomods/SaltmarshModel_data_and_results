@@ -1,4 +1,4 @@
-"""Prepare all 14 manuscript figure tables from pyMANGA Population.csv files.
+"""Prepare all 8 manuscript figure tables from pyMANGA Population.csv files.
 
 The three setup families are read one at a time. Folder names supply scenario
 metadata, plant geometry supplies the derived biovolume columns, and the
@@ -128,27 +128,20 @@ def prepare_static_community(output_dir):
     v0["variant"] = "V0"
     v0["version"] = v0["salinity"].astype(str) + "_V0"
 
-    comm_sum = utils.replicate_median_over_time_totalvolume_by_pft(df, ["salinity"])
-    mean_comm_sum = utils.replicate_mean_over_time_totalvolume_by_pft(df, ["salinity"])
+    comm_sum = utils.replicate_mean_over_time_totalvolume_by_pft(df, ["salinity"])
     save(utils.complete_grid(comm_sum, config.SAL_STATIC, config.PFTS), output_dir, "comm_mat.csv", index=True)
-    save(utils.complete_grid(mean_comm_sum, config.SAL_STATIC, config.PFTS), output_dir, "MEAN_comm_mat.csv", index=True)
 
-    grouped_pft, grouped_all = utils.grouped_over_time_medians(df, ["salinity"])
+    grouped_pft, grouped_all = utils.grouped_over_time_means(df, ["salinity"])
     save(grouped_pft, output_dir, "grouped_pft_static.csv")
     save(grouped_all, output_dir, "grouped_all_static.csv")
-    grouped_pft, grouped_all = utils.grouped_over_time_means(df, ["salinity"])
-    save(grouped_pft, output_dir, "MEAN_grouped_pft_static.csv")
-    save(grouped_all, output_dir, "MEAN_grouped_all_static.csv")
     return v0
 
 
 def prepare_static_monoculture(output_dir):
     df = utils.prep_static_mono_df(read_static_monoculture())
     save(df, output_dir, "df_mono_prepared.csv")
-    mono_sum = utils.replicate_median_over_time_totalvolume_by_pft(df, ["salinity"])
-    mean_mono_sum = utils.replicate_mean_over_time_totalvolume_by_pft(df, ["salinity"])
+    mono_sum = utils.replicate_mean_over_time_totalvolume_by_pft(df, ["salinity"])
     save(utils.complete_grid(mono_sum, config.SAL_STATIC, config.PFTS), output_dir, "mono_mat.csv", index=True)
-    save(utils.complete_grid(mean_mono_sum, config.SAL_STATIC, config.PFTS), output_dir, "MEAN_mono_mat.csv", index=True)
 
 
 def prepare_dynamic(output_dir, v0):
@@ -176,19 +169,12 @@ def prepare_dynamic(output_dir, v0):
         .sum()
         .reset_index(name="total_volume")
     )
-    grouped_pft, _ = utils.grouped_over_time_medians(
-        df, ["salinity", "variant"], per_timestep_total_pft=totals,
-    )
-    save(
-        utils.summary_minmax(grouped_pft, ["salinity", "variant", "pft"], "total_volume"),
-        output_dir, "summary_pft_tv.csv",
-    )
     grouped_pft, _ = utils.grouped_over_time_means(
         df, ["salinity", "variant"], per_timestep_total_pft=totals,
     )
     save(
         utils.summary_minmax_mean(grouped_pft, ["salinity", "variant", "pft"], "total_volume"),
-        output_dir, "MEAN_summary_pft_tv.csv",
+        output_dir, "summary_pft_tv.csv",
     )
 
     per_timestep = (
@@ -196,15 +182,14 @@ def prepare_dynamic(output_dir, v0):
         .agg(total_volume=("volume", "sum"))
         .reset_index()
     )
-    save(utils.median_ts(per_timestep, "total_volume"), output_dir, "median_ts_total_volume.csv")
-    save(utils.mean_ts(per_timestep, "total_volume"), output_dir, "MEAN_ts_total_volume.csv")
+    save(utils.mean_ts(per_timestep, "total_volume"), output_dir, "ts_total_volume.csv")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--output-dir", type=Path, default=DERIVED_FIGURE_DATA,
-        help="Directory for the 14 figure tables (default: data/derived_figure_data).",
+        help="Directory for the 8 figure tables (default: data/derived_figure_data).",
     )
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)

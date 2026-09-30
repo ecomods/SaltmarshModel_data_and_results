@@ -11,14 +11,13 @@
 #
 # Data basis
 # ----------
-# The script reads the total biovolume matrices (salinity x PFT) prepared by
-# 01_prepare_figure_data.py in data/derived_figure_data/:
-#     median version: comm_mat.csv, mono_mat.csv
-#     mean version:   MEAN_comm_mat.csv, MEAN_mono_mat.csv
+# The script reads the mean total biovolume matrices (salinity x PFT)
+# prepared by 01_prepare_figure_data.py in data/derived_figure_data/:
+#     comm_mat.csv, mono_mat.csv
 #
 # Output
 # ------
-# One PNG per version is written to figures/main/.
+# The PNG is written to figures/main/.
 # =============================================================================
 
 """
@@ -26,8 +25,7 @@ Manuscript Figure 2:
 Static salinity - community (stacked) vs monoculture (pale bars)
 
 Output:
-    figures/main/fig2_community_vs_monoculture_median.png
-    figures/main/fig2_community_vs_monoculture_mean.png
+    figures/main/fig2_community_vs_monoculture.png
 """
 
 import os
@@ -46,9 +44,6 @@ pft_color_map = _config.pft_color_map
 DERIVED_DIR = _config.DERIVED_DIR
 FIGURES_MAIN = _config.FIGURES_MAIN
 ensure_dir = _utils.ensure_dir
-
-# Statistical version -> file prefix of its input tables.
-VERSION_PREFIXES = {"median": "", "mean": "MEAN_"}
 
 # Colour of the neutral legend entries for community / monoculture.
 LEGEND_GREY = "0.4"
@@ -123,13 +118,9 @@ _config.apply_style()
 
 output_dir = ensure_dir(FIGURES_MAIN)
 
-for version, prefix in VERSION_PREFIXES.items():
-    fig = draw_figure(
-        read_matrix(f"{prefix}comm_mat.csv"),
-        read_matrix(f"{prefix}mono_mat.csv"),
-    )
-    _config.save_figure(
-        fig,
-        os.path.join(output_dir, f"fig2_community_vs_monoculture_{version}.png"),
-    )
-    plt.close(fig)
+fig = draw_figure(read_matrix("comm_mat.csv"), read_matrix("mono_mat.csv"))
+_config.save_figure(
+    fig,
+    os.path.join(output_dir, "fig2_community_vs_monoculture.png"),
+)
+plt.close(fig)

@@ -12,10 +12,10 @@
 # Pipeline order
 # --------------
 # 1. 01_prepare_figure_data.py
-#       Reads Population.csv files and writes the 14 plot-facing tables.
+#       Reads Population.csv files and writes the 8 plot-facing tables.
 # 2. 02_fig1_... to 08_figS3_... scripts
 #       Create the manuscript (fig1-fig4) and supplementary (figS1-figS3)
-#       figures, including median and mean versions of figs 2-4 and S3.
+#       figures.
 #
 # Why subprocesses are used
 # -------------------------
@@ -99,7 +99,7 @@ def main():
     mode.add_argument(
         "--prepare-data-only",
         action="store_true",
-        help="Prepare the 14 figure tables directly from raw model output; do not render figures.",
+        help="Prepare the 8 figure tables directly from raw model output; do not render figures.",
     )
     mode.add_argument(
         "--figures-only",
