@@ -101,36 +101,6 @@ def prep_dynamic_comm_df(path):
 # Summary helpers
 # =============================================================================
 
-def replicate_median_over_time_totalvolume_by_pft(df, group_cols, pft_col="pft"):
-    """
-    Calculate median total biovolume per PFT across replicate time series.
-
-    Calculation steps:
-    1. Sum plant volume per timestep for each group/PFT/replicate.
-    2. Take the median over time within each replicate.
-    3. Take the median across replicate medians.
-    """
-    per_timestep = (
-        df.groupby(group_cols + [pft_col, "n", "time"])["volume"]
-        .sum()
-        .reset_index(name="total_volume")
-    )
-
-    rep_median = (
-        per_timestep.groupby(group_cols + [pft_col, "n"])["total_volume"]
-        .median()
-        .reset_index(name="rep_median_total_volume")
-    )
-
-    summary = (
-        rep_median.groupby(group_cols + [pft_col])["rep_median_total_volume"]
-        .median()
-        .reset_index(name="value")
-    )
-
-    return summary
-
-
 def replicate_mean_over_time_totalvolume_by_pft(df, group_cols, pft_col="pft"):
     """
     Calculate mean total biovolume per PFT across replicate time series.
@@ -175,13 +145,13 @@ def complete_grid(summary_df, sal_levels, pft_levels):
     )
 
 
-def grouped_over_time_medians(df, keys_prefix, per_timestep_total_pft=None):
+def grouped_over_time_means(df, keys_prefix, per_timestep_total_pft=None):
     """
-    Create replicate-level medians over time for PFTs and the whole community.
+    Create replicate-level means over time for PFTs and the whole community.
 
-    This is used for error-bar figures. The returned data are still replicate-
-    level summaries; summary_minmax() then calculates median and
-    25th/75th percentiles across replicates.
+    This is used for mean-based error-bar figures. The returned data are still
+    replicate-level summaries; summary_mean_std() can calculate mean and
+    standard deviation across replicates.
 
     per_timestep_total_pft may contain the already summed PFT totals grouped
     by keys_prefix + ["pft", "n", "time"], with a total_volume column.
@@ -208,107 +178,6 @@ def grouped_over_time_medians(df, keys_prefix, per_timestep_total_pft=None):
     per_ts_other_pft = (
         dfc.groupby(keys_prefix + ["pft", "n", "time"])
         .agg({
-            "volume_per_plant": "median",
-            "h_ag": "median",
-            "ag_bg_ratio": "median",
-            "num_plants": "max",
-        })
-        .reset_index()
-    )
-
-    per_ts_pft = per_ts_total_pft.merge(
-        per_ts_other_pft,
-        on=keys_prefix + ["pft", "n", "time"],
-        how="left",
-    )
-
-    grouped_pft = (
-        per_ts_pft.groupby(keys_prefix + ["pft", "n"])
-        .agg({
-            "total_volume": "median",
-            "volume_per_plant": "median",
-            "h_ag": "median",
-            "ag_bg_ratio": "median",
-            "num_plants": "median",
-        })
-        .reset_index()
-    )
-
-    plant_counts_all = (
-        dfc.groupby(keys_prefix + ["n", "time"])
-        .size()
-        .reset_index(name="num_plants")
-    )
-    per_ts_total_all = (
-        dfc.groupby(keys_prefix + ["n", "time"])["volume"]
-        .sum()
-        .reset_index(name="total_volume")
-    )
-    per_ts_other_all = (
-        dfc.groupby(keys_prefix + ["n", "time"])
-        .agg({
-            "volume_per_plant": "median",
-            "h_ag": "median",
-            "ag_bg_ratio": "median",
-        })
-        .reset_index()
-    )
-
-    per_ts_all = (
-        per_ts_total_all
-        .merge(per_ts_other_all, on=keys_prefix + ["n", "time"], how="left")
-        .merge(plant_counts_all, on=keys_prefix + ["n", "time"], how="left")
-    )
-
-    grouped_all = (
-        per_ts_all.groupby(keys_prefix + ["n"])
-        .agg({
-            "total_volume": "median",
-            "volume_per_plant": "median",
-            "h_ag": "median",
-            "ag_bg_ratio": "median",
-            "num_plants": "median",
-        })
-        .reset_index()
-    )
-    grouped_all["pft"] = 0
-
-    return grouped_pft, grouped_all
-
-
-def grouped_over_time_means(df, keys_prefix, per_timestep_total_pft=None):
-    """
-    Create replicate-level means over time for PFTs and the whole community.
-
-    This is used for mean-based error-bar figures. The returned data are still
-    replicate-level summaries; summary_mean_std() can calculate mean and
-    standard deviation across replicates.
-
-    per_timestep_total_pft has the same grouping and columns as in the median
-    helper, so callers can reuse the same totals for both summaries.
-    """
-    dfc = df.copy()
-    dfc["volume_per_plant"] = dfc["volume"]
-
-    plant_counts_pft = (
-        dfc.groupby(keys_prefix + ["pft", "n", "time"])
-        .size()
-        .reset_index(name="num_plants")
-    )
-    dfc = dfc.merge(plant_counts_pft, on=keys_prefix + ["pft", "n", "time"], how="left")
-
-    if per_timestep_total_pft is None:
-        per_ts_total_pft = (
-            dfc.groupby(keys_prefix + ["pft", "n", "time"])["volume"]
-            .sum()
-            .reset_index(name="total_volume")
-        )
-    else:
-        per_ts_total_pft = per_timestep_total_pft
-
-    per_ts_other_pft = (
-        dfc.groupby(keys_prefix + ["pft", "n", "time"])
-        .agg({
             "volume_per_plant": "mean",
             "h_ag": "mean",
             "ag_bg_ratio": "mean",
@@ -375,30 +244,6 @@ def grouped_over_time_means(df, keys_prefix, per_timestep_total_pft=None):
     grouped_all["pft"] = 0
 
     return grouped_pft, grouped_all
-
-
-def summary_minmax(grouped_df, keys, metric):
-    """
-    Calculate the median and interquartile range for grouped replicate values.
-
-    Returned columns:
-        median_value, q25_value, q75_value, err_lower, err_upper
-
-    The error bars are asymmetric and extend from the median to the 25th and
-    75th percentiles.
-    """
-    summary = (
-        grouped_df.groupby(keys)[metric]
-        .agg(
-            median_value="median",
-            q25_value=lambda x: x.quantile(0.25),
-            q75_value=lambda x: x.quantile(0.75),
-        )
-        .reset_index()
-    )
-    summary["err_lower"] = summary["median_value"] - summary["q25_value"]
-    summary["err_upper"] = summary["q75_value"] - summary["median_value"]
-    return summary
 
 
 def summary_minmax_mean(grouped_df, keys, metric):
@@ -436,15 +281,6 @@ def summary_mean_std(grouped_df, keys, metric):
     summary["err_lower"] = summary["std_value"]
     summary["err_upper"] = summary["std_value"]
     return summary
-
-def median_ts(df, col):
-    """Return median time series across replicates for one per-timestep metric."""
-    return (
-        df.groupby(["version", "pft", "time_days"], observed=True)[col]
-        .median()
-        .reset_index(name="value")
-    )
-
 
 def mean_ts(df, col):
     """Return mean time series across replicates for one per-timestep metric."""

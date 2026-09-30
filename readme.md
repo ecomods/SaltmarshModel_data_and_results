@@ -366,9 +366,9 @@ This CSV is used to skip simulations that already finished successfully. If `run
 
 ### 2.3 `data/`
 
-This folder stores the 14 generated tables in `derived_figure_data/` that the
-plotting scripts read. The two prepared static plant tables retain all source
-and calculated columns; the other 12 are compact summaries. The preparation
+This folder stores the 8 generated tables in `derived_figure_data/`. The two
+prepared static plant tables retain all source and calculated columns; the
+other 6 are compact summaries read by the plotting scripts. The preparation
 script no longer writes combined `raw_data.csv` or `data.csv` intermediates.
 Older intermediate files may still be present after an in-place rebuild; they
 are not refreshed or used by the current pipeline.
@@ -383,21 +383,16 @@ figures/appendix/
 ```
 
 Figure files are named after the manuscript figure (`fig1`-`fig4`,
-`figS1`-`figS3`); `_median` / `_mean` mark the two statistical versions.
-The current figure scripts write:
+`figS1`-`figS3`). The current figure scripts write:
 
 ```text
 figures/main/fig1_salinity_response.png
-figures/main/fig2_community_vs_monoculture_median.png
-figures/main/fig2_community_vs_monoculture_mean.png
-figures/main/fig3_community_structure_median.png
-figures/main/fig3_community_structure_mean.png
-figures/main/fig4_dynamic_biovolume_median.png
-figures/main/fig4_dynamic_biovolume_mean.png
+figures/main/fig2_community_vs_monoculture.png
+figures/main/fig3_community_structure.png
+figures/main/fig4_dynamic_biovolume.png
 figures/appendix/figS1_growth_vs_maintenance.png
 figures/appendix/figS2_porewater_salinity.png
-figures/appendix/figS3_monoculture_structure_median.png
-figures/appendix/figS3_monoculture_structure_mean.png
+figures/appendix/figS3_monoculture_structure.png
 ```
 
 ---
@@ -621,7 +616,7 @@ The script runs these source scripts in order:
 
 This single preparation script reads the 260 community and monoculture
 `Population.csv` inputs under `data_raw/`, adds scenario metadata and derived
-plant metrics, applies the existing manuscript filters, and writes the 14
+plant metrics, applies the existing manuscript filters, and writes the 8
 figure tables under `data/derived_figure_data/`. It preserves all existing
 columns in the two plant-level tables. No combined raw or processed CSVs are
 written. Dynamic plant rows are summarized for Figure 4 but are not saved as a
@@ -671,10 +666,8 @@ DEFAULT_MANGA_SCRIPT
 ## 6. Figure scripts
 
 Scripts are numbered in pipeline order and named after the manuscript figure
-they create. Figures 2-4 and S3 exist in a median-based and a mean-based
-version (`_median` / `_mean` in the PNG name). Mean-based versions use the same
-layout; error bars show one standard deviation across the ten replicate
-simulations.
+they create. Figures 2-4 and S3 show means across the ten replicate
+simulations; error bars show one standard deviation across replicates.
 
 ### 6.1 `02_fig1_salinity_response.py` - Figure 1
 
@@ -695,48 +688,37 @@ figures/main/fig1_salinity_response.png
 ### 6.2 `03_fig2_community_vs_monoculture.py` - Figure 2
 
 Creates the static total biovolume comparison between community and
-monoculture simulations. The script writes both versions, from
-`comm_mat.csv` / `mono_mat.csv` and `MEAN_comm_mat.csv` / `MEAN_mono_mat.csv`.
+monoculture simulations from `comm_mat.csv` and `mono_mat.csv`.
 
 Output:
 
 ```text
-figures/main/fig2_community_vs_monoculture_median.png
-figures/main/fig2_community_vs_monoculture_mean.png
+figures/main/fig2_community_vs_monoculture.png
 ```
 
 ### 6.3 `04_fig3_community_structure.py` - Figure 3
 
-Creates the static community figure in both versions (median and mean). The
-panel drawing is shared via `draw_structure_figure()` in `figure_utils.py`.
+Creates the static community figure. The panel drawing is shared via
+`draw_structure_figure()` in `figure_utils.py`.
 
 Panels:
 
 ```text
-upper left:  biovolume per plant
-upper right: aboveground height
-lower left:  number of plants
-lower right: AG/BG ratio
-```
-
-Error bars:
-
-```text
-plant-level metrics: individual-plant range
-number of plants: replicate-level aggregate range
+a) upper left:  biovolume per plant
+b) upper right: aboveground height
+c) lower left:  AG/BG ratio
+d) lower right: number of plants
 ```
 
 Output:
 
 ```text
-figures/main/fig3_community_structure_median.png
-figures/main/fig3_community_structure_mean.png
+figures/main/fig3_community_structure.png
 ```
 
 ### 6.4 `05_fig4_dynamic_biovolume.py` - Figure 4
 
-Creates the dynamic biovolume time-series and stacked-bar figure in both
-versions (median and mean).
+Creates the dynamic biovolume time-series and stacked-bar figure.
 
 Layout:
 
@@ -750,8 +732,7 @@ bars: stacked PFT contributions for V0, V1, V2
 Output:
 
 ```text
-figures/main/fig4_dynamic_biovolume_median.png
-figures/main/fig4_dynamic_biovolume_mean.png
+figures/main/fig4_dynamic_biovolume.png
 ```
 
 ### 6.5 `06_figS1_growth_vs_maintenance.py` - Figure S1
@@ -783,13 +764,12 @@ figures/appendix/figS2_porewater_salinity.png
 ### 6.7 `08_figS3_monoculture_structure.py` - Figure S3
 
 Creates the static monoculture figure (same panels and shared drawing
-function as Figure 3) in both versions (median and mean).
+function as Figure 3).
 
 Output:
 
 ```text
-figures/appendix/figS3_monoculture_structure_median.png
-figures/appendix/figS3_monoculture_structure_mean.png
+figures/appendix/figS3_monoculture_structure.png
 ```
 
 ---

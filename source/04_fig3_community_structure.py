@@ -10,24 +10,12 @@
 # plants. Total biovolume is intentionally not included here because it is shown
 # separately in 03_fig2_community_vs_monoculture.py.
 #
-# Two statistical versions are written with the same layout:
-#
-# Median version
-# --------------
-# - For plant-level metrics (biovolume per plant, height, AG/BG ratio), the point
-#   is the median and the error bars extend to the 25th and 75th percentiles of
-#   the individual-plant values.
-# - For number of plants, the point is the median and the error bars extend to
-#   the 25th and 75th percentiles of replicate-level aggregate values.
-#
-# Mean version
-# ------------
 # Points show arithmetic means across the ten replicate simulations. Error bars
 # show one standard deviation across the ten replicate-level values.
 #
 # Output
 # ------
-# One PNG per version is written to figures/main/.
+# The PNG is written to figures/main/.
 # =============================================================================
 
 """
@@ -41,8 +29,7 @@ Panel layout (as in the manuscript caption):
     d) bottom right: number of plants
 
 Output:
-    figures/main/fig3_community_structure_median.png
-    figures/main/fig3_community_structure_mean.png
+    figures/main/fig3_community_structure.png
 """
 
 import os
@@ -75,16 +62,6 @@ panel_order = [
     "num_plants",
 ]
 
-plant_level_metrics = [
-    "volume_per_plant",
-    "h_ag",
-    "ag_bg_ratio",
-]
-
-aggregate_metrics = [
-    "num_plants",
-]
-
 
 # =============================================================================
 # Helper functions
@@ -99,94 +76,15 @@ def read_table(filename):
     return df
 
 
-def summary_minmax_individuals(df, group_cols, metric):
+def mean_summaries():
     """
-    Summarise individual-plant values by median and interquartile range.
+    Replicate mean and standard deviation for all metrics.
 
-    The returned error bars extend from the median to the 25th and 75th
-    percentiles of the individual-plant values.
-    """
-
-    if metric not in df.columns:
-        raise KeyError(
-            f"Metric '{metric}' was not found in df_comm_prepared.csv."
-        )
-
-    summary = (
-        df
-        .dropna(subset=group_cols + [metric])
-        .groupby(group_cols, as_index=False)[metric]
-        .agg(
-            median_value="median",
-            q25_value=lambda x: x.quantile(0.25),
-            q75_value=lambda x: x.quantile(0.75),
-        )
-    )
-
-    summary["err_lower"] = summary["median_value"] - summary["q25_value"]
-    summary["err_upper"] = summary["q75_value"] - summary["median_value"]
-
-    return summary
-
-
-def median_summaries():
-    """
-    Median version: return per-metric (summary_pft, summary_all) tables with a
-    common value column, plus the salinity and PFT levels.
+    The tables contain one mean-over-time value per replicate and scenario,
+    so standard deviations are calculated across replicates.
     """
     grouped_pft_static = read_table("grouped_pft_static.csv")
     grouped_all_static = read_table("grouped_all_static.csv")
-    df_comm_prepared = read_table("df_comm_prepared.csv")
-
-    # In individual-plant data, one row corresponds to one plant.
-    # Therefore, volume_per_plant is identical to the plant's own volume.
-    if "volume_per_plant" not in df_comm_prepared.columns:
-        if "volume" in df_comm_prepared.columns:
-            df_comm_prepared["volume_per_plant"] = df_comm_prepared["volume"]
-        else:
-            raise KeyError(
-                "Neither 'volume_per_plant' nor 'volume' was found in "
-                "df_comm_prepared.csv."
-            )
-
-    summaries = {}
-    for metric in panel_order:
-        if metric in plant_level_metrics:
-            summary_pft = summary_minmax_individuals(
-                df_comm_prepared, ["salinity", "pft"], metric
-            )
-            summary_all = summary_minmax_individuals(
-                df_comm_prepared, ["salinity"], metric
-            )
-        elif metric in aggregate_metrics:
-            summary_pft = _utils.summary_minmax(
-                grouped_pft_static, ["salinity", "pft"], metric
-            )
-            summary_all = _utils.summary_minmax(
-                grouped_all_static, ["salinity"], metric
-            )
-        else:
-            raise ValueError(
-                f"Metric '{metric}' is neither listed as plant-level nor "
-                "aggregate metric."
-            )
-        summaries[metric] = tuple(
-            s.rename(columns={"median_value": "value"})
-            for s in (summary_pft, summary_all)
-        )
-
-    return summaries, grouped_pft_static
-
-
-def mean_summaries():
-    """
-    Mean version: replicate mean and standard deviation for all metrics.
-
-    The MEAN tables contain one mean-over-time value per replicate and
-    scenario, so standard deviations are calculated across replicates.
-    """
-    grouped_pft_static = read_table("MEAN_grouped_pft_static.csv")
-    grouped_all_static = read_table("MEAN_grouped_all_static.csv")
 
     summaries = {}
     for metric in panel_order:
@@ -204,31 +102,26 @@ def mean_summaries():
     return summaries, grouped_pft_static
 
 
-# Statistical version -> function returning its summaries.
-VERSIONS = {"median": median_summaries, "mean": mean_summaries}
-
-
 # =============================================================================
-# Figures
+# Figure
 # =============================================================================
 
 _config.apply_style()
 
 output_dir = _utils.ensure_dir(FIGURES_MAIN)
 
-for version, get_summaries in VERSIONS.items():
-    summaries, grouped_pft_static = get_summaries()
+summaries, grouped_pft_static = mean_summaries()
 
-    fig = _utils.draw_structure_figure(
-        summaries,
-        salinity_levels=sorted(grouped_pft_static["salinity"].dropna().unique()),
-        pft_levels=sorted(grouped_pft_static["pft"].dropna().unique()),
-        ylabels=metrics_comm,
-        panel_order=panel_order,
-    )
+fig = _utils.draw_structure_figure(
+    summaries,
+    salinity_levels=sorted(grouped_pft_static["salinity"].dropna().unique()),
+    pft_levels=sorted(grouped_pft_static["pft"].dropna().unique()),
+    ylabels=metrics_comm,
+    panel_order=panel_order,
+)
 
-    _config.save_figure(
-        fig,
-        os.path.join(output_dir, f"fig3_community_structure_{version}.png"),
-    )
-    plt.close(fig)
+_config.save_figure(
+    fig,
+    os.path.join(output_dir, "fig3_community_structure.png"),
+)
+plt.close(fig)
