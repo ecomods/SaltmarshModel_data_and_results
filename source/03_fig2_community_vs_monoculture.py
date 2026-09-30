@@ -3,7 +3,7 @@ Figure 2: total biovolume of community and monocultures under static salinity.
 
 Community runs are shown as stacked PFT contributions, monocultures as pale
 PFT bars. Values are means of the ten replicates of the mean total biovolume
-in years 5-10.
+in years 5-10; output steps without plants count as 0.
 
 Input:  figure_data/comm_mat.csv, mono_mat.csv
 Output: figures/main/fig2_community_vs_monoculture.png

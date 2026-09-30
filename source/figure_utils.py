@@ -11,6 +11,7 @@ The helper functions fall into four groups:
 4. Shared plotting functions used by several figure scripts.
 """
 
+import functools
 import importlib.util
 
 import matplotlib.pyplot as plt
@@ -135,19 +136,59 @@ def complete_grid(summary_df, sal_levels, pft_levels):
     )
 
 
-def replicate_time_means(df, keys):
+@functools.cache
+def output_times():
     """
-    One mean-over-time value per scenario (keys), PFT and replicate.
+    Output times (s) of the community and monoculture runs: every 10th day in
+    years 5-10 and the last time step. All these runs have the same output
+    times, so they are read from one run (all rows, including seedlings).
+    """
+    path = MODEL_OUTPUT / "community" / "static" / "0.035" / "01" / "Population.csv"
+    return tuple(np.sort(pd.read_csv(path, sep="\t", usecols=["time"])["time"].unique()))
 
-    For each output step: total biovolume (sum over plants), mean biovolume
-    per plant, mean height and mean AG/BG ratio of the plants, and number of
-    plants. These values are then averaged over the output steps of each
-    replicate. Returns the table by PFT and the table for the whole community
-    (pft = 0). summary_mean_std() then summarises across replicates.
+
+def fill_missing_steps(per_step, levels):
     """
-    def per_replicate(group_cols):
+    Add the output steps without plants to a per-step table.
+
+    pyMANGA writes one row per living plant, so an output step without plants
+    (after removing seedlings) has no rows and would be skipped in time means.
+    per_step is indexed by the names in levels, n and time; levels maps each
+    name to all its values (e.g. {"salinity": [35, 70], "pft": [1, 2]}). The
+    added steps get 0 total biovolume and 0 plants; per-plant metrics stay
+    NaN, because they are undefined without plants.
+    """
+    index = pd.MultiIndex.from_product(
+        [*levels.values(), REPLICATES, output_times()],
+        names=[*levels, "n", "time"],
+    )
+    if not per_step.index.isin(index).all():
+        raise ValueError("Per-step table has rows outside the expected runs or output times.")
+    filled = per_step.reindex(index)
+    for col in ["total_volume", "num_plants"]:
+        if col in filled.columns:
+            filled[col] = filled[col].fillna(0.0)
+    return filled
+
+
+def replicate_time_means(df, levels):
+    """
+    One mean-over-time value per scenario, PFT and replicate.
+
+    levels maps the scenario columns to all their values, e.g.
+    {"salinity": config.SAL_STATIC}. For each output step: total biovolume
+    (sum over plants), mean biovolume per plant, mean height and mean AG/BG
+    ratio of the plants, and number of plants. Steps without plants count as
+    0 total biovolume and 0 plants; the per-plant metrics are averaged only
+    over steps with plants. The values are then averaged over the output
+    steps of each replicate. Returns the table by PFT and the table for the
+    whole community (pft = 0). summary_mean_std() then summarises across
+    replicates.
+    """
+    def per_replicate(group_levels):
+        group_cols = list(group_levels)
         per_step = (
-            df.groupby(group_cols + ["n", "time"])
+            df.groupby(group_cols + ["n", "time"], observed=True)
             .agg(
                 total_volume=("volume", "sum"),
                 volume_per_plant=("volume", "mean"),
@@ -155,17 +196,13 @@ def replicate_time_means(df, keys):
                 ag_bg_ratio=("ag_bg_ratio", "mean"),
                 num_plants=("volume", "size"),
             )
-            .reset_index()
         )
-        return (
-            per_step.drop(columns="time")
-            .groupby(group_cols + ["n"])
-            .mean()
-            .reset_index()
-        )
+        per_step = fill_missing_steps(per_step, group_levels)
+        # mean() skips NaN, so per-plant metrics use only steps with plants.
+        return per_step.groupby(group_cols + ["n"]).mean().reset_index()
 
-    by_pft = per_replicate(keys + ["pft"])
-    community = per_replicate(keys)
+    by_pft = per_replicate({**levels, "pft": config.PFTS})
+    community = per_replicate(levels)
     community["pft"] = 0
     return by_pft, community
 
