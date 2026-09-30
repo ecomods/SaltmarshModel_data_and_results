@@ -366,12 +366,10 @@ This CSV is used to skip simulations that already finished successfully. If `run
 
 ### 2.3 `data/`
 
-This folder stores the 8 generated tables in `derived_figure_data/`. The two
-prepared static plant tables retain all source and calculated columns; the
-other 6 are compact summaries read by the plotting scripts. The preparation
-script no longer writes combined `raw_data.csv` or `data.csv` intermediates.
-Older intermediate files may still be present after an in-place rebuild; they
-are not refreshed or used by the current pipeline.
+This folder stores the 7 small tables in `derived_figure_data/` that the
+plotting scripts read (about 250 KB). The cleaned plant-level data are not
+saved; for new analyses, load them from `data_raw/` with the `load_*`
+functions in `source/figure_utils.py` (see section 5.3).
 
 ### 2.4 `figures/`
 
@@ -615,13 +613,11 @@ The script runs these source scripts in order:
 ### 5.1 `source/01_prepare_figure_data.py`
 
 This single preparation script reads the 260 community and monoculture
-`Population.csv` inputs under `data_raw/`, adds scenario metadata and derived
-plant metrics, applies the existing manuscript filters, and writes the 8
-figure tables under `data/derived_figure_data/`. It preserves all existing
-columns in the two plant-level tables. No combined raw or processed CSVs are
-written. Dynamic plant rows are summarized for Figure 4 but are not saved as a
-separate plant-level table. Use `--output-dir` on this script to build a
-candidate in another directory without replacing the current figure tables.
+`Population.csv` inputs under `data_raw/` with the `load_*` functions in
+`figure_utils.py`, summarises them per replicate and writes the 7 figure
+tables under `data/derived_figure_data/` (about 15 s). Plant-level data are
+not saved. Use `--output-dir` on this script to build a candidate in another
+directory without replacing the current figure tables.
 
 ### 5.2 `source/figure_config.py`
 
@@ -640,7 +636,20 @@ Changing PFT colors or global figure dimensions should be done here.
 
 ### 5.3 `source/figure_utils.py`
 
-This script stores reusable helper functions for summaries, error bars, directories, and figure preparation.
+This module stores reusable helper functions for loading plant data,
+summaries, error bars and shared plotting.
+
+For new analyses, `load_static_community()`, `load_static_monoculture()` and
+`load_dynamic_community()` return the cleaned plant rows (one row per plant
+and output step, seedlings younger than 10 days removed) with scenario
+columns (`salinity`, `n`, and for dynamic runs `variant` and `version`), the
+PFT, geometry-derived volumes and the AG/BG ratio. The model's own salinity
+at the plant is kept as `plant_salinity`. Example, from `source/`:
+
+```python
+import figure_utils
+plants = figure_utils.load_static_community()
+```
 
 ### 5.4 `source/utils/paths.py`
 
@@ -776,7 +785,7 @@ figures/appendix/figS3_monoculture_structure.png
 
 ## 8. Troubleshooting
 
-### Problem: `FileNotFoundError: Missing Population.csv`
+### Problem: `FileNotFoundError` for a `Population.csv`
 
 Cause: `run_analysis.py` was started before all required simulations were completed, or outputs were written to a different folder.
 

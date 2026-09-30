@@ -2,10 +2,12 @@
 """
 Reusable helper functions for data preparation and figure generation.
 
-The helper functions fall into three groups:
+The helper functions fall into four groups:
 
 1. Small IO helpers such as ensure_dir().
-2. Input-table preparation functions for processed community/monoculture data.
+2. Plant data: load_static_community(), load_static_monoculture() and
+   load_dynamic_community() return the cleaned plant rows of the model runs
+   and can be used for new analyses and figures.
 3. Summary functions used to create derived figure tables and error bars.
 4. Shared plotting functions used by several figure scripts.
 """
@@ -17,9 +19,7 @@ import numpy as np
 import pandas as pd
 
 import figure_config as _config
-PFTS = _config.PFTS
-SAL_DYN = _config.SAL_DYN
-SAL_STATIC = _config.SAL_STATIC
+from source.utils.paths import DATA_RAW
 
 
 # =============================================================================
@@ -33,103 +33,85 @@ def ensure_dir(path):
 
 
 # =============================================================================
-# Basic data normalization
+# Plant data
 # =============================================================================
 
-def normalize_pft_to_int(series):
-    """Convert PFT labels like 1, '1', '1.0', 'PFT_1' or 'Saltmarsh_1' to int."""
-    return series.astype(str).str.extract(r"(\d+)")[0].astype(int)
+REPLICATES = range(1, 11)
+DYNAMIC_VARIANTS = ["V1", "V2"]
+
+# Plants younger than 10 days (seedlings) are excluded from all analyses.
+MIN_AGE_SECONDS = 10 * 86400
 
 
-# =============================================================================
-# Input preparation
-# =============================================================================
-
-def prep_static_comm_df(path):
+def read_population(path):
     """
-    Apply manuscript filters to static community plant data.
+    Read one pyMANGA Population.csv (one row per plant and output step).
 
-    Input may be a DataFrame or a CSV path.
-    Returned rows: community setup only (pfts == 'all'), seedling-filtered,
-    static salinities 35/70/105/140, PFTs 1-4.
+    The model's own salinity column (salinity at the plant) is kept as
+    plant_salinity, because salinity is used for the scenario value.
     """
-    df = path if isinstance(path, pd.DataFrame) else pd.read_csv(path)
-    df = df[df["pfts"] == "all"].copy()
-    df = df[df["age"] >= 864000].copy()
-    df["pft"] = normalize_pft_to_int(df["pft"])
-    df["n"] = df["n"].astype(int)
-    df = df[df["pft"].isin(PFTS) & df["salinity"].isin(SAL_STATIC)].copy()
-    return df
+    return pd.read_csv(path, sep="\t").rename(columns={"salinity": "plant_salinity"})
 
 
-def prep_static_mono_df(path):
+def clean_plant_data(df):
     """
-    Apply manuscript filters to static monoculture plant data.
+    Add PFT and geometry-derived volumes, and remove seedlings.
 
-    Input may be a DataFrame or a CSV path.
-    In monoculture data, the setup PFT is stored in pfts. This value is copied
-    to pft so the plotting code can use the same column name throughout.
+    volume replaces the model's volume column by the sum of the above- and
+    belowground cylinder volumes; ag_bg_ratio is the ratio for each plant.
     """
-    df = path if isinstance(path, pd.DataFrame) else pd.read_csv(path)
-    df = df[df["age"] >= 864000].copy()
-    df["pft"] = normalize_pft_to_int(df["pfts"])
-    df["n"] = df["n"].astype(int)
-    df = df[df["pft"].isin(PFTS) & df["salinity"].isin(SAL_STATIC)].copy()
-    return df
+    df["ag_volume"] = np.pi * df["r_ag"] ** 2 * df["h_ag"]
+    df["bg_volume"] = np.pi * df["r_bg"] ** 2 * df["h_bg"]
+    df["volume"] = df["ag_volume"] + df["bg_volume"]
+    df["ag_bg_ratio"] = df["ag_volume"] / df["bg_volume"]
+    # Plant names look like Saltmarsh_<PFT>_<id>.
+    df["pft"] = df["plant"].str.split("_").str[1].astype(int)
+    return df[df["age"] >= MIN_AGE_SECONDS].copy()
 
 
-def prep_dynamic_comm_df(path):
+def load_static_community():
+    """Cleaned plant rows of the static community runs, with salinity and n."""
+    tables = []
+    for salinity in _config.SAL_STATIC:
+        for n in REPLICATES:
+            path = (DATA_RAW / "community" / "static" / f"{salinity / 1000:.3f}"
+                    / f"{n:02d}" / "Population.csv")
+            tables.append(read_population(path).assign(salinity=salinity, n=n))
+    return clean_plant_data(pd.concat(tables, ignore_index=True))
+
+
+def load_static_monoculture():
+    """Cleaned plant rows of the static monoculture runs, with salinity and n."""
+    tables = []
+    for salinity in _config.SAL_STATIC:
+        for pft in _config.PFTS:
+            for n in REPLICATES:
+                path = (DATA_RAW / "monoculture" / "static" / f"{salinity / 1000:.3f}"
+                        / f"PFT_{pft}" / f"{n:02d}" / "Population.csv")
+                tables.append(read_population(path).assign(salinity=salinity, n=n))
+    return clean_plant_data(pd.concat(tables, ignore_index=True))
+
+
+def load_dynamic_community():
     """
-    Apply manuscript filters to dynamic community plant data.
-
-    Input may be a DataFrame or a CSV path.
-    Only community rows, PFTs 1-4 and salinities 35/70/105 are retained.
+    Cleaned plant rows of the dynamic community runs (V1 and V2), with
+    salinity (mean of the scenario), variant, version (e.g. "35_V1") and n.
     """
-    df = path if isinstance(path, pd.DataFrame) else pd.read_csv(path)
-    if "pfts" in df.columns:
-        df = df[df["pfts"] == "all"].copy()
-    if "salinity" in df.columns:
-        df["salinity"] = df["salinity"].replace(10, 105)
-    df = df[df["salinity"].isin(SAL_DYN)].copy()
-    df = df[df["age"] >= 864000].copy()
-    df["pft"] = normalize_pft_to_int(df["pft"])
-    df["n"] = df["n"].astype(int)
-    return df
+    tables = []
+    for salinity in _config.SAL_DYN:
+        for variant in DYNAMIC_VARIANTS:
+            version = f"{salinity}_{variant}"
+            for n in REPLICATES:
+                path = DATA_RAW / "community" / "dynamic" / version / f"{n:02d}" / "Population.csv"
+                tables.append(read_population(path).assign(
+                    salinity=salinity, variant=variant, version=version, n=n,
+                ))
+    return clean_plant_data(pd.concat(tables, ignore_index=True))
 
 
 # =============================================================================
 # Summary helpers
 # =============================================================================
-
-def replicate_mean_over_time_totalvolume_by_pft(df, group_cols, pft_col="pft"):
-    """
-    Calculate mean total biovolume per PFT across replicate time series.
-
-    Calculation steps:
-    1. Sum plant volume per timestep for each group/PFT/replicate.
-    2. Take the mean over time within each replicate.
-    3. Take the mean across replicate means.
-    """
-    per_timestep = (
-        df.groupby(group_cols + [pft_col, "n", "time"])["volume"]
-        .sum()
-        .reset_index(name="total_volume")
-    )
-
-    rep_mean = (
-        per_timestep.groupby(group_cols + [pft_col, "n"])["total_volume"]
-        .mean()
-        .reset_index(name="rep_mean_total_volume")
-    )
-
-    summary = (
-        rep_mean.groupby(group_cols + [pft_col])["rep_mean_total_volume"]
-        .mean()
-        .reset_index(name="value")
-    )
-
-    return summary
-
 
 def complete_grid(summary_df, sal_levels, pft_levels):
     """Return a complete salinity x PFT matrix, filling missing combinations with 0."""
@@ -145,105 +127,39 @@ def complete_grid(summary_df, sal_levels, pft_levels):
     )
 
 
-def grouped_over_time_means(df, keys_prefix, per_timestep_total_pft=None):
+def replicate_time_means(df, keys):
     """
-    Create replicate-level means over time for PFTs and the whole community.
+    One mean-over-time value per scenario (keys), PFT and replicate.
 
-    This is used for mean-based error-bar figures. The returned data are still
-    replicate-level summaries; summary_mean_std() can calculate mean and
-    standard deviation across replicates.
-
-    per_timestep_total_pft may contain the already summed PFT totals grouped
-    by keys_prefix + ["pft", "n", "time"], with a total_volume column.
+    For each output step: total biovolume (sum over plants), mean biovolume
+    per plant, mean height and mean AG/BG ratio of the plants, and number of
+    plants. These values are then averaged over the output steps of each
+    replicate. Returns the table by PFT and the table for the whole community
+    (pft = 0). summary_mean_std() then summarises across replicates.
     """
-    dfc = df.copy()
-    dfc["volume_per_plant"] = dfc["volume"]
-
-    plant_counts_pft = (
-        dfc.groupby(keys_prefix + ["pft", "n", "time"])
-        .size()
-        .reset_index(name="num_plants")
-    )
-    dfc = dfc.merge(plant_counts_pft, on=keys_prefix + ["pft", "n", "time"], how="left")
-
-    if per_timestep_total_pft is None:
-        per_ts_total_pft = (
-            dfc.groupby(keys_prefix + ["pft", "n", "time"])["volume"]
-            .sum()
-            .reset_index(name="total_volume")
+    def per_replicate(group_cols):
+        per_step = (
+            df.groupby(group_cols + ["n", "time"])
+            .agg(
+                total_volume=("volume", "sum"),
+                volume_per_plant=("volume", "mean"),
+                h_ag=("h_ag", "mean"),
+                ag_bg_ratio=("ag_bg_ratio", "mean"),
+                num_plants=("volume", "size"),
+            )
+            .reset_index()
         )
-    else:
-        per_ts_total_pft = per_timestep_total_pft
+        return (
+            per_step.drop(columns="time")
+            .groupby(group_cols + ["n"])
+            .mean()
+            .reset_index()
+        )
 
-    per_ts_other_pft = (
-        dfc.groupby(keys_prefix + ["pft", "n", "time"])
-        .agg({
-            "volume_per_plant": "mean",
-            "h_ag": "mean",
-            "ag_bg_ratio": "mean",
-            "num_plants": "max",
-        })
-        .reset_index()
-    )
-
-    per_ts_pft = per_ts_total_pft.merge(
-        per_ts_other_pft,
-        on=keys_prefix + ["pft", "n", "time"],
-        how="left",
-    )
-
-    grouped_pft = (
-        per_ts_pft.groupby(keys_prefix + ["pft", "n"])
-        .agg({
-            "total_volume": "mean",
-            "volume_per_plant": "mean",
-            "h_ag": "mean",
-            "ag_bg_ratio": "mean",
-            "num_plants": "mean",
-        })
-        .reset_index()
-    )
-
-    plant_counts_all = (
-        dfc.groupby(keys_prefix + ["n", "time"])
-        .size()
-        .reset_index(name="num_plants")
-    )
-    per_ts_total_all = (
-        dfc.groupby(keys_prefix + ["n", "time"])["volume"]
-        .sum()
-        .reset_index(name="total_volume")
-    )
-    per_ts_other_all = (
-        dfc.groupby(keys_prefix + ["n", "time"])
-        .agg({
-            "volume_per_plant": "mean",
-            "h_ag": "mean",
-            "ag_bg_ratio": "mean",
-        })
-        .reset_index()
-    )
-
-    per_ts_all = (
-        per_ts_total_all
-        .merge(per_ts_other_all, on=keys_prefix + ["n", "time"], how="left")
-        .merge(plant_counts_all, on=keys_prefix + ["n", "time"], how="left")
-    )
-
-    grouped_all = (
-        per_ts_all.groupby(keys_prefix + ["n"])
-        .agg({
-            "total_volume": "mean",
-            "volume_per_plant": "mean",
-            "h_ag": "mean",
-            "ag_bg_ratio": "mean",
-            "num_plants": "mean",
-        })
-        .reset_index()
-    )
-    grouped_all["pft"] = 0
-
-    return grouped_pft, grouped_all
+    by_pft = per_replicate(keys + ["pft"])
+    community = per_replicate(keys)
+    community["pft"] = 0
+    return by_pft, community
 
 
 def summary_minmax_mean(grouped_df, keys, metric):
@@ -263,7 +179,6 @@ def summary_minmax_mean(grouped_df, keys, metric):
     return summary
 
 
-
 def summary_mean_std(grouped_df, keys, metric):
     """
     Calculate mean and standard deviation across replicate-level values.
@@ -281,6 +196,7 @@ def summary_mean_std(grouped_df, keys, metric):
     summary["err_lower"] = summary["std_value"]
     summary["err_upper"] = summary["std_value"]
     return summary
+
 
 def mean_ts(df, col):
     """Return mean time series across replicates for one per-timestep metric."""
