@@ -35,7 +35,7 @@ def total_volume_matrix(grouped_pft):
 
 def prepare_static_community(output_dir):
     df = utils.load_static_community()
-    grouped_pft, grouped_all = utils.replicate_time_means(df, ["salinity"])
+    grouped_pft, grouped_all = utils.replicate_time_means(df, {"salinity": config.SAL_STATIC})
     save(total_volume_matrix(grouped_pft), output_dir, "comm_mat.csv", index=True)
     save(grouped_pft, output_dir, "grouped_pft_static.csv")
     save(grouped_all, output_dir, "grouped_all_static.csv")
@@ -44,7 +44,9 @@ def prepare_static_community(output_dir):
 
 def prepare_static_monoculture(output_dir):
     df = utils.load_static_monoculture()
-    grouped_pft, _ = utils.replicate_time_means(df, ["salinity"])
+    # Each monoculture run has one PFT, but all four PFTs are run at every
+    # salinity, so the same salinity x PFT x replicate grid applies.
+    grouped_pft, _ = utils.replicate_time_means(df, {"salinity": config.SAL_STATIC})
     save(total_volume_matrix(grouped_pft), output_dir, "mono_mat.csv", index=True)
     save(grouped_pft, output_dir, "grouped_pft_mono_static.csv")
 
@@ -56,25 +58,23 @@ def prepare_dynamic(output_dir, static_community):
     v0["version"] = v0["salinity"].astype(str) + "_V0"
 
     df = pd.concat([v0, utils.load_dynamic_community()], ignore_index=True)
-    df["time_days"] = df["time"] / 86400.0
-    df["version"] = pd.Categorical(
-        df["version"],
-        categories=[f"{sal}_{var}" for sal in config.SAL_DYN for var in config.VARIANT_LEVELS],
-        ordered=True,
-    )
-    df["variant"] = pd.Categorical(df["variant"], categories=config.VARIANT_LEVELS, ordered=True)
 
-    grouped_pft, _ = utils.replicate_time_means(df, ["salinity", "variant"])
+    grouped_pft, _ = utils.replicate_time_means(
+        df, {"salinity": config.SAL_DYN, "variant": config.VARIANT_LEVELS},
+    )
     save(
         utils.summary_minmax_mean(grouped_pft, ["salinity", "variant", "pft"], "total_volume"),
         output_dir, "summary_pft_tv.csv",
     )
 
-    per_timestep = (
-        df.groupby(["version", "pft", "n", "time_days"], observed=True)
-        .agg(total_volume=("volume", "sum"))
-        .reset_index()
-    )
+    # Total biovolume per output step; steps without plants count as 0.
+    versions = [f"{sal}_{var}" for sal in config.SAL_DYN for var in config.VARIANT_LEVELS]
+    per_timestep = utils.fill_missing_steps(
+        df.groupby(["version", "pft", "n", "time"]).agg(total_volume=("volume", "sum")),
+        {"version": versions, "pft": config.PFTS},
+    ).reset_index()
+    per_timestep["version"] = pd.Categorical(per_timestep["version"], categories=versions, ordered=True)
+    per_timestep["time_days"] = per_timestep["time"] / 86400.0
     save(utils.mean_ts(per_timestep, "total_volume"), output_dir, "ts_total_volume.csv")
 
 

@@ -101,7 +101,10 @@ Only output from years 5-10 is used (every 10th day), and plants younger than
 of the above- and belowground parts. For each replicate simulation, the
 values are first summarised per output step (total biovolume, mean biovolume
 per plant, mean height, mean AG/BG ratio, number of plants) and then averaged
-over the output steps. Figures show the mean of the ten replicates; error
+over the output steps. An output step without plants (of a PFT, or at all)
+counts as 0 total biovolume and 0 plants. The per-plant values are undefined
+without plants and are averaged only over the steps with plants. Figures
+show the mean of the ten replicates; error
 bars (Figures 3 and S3) show one standard deviation across replicates. The
 lines in Figure 4 are the mean across replicates at each output step.
 
@@ -197,7 +200,7 @@ m³ unless stated otherwise.
 | File | Content |
 | --- | --- |
 | `comm_mat.csv`, `mono_mat.csv` | mean total biovolume per salinity (rows) and PFT (columns), community and monocultures |
-| `grouped_pft_static.csv` | community, one row per salinity, PFT and replicate: time means of total biovolume, biovolume per plant, height (m), AG/BG ratio and number of plants |
+| `grouped_pft_static.csv` | community, one row per salinity, PFT and replicate: time means of total biovolume, biovolume per plant, height (m), AG/BG ratio and number of plants (per-plant values empty where a PFT never had plants) |
 | `grouped_all_static.csv` | the same for the whole community (`pft` = 0) |
 | `grouped_pft_mono_static.csv` | the same for the monocultures |
 | `summary_pft_tv.csv` | dynamic runs: mean, minimum and maximum across replicates of the time-mean total biovolume per salinity, regime (`variant` V0-V2) and PFT |
@@ -218,6 +221,8 @@ Each returns one row per plant and output step with the scenario columns
 (`salinity`, `n`, and for dynamic runs `variant` and `version`), the PFT,
 above- and belowground volume, total volume and AG/BG ratio. Seedlings are
 removed; the model's salinity at the plant is kept as `plant_salinity`.
+Output steps without plants have no rows. For totals or plant numbers per
+output step, add them as zeros with `figure_utils.fill_missing_steps()`.
 
 ## Calibration of the maintenance factors
 

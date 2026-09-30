@@ -4,7 +4,8 @@ Figure 4: community biovolume under static and dynamic salinity.
 Rows are the mean salinities 35, 70 and 105 ppt. Columns 1-4 show the total
 biovolume of each PFT in years 5-10 for the three salinity regimes (static
 V0, seasonal V1, seasonal + tide V2). The last column shows the time mean per
-regime, stacked by PFT. Lines and bars are means of the ten replicates.
+regime, stacked by PFT. Lines and bars are means of the ten replicates;
+output steps without plants count as 0.
 
 Input:  figure_data/ts_total_volume.csv, summary_pft_tv.csv
 Output: figures/main/fig4_dynamic_biovolume.png

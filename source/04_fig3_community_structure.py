@@ -4,8 +4,9 @@ Figure 3: plant structure in the static community simulations.
 Panels: a) biovolume per plant, b) aboveground height, c) AG/BG ratio,
 d) number of plants, for the whole community (black) and each PFT. For each
 replicate, plant values are averaged per output step and then over years
-5-10. Points show the mean of the ten replicates, error bars one standard
-deviation.
+5-10. Steps without plants count as 0 plants in d); a)-c) use only steps
+with plants. Points show the mean of the ten replicates, error bars one
+standard deviation.
 
 Input:  figure_data/grouped_pft_static.csv, grouped_all_static.csv
 Output: figures/main/fig3_community_structure.png
