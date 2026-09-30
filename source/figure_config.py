@@ -15,7 +15,6 @@ Used by all figure scripts (02_fig1_... to 08_figS3_...), figure_utils.py and
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import seaborn as sns
 from matplotlib.colors import to_rgb
 
 
@@ -134,12 +133,14 @@ DERIVED_DIR = DERIVED_FIGURE_DATA
 # Colors
 # =============================================================================
 
-# Colorblind-friendly palette used consistently for PFT 1-4.
-palette = sns.color_palette("colorblind", 4)
-pft_color_map = {pft: palette[i] for i, pft in enumerate(PFTS)}
+# PFT 1-4: scico "batlow" (Crameri) sampled at 0.10, 0.32, 0.54 and 0.76 of the
+# scale. The very light end is left out so that PFT 4 keeps full visual weight.
+# Chosen from previews with red-green colour-blindness and greyscale checks.
+# Fixed hex values, so the cmcrameri package is not needed.
+pft_color_map = {1: "#0f3c5f", 2: "#376b58", 3: "#95872c", 4: "#f49f72"}
 
 
-def pale(color, strength=0.45):
+def pale(color, strength=0.62):
     """
     Opaque mix of a colour with white; strength 1 = original colour.
 
@@ -149,10 +150,14 @@ def pale(color, strength=0.45):
     return tuple(1 - strength * (1 - c) for c in to_rgb(color))
 
 # Salinity regimes (static V0, seasonal V1, seasonal + tide V2): display names
-# and line colours outside the PFT palette, shared by Figs. 4 and S2. The two
-# dynamic regimes stay distinguishable with red-green colour blindness.
+# and line colours, shared by Figs. 4 and S2. Three lightness steps (black ->
+# medium purple -> light magenta), so the regimes are also distinguishable in
+# greyscale; the change of hue between the two dynamic regimes keeps them apart
+# in colour and with red-green colour blindness. Purple and magenta do not
+# occur in the PFT palette.
 REGIME_LABELS = {"V0": "Static", "V1": "Seasonal", "V2": "Seasonal + tide"}
-regime_color_map = {"V0": "#808080", "V1": "black", "V2": "#6a3d9a"}
+regime_color_map = {"V0": "black", "V1": "#8E44AD", "V2": "#E78AC3"}
+REGIME_LINEWIDTH = 1.2
 
 # Ordered blue scale for salinity levels (light = low, dark = high), shared by
 # the figures that colour lines by salinity (Figs. S1 and S2). The darkest

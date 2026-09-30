@@ -103,12 +103,13 @@ def main():
     y_max = 0.0
     for ax, salinity in zip(axes, SALINITIES):
         # Static regime: constant salinity at the mean value.
-        ax.axhline(salinity, color=_config.regime_color_map["V0"], linewidth=1.0)
+        ax.axhline(salinity, color=_config.regime_color_map["V0"],
+                   linewidth=_config.REGIME_LINEWIDTH)
 
         for regime in DYNAMIC_REGIMES:
             day, salinity_ppt = read_salinity_file(salinity, regime)
             ax.plot(day, salinity_ppt, color=_config.regime_color_map[regime],
-                    linewidth=0.8)
+                    linewidth=_config.REGIME_LINEWIDTH)
             y_max = max(y_max, salinity_ppt.max())
 
         # Mean salinity as a row label at the right edge (as in Fig. 4).
