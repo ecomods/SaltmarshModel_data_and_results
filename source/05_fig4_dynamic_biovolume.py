@@ -75,7 +75,7 @@ variant_levels = VARIANT_LEVELS
 # Regime colours and display names are shared with Fig. S2 (figure_config);
 # data keys stay V0/V1/V2.
 variant_style = {
-    var: {"color": color, "linestyle": "-", "linewidth": 0.8}
+    var: {"color": color, "linestyle": "-", "linewidth": _config.REGIME_LINEWIDTH}
     for var, color in _config.regime_color_map.items()
 }
 VARIANT_LABELS = _config.REGIME_LABELS
