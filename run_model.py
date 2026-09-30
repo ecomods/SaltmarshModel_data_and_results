@@ -2,7 +2,7 @@
 Run pyMANGA for the XML control files created by create_setups.py.
 
 Runs are executed in parallel (MAX_WORKERS). Each run writes a log file to
-data_raw/logs/, and data_raw/logs/simulation_log.csv records its exit status.
+model_output/logs/, and model_output/logs/simulation_log.csv records its exit status.
 Runs marked OK in that file are skipped unless --include-done is given.
 
 pyMANGA is expected next to this repository (../pyMANGA/MANGA.py). The

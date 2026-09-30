@@ -6,7 +6,7 @@ maintenance costs are calculated for a single plant with fixed geometry
 (radii and belowground height proportional to aboveground height). Points
 mark where growth equals maintenance (potential height, Table S1).
 
-Input:  data_model_input/species/Saltmarsh_{1-4}.py
+Input:  model_input/species/Saltmarsh_{1-4}.py
 Output: figures/appendix/figS1_growth_vs_maintenance.png
 """
 

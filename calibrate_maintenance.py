@@ -10,7 +10,7 @@ tolerance salt_effect_ui.
 
 The growth step re-implements pyMANGA's Saltmarsh plant model
 (PlantModelLib/Saltmarsh/Saltmarsh.py) with the FixedSalinity Forman response.
-Parameter values are the ones in data_model_input/species/Saltmarsh_*.py; the
+Parameter values are the ones in model_input/species/Saltmarsh_*.py; the
 printed p_maint values were rounded to four digits for those files.
 
 Usage (from the repository root):

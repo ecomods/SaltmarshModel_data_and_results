@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 
 import figure_config as config
-from paths import DATA_RAW, SPECIES_DIR
+from paths import MODEL_OUTPUT, SPECIES_DIR
 
 
 # =============================================================================
@@ -82,7 +82,7 @@ def load_static_community():
     tables = []
     for salinity in config.SAL_STATIC:
         for n in REPLICATES:
-            path = (DATA_RAW / "community" / "static" / f"{salinity / 1000:.3f}"
+            path = (MODEL_OUTPUT / "community" / "static" / f"{salinity / 1000:.3f}"
                     / f"{n:02d}" / "Population.csv")
             tables.append(read_population(path).assign(salinity=salinity, n=n))
     return clean_plant_data(pd.concat(tables, ignore_index=True))
@@ -94,7 +94,7 @@ def load_static_monoculture():
     for salinity in config.SAL_STATIC:
         for pft in config.PFTS:
             for n in REPLICATES:
-                path = (DATA_RAW / "monoculture" / "static" / f"{salinity / 1000:.3f}"
+                path = (MODEL_OUTPUT / "monoculture" / "static" / f"{salinity / 1000:.3f}"
                         / f"PFT_{pft}" / f"{n:02d}" / "Population.csv")
                 tables.append(read_population(path).assign(salinity=salinity, n=n))
     return clean_plant_data(pd.concat(tables, ignore_index=True))
@@ -110,7 +110,7 @@ def load_dynamic_community():
         for variant in DYNAMIC_VARIANTS:
             version = f"{salinity}_{variant}"
             for n in REPLICATES:
-                path = DATA_RAW / "community" / "dynamic" / version / f"{n:02d}" / "Population.csv"
+                path = MODEL_OUTPUT / "community" / "dynamic" / version / f"{n:02d}" / "Population.csv"
                 tables.append(read_population(path).assign(
                     salinity=salinity, variant=variant, version=version, n=n,
                 ))
