@@ -5,7 +5,7 @@ Community runs are shown as stacked PFT contributions, monocultures as pale
 PFT bars. Values are means of the ten replicates of the mean total biovolume
 in years 5-10.
 
-Input:  data/derived_figure_data/comm_mat.csv, mono_mat.csv
+Input:  data/comm_mat.csv, mono_mat.csv
 Output: figures/main/fig2_community_vs_monoculture.png
 """
 
@@ -15,7 +15,7 @@ import pandas as pd
 from matplotlib.patches import Patch
 
 import figure_config as config
-from paths import DERIVED_FIGURE_DATA, FIGURES_MAIN
+from paths import DATA, FIGURES_MAIN
 
 OUT_PNG = FIGURES_MAIN / "fig2_community_vs_monoculture.png"
 
@@ -25,7 +25,7 @@ LEGEND_GREY = "0.4"
 
 def read_matrix(filename):
     """Read a salinity x PFT matrix with integer index and columns."""
-    mat = pd.read_csv(DERIVED_FIGURE_DATA / filename, index_col=0)
+    mat = pd.read_csv(DATA / filename, index_col=0)
     mat.index = mat.index.astype(int)
     mat.columns = mat.columns.astype(int)
     return mat
