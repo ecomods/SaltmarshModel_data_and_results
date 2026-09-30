@@ -1,16 +1,9 @@
-# -*- coding: utf-8 -*-
 """
-Shared configuration for manuscript figure scripts.
+Shared figure style, sizes, scenario order and colours.
 
-This module contains shared constants used by the figure and data-preparation
-pipeline. Keeping this file small makes it clear which constants define the
-manuscript figures.
-
-Figure scripts call apply_style() before plotting, create figures with
-figsize_mm() and save them with save_figure().
-
-Used by all figure scripts (02_fig1_... to 08_figS3_...), figure_utils.py and
-01_prepare_figure_data.py (scenario and PFT order).
+Figure scripts call apply_style() before plotting, set sizes with
+figsize_mm() and save with save_figure(). The scenario and PFT order is also
+used by 01_prepare_figure_data.py.
 """
 
 import matplotlib as mpl
@@ -159,9 +152,8 @@ REGIME_LABELS = {"V0": "Static", "V1": "Seasonal", "V2": "Seasonal + tide"}
 regime_color_map = {"V0": "black", "V1": "#8E44AD", "V2": "#E78AC3"}
 REGIME_LINEWIDTH = 1.2
 
-# Ordered blue scale for salinity levels (light = low, dark = high), shared by
-# the figures that colour lines by salinity (Figs. S1 and S2). The darkest
-# shade stays distinguishable from black.
+# Ordered blue scale for the salinity levels in Fig. S1 (light = low,
+# dark = high). The darkest shade stays distinguishable from black.
 _blues = plt.get_cmap("Blues")
 salinity_color_map = {
     sal: _blues(level) for sal, level in zip(SAL_STATIC, [0.35, 0.55, 0.75, 0.9])

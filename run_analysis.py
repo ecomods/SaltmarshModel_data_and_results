@@ -1,49 +1,14 @@
-# -*- coding: utf-8 -*-
-
-# =============================================================================
-# SCRIPT OVERVIEW
-# =============================================================================
-# Purpose
-# -------
-# This is the third main entry-point of the repository. It runs the complete
-# post-processing pipeline after pyMANGA has produced Population.csv files in
-# data_raw/.
-#
-# Pipeline order
-# --------------
-# 1. 01_prepare_figure_data.py
-#       Reads Population.csv files and writes the 7 plot-facing tables.
-# 2. 02_fig1_... to 08_figS3_... scripts
-#       Create the manuscript (fig1-fig4) and supplementary (figS1-figS3)
-#       figures.
-#
-# Why subprocesses are used
-# -------------------------
-# Each source script is started as a separate Python process. This keeps the
-# scripts independent and makes it easy to run individual scripts during debugging.
-# The repository root is injected into PYTHONPATH so that imports such as
-# source.utils.paths work even when scripts are called as subprocesses.
-#
-# Useful commands
-# ---------------
-# Full analysis and all figures:
-#     python run_analysis.py
-#
-# Only prepare the plot-facing tables, no figures:
-#     python run_analysis.py --prepare-data-only
-#
-# Only render figures from existing figure tables:
-#     python run_analysis.py --figures-only
-# =============================================================================
-
 """
-Run the complete manuscript analysis pipeline.
+Prepare the figure tables and create all manuscript figures.
 
-This script is the top-level entry point for data processing and figure
-creation. It calls the existing source scripts in the required order:
+Runs source/01_prepare_figure_data.py and then the figure scripts
+02_fig1_... to 08_figS3_..., each as a separate Python process, so that
+every script can also be run on its own.
 
-1. Prepare plot-facing tables directly from pyMANGA Population.csv files
-2. Create manuscript figures in figures/main/ and figures/appendix/
+Usage (from the repository root):
+    python run_analysis.py                      # tables and figures
+    python run_analysis.py --prepare-data-only  # only the tables
+    python run_analysis.py --figures-only       # only the figures
 """
 
 import argparse

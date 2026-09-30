@@ -1,49 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-# =============================================================================
-# SCRIPT OVERVIEW
-# =============================================================================
-# Purpose
-# -------
-# This manuscript figure script visualizes the relationship between potential
-# growth and maintenance costs as plant size increases. The calculation is shown
-# separately for each plant functional type (PFT).
-#
-# Figure role in the manuscript
-# -----------------------------
-# The figure illustrates how PFT-specific salinity tolerance and maintenance
-# costs can lead to different size ranges at which potential growth and
-# maintenance costs balance.
-#
-# Output
-# ------
-# The figure is written directly to figures/appendix/ as PNG.
-# =============================================================================
-
 """
-Plot potential growth and maintenance costs for all four PFTs.
+Figure S1: potential growth and maintenance costs over plant height.
 
-Outputs
--------
-figures/appendix/figS1_growth_vs_maintenance.png
+For each PFT, daily potential growth at the four static salinities and daily
+maintenance costs are calculated for a single plant with fixed geometry
+(radii and belowground height proportional to aboveground height). Points
+mark where growth equals maintenance (potential height, Table S1).
 
-The figure contains four panels arranged as a 2 x 2 grid:
-- PFT 1
-- PFT 2
-- PFT 3
-- PFT 4
-
-Each panel shows:
-- maintenance costs as a function of above-ground height
-- potential growth for the static salinity scenarios
-- intersection points where potential growth and maintenance costs balance
-
-The PFT-specific parameters are read from:
-data_model_input/species/Saltmarsh_1.py
-data_model_input/species/Saltmarsh_2.py
-data_model_input/species/Saltmarsh_3.py
-data_model_input/species/Saltmarsh_4.py
+Input:  data_model_input/species/Saltmarsh_{1-4}.py
+Output: figures/appendix/figS1_growth_vs_maintenance.png
 """
 
 import importlib.util

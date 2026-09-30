@@ -1,39 +1,13 @@
-# -*- coding: utf-8 -*-
-
-# =============================================================================
-# SCRIPT OVERVIEW
-# =============================================================================
-# Purpose
-# -------
-# This script creates the dynamic biovolume figure. It compares V0, V1, and V2
-# across the three salinity levels and four PFTs. The left part of the figure shows
-# time series, and the right column shows stacked total biovolume bars.
-#
-# Figure layout
-# -------------
-# Rows correspond to salinity levels (35, 70, 105 ppt), labelled at the right.
-# Columns 1-4 correspond to PFT 1-4. The final column shows total stacked PFT
-# contributions for V0/V1/V2. All panels share one y-axis.
-#
-# Output
-# ------
-# The figure is written directly to figures/main/ as PNG.
-# =============================================================================
-
 """
-Manuscript Figure 4:
-Dynamic total biovolume time-series grid.
+Figure 4: community biovolume under static and dynamic salinity.
 
-Rows: salinity scenarios (35, 70, 105 ppt)
-Columns: PFT 1-4 time series plus one stacked total barplot column
-Lines: V0, V1, V2
-Bars: total biovolume by PFT for V0, V1, V2
+Rows are the mean salinities 35, 70 and 105 ppt. Columns 1-4 show the total
+biovolume of each PFT in years 5-10 for the three salinity regimes (static
+V0, seasonal V1, seasonal + tide V2). The last column shows the time mean per
+regime, stacked by PFT. Lines and bars are means of the ten replicates.
 
-Lines and bars show means across the ten replicate simulations.
-
-Output:
-- figures/main/fig4_dynamic_biovolume.png
-
+Input:  data/derived_figure_data/ts_total_volume.csv, summary_pft_tv.csv
+Output: figures/main/fig4_dynamic_biovolume.png
 """
 
 import os
@@ -187,9 +161,7 @@ def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, out_png):
         gridspec_kw={"width_ratios": [1, 1, 1, 1, 1.05]},
     )
 
-    # -------------------------------------------------------------------------
-    # Time-series panels: columns 0..3
-    # -------------------------------------------------------------------------
+    # Time series of each PFT (columns 0-3).
 
     for row_i, sal in enumerate(sal_levels):
         for col_i, pft in enumerate(PFTS):
@@ -212,9 +184,7 @@ def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, out_png):
 
             ax.set_xticks(YEAR_TICKS)
 
-    # -------------------------------------------------------------------------
-    # Stacked total barplot column: column 4
-    # -------------------------------------------------------------------------
+    # Time mean per regime, stacked by PFT (column 4).
 
     for row_i, sal in enumerate(sal_levels):
         axb = axes[row_i, 4]

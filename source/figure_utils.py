@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Reusable helper functions for data preparation and figure generation.
 

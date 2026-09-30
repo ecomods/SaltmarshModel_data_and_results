@@ -1,29 +1,12 @@
-# -*- coding: utf-8 -*-
-
-# =============================================================================
-# SCRIPT OVERVIEW
-# =============================================================================
-# Purpose
-# -------
-# This script visualizes the PFT-specific Forman/logistic salinity response
-# curves. Parameter values are read directly from the species files used by the
-# model setup.
-#
-# Figure role in the manuscript
-# -----------------------------
-# The figure shows how the four PFTs differ in their belowground salinity
-# limitation along the salinity gradient.
-#
-# Output
-# ------
-# figures/main/fig1_salinity_response.png
-# =============================================================================
-
 """
-Plot PFT-specific Forman/logistic salinity response curves.
+Figure 1: salinity response curves of the four PFTs.
 
-The parameter values are read from data_model_input/species/Saltmarsh_*.py
-so the figure is generated from the same parameter files used by the model setup.
+Plots the belowground resource limitation (Forman logistic function) over
+salinity, with the parameters read from the species files. Vertical lines
+mark the static salinities of the simulations.
+
+Input:  data_model_input/species/Saltmarsh_{1-4}.py
+Output: figures/main/fig1_salinity_response.png
 """
 
 import importlib.util

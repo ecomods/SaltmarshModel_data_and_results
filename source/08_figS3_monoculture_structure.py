@@ -1,37 +1,12 @@
-# -*- coding: utf-8 -*-
-
-# =============================================================================
-# SCRIPT OVERVIEW
-# =============================================================================
-# Purpose
-# -------
-# This appendix script creates a 2x2 grid figure for static monoculture
-# simulations. It uses the same layout as 04_fig3_community_structure.py
-# (shared draw_structure_figure in figure_utils.py) but shows only
-# monoculture PFT results, without a community point. Full PFT colours are
-# used: pale colours only work as contrast to community results in the same
-# figure (as in Fig. 2).
-#
-# Points show arithmetic means across the ten replicate simulations. Error bars
-# show one standard deviation across the replicate-level means over time.
-#
-# Output
-# ------
-# The PNG is written to figures/appendix/.
-# =============================================================================
-
 """
-Supplementary Figure S3:
-Static salinity - monoculture metrics with error bars in a 2 x 2 grid.
+Figure S3: plant structure in the static monoculture simulations.
 
-Panel layout (as in Fig. 3):
-    a) top left:     biovolume per plant
-    b) top right:    aboveground height
-    c) bottom left:  AG/BG ratio
-    d) bottom right: number of plants
+Same panels and statistics as Figure 3, for each PFT grown alone (no
+community point). Full PFT colours are used, because no community results
+are shown next to them (unlike Figure 2).
 
-Output:
-    figures/appendix/figS3_monoculture_structure.png
+Input:  data/derived_figure_data/grouped_pft_mono_static.csv
+Output: figures/appendix/figS3_monoculture_structure.png
 """
 
 import os

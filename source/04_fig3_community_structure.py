@@ -1,35 +1,14 @@
-# -*- coding: utf-8 -*-
-
-# =============================================================================
-# SCRIPT OVERVIEW
-# =============================================================================
-# Purpose
-# -------
-# This script creates a 2x2 grid figure for static community simulations. The four
-# panels show biovolume per plant, aboveground height, AG/BG ratio, and number of
-# plants. Total biovolume is intentionally not included here because it is shown
-# separately in 03_fig2_community_vs_monoculture.py.
-#
-# Points show arithmetic means across the ten replicate simulations. Error bars
-# show one standard deviation across the ten replicate-level values.
-#
-# Output
-# ------
-# The PNG is written to figures/main/.
-# =============================================================================
-
 """
-Manuscript Figure 3:
-Static salinity - community metrics with error bars in a 2 x 2 grid.
+Figure 3: plant structure in the static community simulations.
 
-Panel layout (as in the manuscript caption):
-    a) top left:     biovolume per plant
-    b) top right:    aboveground height
-    c) bottom left:  AG/BG ratio
-    d) bottom right: number of plants
+Panels: a) biovolume per plant, b) aboveground height, c) AG/BG ratio,
+d) number of plants, for the whole community (black) and each PFT. For each
+replicate, plant values are averaged per output step and then over years
+5-10. Points show the mean of the ten replicates, error bars one standard
+deviation.
 
-Output:
-    figures/main/fig3_community_structure.png
+Input:  data/derived_figure_data/grouped_pft_static.csv, grouped_all_static.csv
+Output: figures/main/fig3_community_structure.png
 """
 
 import os
