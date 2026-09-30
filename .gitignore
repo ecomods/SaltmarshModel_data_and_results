@@ -1,8 +1,6 @@
-data_raw_pilot/
-*/__pycache__
-*/*/__pycache__
-*.pyc
+# Python environment and caches
+.venv/
+__pycache__/
 
-data_raw/logs
-data/
-data_old/
+# Model run logs (written by run_model.py)
+data_raw/logs/

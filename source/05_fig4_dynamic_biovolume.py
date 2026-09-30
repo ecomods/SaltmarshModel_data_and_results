@@ -6,7 +6,7 @@ biovolume of each PFT in years 5-10 for the three salinity regimes (static
 V0, seasonal V1, seasonal + tide V2). The last column shows the time mean per
 regime, stacked by PFT. Lines and bars are means of the ten replicates.
 
-Input:  data/derived_figure_data/ts_total_volume.csv, summary_pft_tv.csv
+Input:  data/ts_total_volume.csv, summary_pft_tv.csv
 Output: figures/main/fig4_dynamic_biovolume.png
 """
 
@@ -18,7 +18,7 @@ from matplotlib.patches import Patch
 
 import figure_config as config
 import figure_utils as utils
-from paths import DERIVED_FIGURE_DATA, FIGURES_MAIN
+from paths import DATA, FIGURES_MAIN
 
 OUT_PNG = FIGURES_MAIN / "fig4_dynamic_biovolume.png"
 
@@ -217,8 +217,8 @@ def draw_figure(ts_total_volume, summary_pft_tv):
 def main():
     config.apply_style()
     fig = draw_figure(
-        pd.read_csv(DERIVED_FIGURE_DATA / "ts_total_volume.csv"),
-        pd.read_csv(DERIVED_FIGURE_DATA / "summary_pft_tv.csv"),
+        pd.read_csv(DATA / "ts_total_volume.csv"),
+        pd.read_csv(DATA / "summary_pft_tv.csv"),
     )
     config.save_figure(fig, OUT_PNG)
     plt.close(fig)

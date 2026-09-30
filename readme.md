@@ -40,7 +40,7 @@ If your local folder layout differs, first check `source/paths.py` and `run_mode
 
 ## Python version and command convention
 
-This repository was tested with Python 3.12. Python 3.10 or newer is recommended. Older Python versions may work for parts of the workflow, but they are not tested and may cause dependency issues.
+The results were produced with Python 3.13.1 and the package versions in `requirements.txt`.
 
 The command examples in this manual use `python` as a placeholder for the Python interpreter used for this project. Depending on the operating system and local Python installation, the correct command may differ. Common examples are:
 
@@ -48,7 +48,7 @@ The command examples in this manual use `python` as a placeholder for the Python
 python --version
 python3 --version
 py --version
-py -3.12 --version
+py -3.13 --version
 ```
 
 Use the command that starts the Python version intended for this project. For example, the command shown in this manual as:
@@ -61,7 +61,7 @@ may need to be replaced by one of the following commands on another system:
 
 ```powershell
 python3 run_analysis.py
-py -3.12 run_analysis.py
+py -3.13 run_analysis.py
 ```
 
 ---
@@ -190,10 +190,7 @@ data_and_results/
 │   ├── one_plant/
 │   └── logs/
 │
-├── data/
-│   ├── community/
-│   ├── monoculture/
-│   └── derived_figure_data/
+├── data/                  (7 figure tables)
 │
 ├── figures/
 │   ├── main/
@@ -371,10 +368,11 @@ This CSV is used to skip simulations that already finished successfully. If `run
 
 ### 2.3 `data/`
 
-This folder stores the 7 small tables in `derived_figure_data/` that the
-plotting scripts read (about 250 KB). The cleaned plant-level data are not
-saved; for new analyses, load them from `data_raw/` with the `load_*`
-functions in `source/figure_utils.py` (see section 5.3).
+This folder stores the 7 small tables that the plotting scripts read
+(about 260 KB). They are committed, so the figures can be recreated without
+rerunning the preparation. The cleaned plant-level data are not saved; for
+new analyses, load them from `data_raw/` with the `load_*` functions in
+`source/figure_utils.py` (see section 5.3).
 
 ### 2.4 `figures/`
 
@@ -408,31 +406,11 @@ Install dependencies with:
 pip install -r requirements.txt
 ```
 
-The requirements file lists external packages only, for example:
-
-```text
-numpy
-pandas
-matplotlib
-seaborn
-```
-
-Standard-library modules such as the following are not listed because they come with Python:
-
-```text
-os
-pathlib
-subprocess
-argparse
-csv
-datetime
-glob
-fnmatch
-xml.etree.ElementTree
-xml.dom.minidom
-```
-
-This repository was tested with Python 3.12. Python 3.10 or newer is recommended. The command examples in this manual use `python` as a placeholder for the interpreter selected for this project.
+`requirements.txt` pins the exact versions that produced the published
+results (Python 3.13.1): numpy, pandas and matplotlib for this repository, and
+scipy, lxml and vtk, which pyMANGA imports when running the simulations.
+Newer versions will probably work, but may change numbers or figure layout
+slightly.
 
 ---
 
@@ -637,7 +615,7 @@ pipeline.
 This single preparation script reads the 260 community and monoculture
 `Population.csv` inputs under `data_raw/` with the `load_*` functions in
 `figure_utils.py`, summarises them per replicate and writes the 7 figure
-tables under `data/derived_figure_data/` (about 15 s). Plant-level data are
+tables in `data/` (about 15 s). Plant-level data are
 not saved. Use `--output-dir` on this script to build a candidate in another
 directory without replacing the current figure tables.
 
@@ -688,7 +666,6 @@ FIGURES
 FIGURES_MAIN
 FIGURES_APPENDIX
 XML_CONTROL_FILES
-DERIVED_FIGURE_DATA
 DEFAULT_MANGA_SCRIPT
 ```
 

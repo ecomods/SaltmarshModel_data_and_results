@@ -14,7 +14,7 @@ import pandas as pd
 
 import figure_config as config
 import figure_utils as utils
-from paths import DERIVED_FIGURE_DATA
+from paths import DATA
 
 
 def save(df, output_dir, filename, *, index=False):
@@ -81,8 +81,8 @@ def prepare_dynamic(output_dir, static_community):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--output-dir", type=Path, default=DERIVED_FIGURE_DATA,
-        help="Directory for the 7 figure tables (default: data/derived_figure_data).",
+        "--output-dir", type=Path, default=DATA,
+        help="Directory for the 7 figure tables (default: data/).",
     )
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)

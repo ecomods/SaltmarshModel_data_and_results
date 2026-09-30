@@ -23,8 +23,6 @@ XML_CONTROL_FILES = DATA_MODEL_INPUT / "xml_control_files"
 LOG_DIR = DATA_RAW / "logs"
 SIMULATION_LOG = LOG_DIR / "simulation_log.csv"
 
-DERIVED_FIGURE_DATA = DATA / "derived_figure_data"
-
 FIGURES_MAIN = FIGURES / "main"
 FIGURES_APPENDIX = FIGURES / "appendix"
 
