@@ -8,19 +8,13 @@ current figure data.
 """
 
 import argparse
-import sys
 from pathlib import Path
 
 import pandas as pd
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from source.utils.paths import DERIVED_FIGURE_DATA
-
 import figure_config as config
 import figure_utils as utils
+from paths import DERIVED_FIGURE_DATA
 
 
 def save(df, output_dir, filename, *, index=False):

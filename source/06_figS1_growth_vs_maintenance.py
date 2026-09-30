@@ -10,80 +10,29 @@ Input:  data_model_input/species/Saltmarsh_{1-4}.py
 Output: figures/appendix/figS1_growth_vs_maintenance.png
 """
 
-import importlib.util
-
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 
-import figure_config as _config
-import figure_utils as _utils
-from source.utils.paths import FIGURES_APPENDIX, SPECIES_DIR
+import figure_config as config
+import figure_utils as utils
+from paths import FIGURES_APPENDIX
 
+OUT_PNG = FIGURES_APPENDIX / "figS1_growth_vs_maintenance.png"
 
-# =============================================================================
-# Paths
-# =============================================================================
-
-OUT_DIR = FIGURES_APPENDIX
-OUT_DIR.mkdir(parents=True, exist_ok=True)
-
-OUT_PNG = OUT_DIR / "figS1_growth_vs_maintenance.png"
-
-
-# =============================================================================
-# Settings
-# =============================================================================
-
-TIME = 86400.0
-SALINITIES = _config.SAL_STATIC
+TIME = 86400.0  # one day in seconds
+SALINITIES = config.SAL_STATIC
 
 H_AG_MIN = 0.0
 H_AG_MAX = 1.85
 N_POINTS = 1000
 
-PFTS = _config.PFTS
-SALINITY_COLORS = _config.salinity_color_map
+SALINITY_COLORS = config.salinity_color_map
 
 
 # =============================================================================
 # Functions
 # =============================================================================
-
-def load_species_module(path):
-    """Import a species file from an explicit file path."""
-    spec = importlib.util.spec_from_file_location(path.stem, path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-def load_pft_parameters(pft):
-    """Read the parameters required for the conceptual growth calculation."""
-    species_file = SPECIES_DIR / f"Saltmarsh_{pft}.py"
-
-    if not species_file.is_file():
-        raise FileNotFoundError(f"Missing species file: {species_file}")
-
-    module = load_species_module(species_file)
-    geometry, parameter = module.createPlant()
-
-    return {
-        "p_sun": float(parameter["p_sun"]),
-        "p_conv,bg": float(parameter["p_conv,bg"]),
-        "p_grow": float(parameter["p_grow"]),
-        "p_maint": float(parameter["p_maint"]),
-        "p_ratio_ag": float(parameter["p_ratio_ag"]),
-        "p_ratio_bg": float(parameter["p_ratio_bg"]),
-        "salt_effect_ui": float(parameter["salt_effect_ui"]),
-        "salt_effect_d": float(parameter["salt_effect_d"]),
-    }
-
-
-def forman_response(salinity, u_i, d):
-    """Calculate the Forman/logistic salinity response."""
-    return 1.0 / (1.0 + np.exp(d * (u_i - salinity)))
-
 
 def calculate_geometry(h_ag, p_ratio_ag, p_ratio_bg):
     """Calculate AG and BG cylinder geometry from above-ground height."""
@@ -115,7 +64,7 @@ def calculate_growth_pot(geometry, salinity, params):
     """Calculate potential growth for a given PFT and salinity."""
     aboveground_factor = 1.0
 
-    belowground_factor = forman_response(
+    belowground_factor = utils.forman_response(
         salinity,
         u_i=params["salt_effect_ui"],
         d=params["salt_effect_d"],
@@ -172,7 +121,7 @@ def find_intersection(x, y1, y2):
 
 def prepare_pft_data(pft, h_ag):
     """Calculate maintenance, potential growth, and intersections for one PFT."""
-    params = load_pft_parameters(pft)
+    params = utils.load_species_parameters(pft)
 
     geometry = calculate_geometry(
         h_ag,
@@ -267,13 +216,13 @@ def add_maintenance_legend(fig, growth_legend):
 # =============================================================================
 
 def main():
-    _config.apply_style()
+    config.apply_style()
 
     h_ag = np.linspace(H_AG_MIN, H_AG_MAX, N_POINTS)
 
     pft_results = {
         pft: prepare_pft_data(pft, h_ag)
-        for pft in PFTS
+        for pft in config.PFTS
     }
 
     y_max = 0.0
@@ -287,12 +236,12 @@ def main():
     fig, axes = plt.subplots(
         nrows=2,
         ncols=2,
-        figsize=_config.figsize_mm(_config.WIDTH_FULL_MM, 120),
+        figsize=config.figsize_mm(config.WIDTH_FULL_MM, 120),
         sharex=True,
         sharey=True,
     )
 
-    for ax, pft in zip(axes.ravel(), PFTS):
+    for ax, pft in zip(axes.ravel(), config.PFTS):
         result = pft_results[pft]
 
         # Potential growth per salinity (colours), then maintenance on top.
@@ -315,10 +264,10 @@ def main():
     # One shared label per axis for all four panels, legends below them.
     fig.supylabel("Daily volume increment (m³)", fontsize="medium")
     growth_legend = add_growth_legend(fig)
-    _utils.center_label_under(fig, axes[1, :], "Aboveground height (m)")
+    utils.center_label_under(fig, axes[1, :], "Aboveground height (m)")
     add_maintenance_legend(fig, growth_legend)
 
-    _config.save_figure(fig, OUT_PNG)
+    config.save_figure(fig, OUT_PNG)
     plt.close(fig)
 
 

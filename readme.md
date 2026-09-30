@@ -34,7 +34,7 @@ SourceCode/
     └── ...
 ```
 
-If your local folder layout differs, first check `source/utils/paths.py` and `run_model.py` before running simulations.
+If your local folder layout differs, first check `source/paths.py` and `run_model.py` before running simulations.
 
 ---
 
@@ -95,7 +95,7 @@ This folder layout is required because the XML setup files contain paths that ar
 If the repository and pyMANGA are not on the same folder level, the simulations may fail because pyMANGA cannot find input files, species files, salinity files, or output directories. In that case, either move the folders into the layout shown above or adapt the path settings in:
 
 ```text
-source/utils/paths.py
+source/paths.py
 run_model.py
 ```
 
@@ -200,9 +200,6 @@ data_and_results/
 │   └── appendix/
 │
 ├── source/
-│   ├── utils/
-│   │   ├── __init__.py
-│   │   └── paths.py
 │   ├── 01_prepare_figure_data.py
 │   ├── 02_fig1_salinity_response.py
 │   ├── 03_fig2_community_vs_monoculture.py
@@ -212,7 +209,8 @@ data_and_results/
 │   ├── 07_figS2_porewater_salinity.py
 │   ├── 08_figS3_monoculture_structure.py
 │   ├── figure_config.py
-│   └── figure_utils.py
+│   ├── figure_utils.py
+│   └── paths.py
 │
 ├── create_setups.py
 ├── run_model.py
@@ -505,7 +503,7 @@ Count : 300
 
 ### 4.2 `run_model.py`
 
-`run_model.py` runs pyMANGA simulations for the generated XML files. It assumes that the pyMANGA folder is located next to this repository and that `MANGA.py` is available at the path configured in `source/utils/paths.py`.
+`run_model.py` runs pyMANGA simulations for the generated XML files. It assumes that the pyMANGA folder is located next to this repository and that `MANGA.py` is available at the path configured in `source/paths.py`.
 
 List selected XMLs:
 
@@ -651,9 +649,9 @@ import figure_utils
 plants = figure_utils.load_static_community()
 ```
 
-### 5.4 `source/utils/paths.py`
+### 5.4 `source/paths.py`
 
-This script defines all central repository paths. Scripts should import paths from here rather than hard-coding paths.
+This module defines all central repository paths. Scripts import paths from here instead of hard-coding them (`import paths` in `source/`, `from source.paths import ...` in the repository root).
 
 The most important paths are:
 

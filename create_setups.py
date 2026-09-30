@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 from pathlib import Path
 
-from source.utils.paths import (
+from source.paths import (
     DATA_RAW,
     SPECIES_DIR,
     SALINITY_DIR,

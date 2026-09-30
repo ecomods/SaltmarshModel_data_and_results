@@ -9,46 +9,30 @@ Input:  data/derived_figure_data/grouped_pft_mono_static.csv
 Output: figures/appendix/figS3_monoculture_structure.png
 """
 
-import os
-
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 
-import figure_config as _config
-import figure_utils as _utils
+import figure_config as config
+import figure_utils as utils
+from paths import DERIVED_FIGURE_DATA, FIGURES_APPENDIX
 
-DERIVED_DIR = _config.DERIVED_DIR
-FIGURES_APPENDIX = _config.FIGURES_APPENDIX
+OUT_PNG = FIGURES_APPENDIX / "figS3_monoculture_structure.png"
 
-
-# =============================================================================
-# Settings
-# =============================================================================
-
-metrics_mono = {
+YLABELS = {
     "volume_per_plant": "Biovolume per plant (m³)",
     "h_ag": "Aboveground height (m)",
     "ag_bg_ratio": "AG/BG ratio (–)",
     "num_plants": "Number of plants",
 }
 
-panel_order = [
-    "volume_per_plant",
-    "h_ag",
-    "ag_bg_ratio",
-    "num_plants",
-]
+PANEL_ORDER = ["volume_per_plant", "h_ag", "ag_bg_ratio", "num_plants"]
 
 # Four points per salinity group (no community point): smaller group spacing
 # than Fig. 3 gives the same gap between groups.
 GROUP_SPACING = 3.25
 
 
-# =============================================================================
-# Summaries
-# =============================================================================
-
-def mean_summaries():
+def mean_summaries(grouped_pft):
     """
     Replicate mean and standard deviation for all metrics.
 
@@ -56,40 +40,31 @@ def mean_summaries():
     replicate (see replicate_time_means() in figure_utils.py), so standard
     deviations are calculated across replicates.
     """
-    grouped_pft = pd.read_csv(os.path.join(DERIVED_DIR, "grouped_pft_mono_static.csv"))
-    summaries = {
-        metric: _utils.summary_mean_std(
+    return {
+        metric: utils.summary_mean_std(
             grouped_pft, ["salinity", "pft"], metric
         ).rename(columns={"mean_value": "value"})
-        for metric in panel_order
+        for metric in PANEL_ORDER
     }
-    return summaries, grouped_pft
 
-
-# =============================================================================
-# Figures
-# =============================================================================
 
 def main():
-    _config.apply_style()
-    output_dir = _utils.ensure_dir(FIGURES_APPENDIX)
+    config.apply_style()
 
-    summaries, grouped_pft = mean_summaries()
+    grouped_pft = pd.read_csv(DERIVED_FIGURE_DATA / "grouped_pft_mono_static.csv")
+    summaries = mean_summaries(grouped_pft)
 
-    fig = _utils.draw_structure_figure(
+    fig = utils.draw_structure_figure(
         {metric: (summary, None) for metric, summary in summaries.items()},
         salinity_levels=sorted(grouped_pft["salinity"].unique()),
         pft_levels=sorted(grouped_pft["pft"].unique()),
-        ylabels=metrics_mono,
-        panel_order=panel_order,
+        ylabels=YLABELS,
+        panel_order=PANEL_ORDER,
         show_community=False,
         group_spacing=GROUP_SPACING,
     )
 
-    _config.save_figure(
-        fig,
-        os.path.join(output_dir, "figS3_monoculture_structure.png"),
-    )
+    config.save_figure(fig, OUT_PNG)
     plt.close(fig)
 
 

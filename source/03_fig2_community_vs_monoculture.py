@@ -9,34 +9,23 @@ Input:  data/derived_figure_data/comm_mat.csv, mono_mat.csv
 Output: figures/main/fig2_community_vs_monoculture.png
 """
 
-import os
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
-import figure_config as _config
-import figure_utils as _utils
+import figure_config as config
+from paths import DERIVED_FIGURE_DATA, FIGURES_MAIN
 
-SAL_STATIC = _config.SAL_STATIC
-PFTS = _config.PFTS
-pft_color_map = _config.pft_color_map
-DERIVED_DIR = _config.DERIVED_DIR
-FIGURES_MAIN = _config.FIGURES_MAIN
-ensure_dir = _utils.ensure_dir
+OUT_PNG = FIGURES_MAIN / "fig2_community_vs_monoculture.png"
 
 # Colour of the neutral legend entries for community / monoculture.
 LEGEND_GREY = "0.4"
 
 
-# =============================================================================
-# Functions
-# =============================================================================
-
 def read_matrix(filename):
     """Read a salinity x PFT matrix with integer index and columns."""
-    mat = pd.read_csv(os.path.join(DERIVED_DIR, filename), index_col=0)
+    mat = pd.read_csv(DERIVED_FIGURE_DATA / filename, index_col=0)
     mat.index = mat.index.astype(int)
     mat.columns = mat.columns.astype(int)
     return mat
@@ -49,39 +38,43 @@ def community_style(color):
 
 def monoculture_style(color):
     """Pale colour, no outline."""
-    return {"facecolor": _config.pale(color), "linewidth": 0}
+    return {"facecolor": config.pale(color), "linewidth": 0}
 
 
 def draw_figure(comm_mat, mono_mat):
     """Draw community (stacked) and monoculture (pale) bars per salinity."""
-    fig, ax = plt.subplots(figsize=_config.figsize_mm(_config.WIDTH_HALF_MM, 60))
+    salinities = config.SAL_STATIC
+    pfts = config.PFTS
+    colors = config.pft_color_map
+
+    fig, ax = plt.subplots(figsize=config.figsize_mm(config.WIDTH_HALF_MM, 60))
 
     # Per salinity: one community bar followed by four monoculture bars.
-    x_base = np.arange(len(SAL_STATIC))
+    x_base = np.arange(len(salinities))
     bar_gap = 0.16
     width = 0.13
-    offsets = np.arange(1 + len(PFTS)) * bar_gap
+    offsets = np.arange(1 + len(pfts)) * bar_gap
 
-    bottom = np.zeros(len(SAL_STATIC))
-    for pft in PFTS:
-        vals = comm_mat.loc[SAL_STATIC, pft].values
+    bottom = np.zeros(len(salinities))
+    for pft in pfts:
+        vals = comm_mat.loc[salinities, pft].values
         ax.bar(x_base + offsets[0], vals, width, bottom=bottom,
-               **community_style(pft_color_map[pft]))
+               **community_style(colors[pft]))
         bottom += vals
 
-    for i, pft in enumerate(PFTS, start=1):
-        ax.bar(x_base + offsets[i], mono_mat.loc[SAL_STATIC, pft].values, width,
-               **monoculture_style(pft_color_map[pft]))
+    for i, pft in enumerate(pfts, start=1):
+        ax.bar(x_base + offsets[i], mono_mat.loc[salinities, pft].values, width,
+               **monoculture_style(colors[pft]))
 
-    ax.set_xticks(x_base + offsets.mean(), [str(s) for s in SAL_STATIC])
+    ax.set_xticks(x_base + offsets.mean(), [str(s) for s in salinities])
     ax.set_xlabel("Salinity (ppt)")
     ax.set_ylabel("Total biovolume (m³)")
     ax.set_axisbelow(True)
     ax.grid(axis="y", linewidth=0.5, alpha=0.4)
 
     handles = [
-        Patch(facecolor=pft_color_map[pft], edgecolor="none", label=f"PFT {pft}")
-        for pft in PFTS
+        Patch(facecolor=colors[pft], edgecolor="none", label=f"PFT {pft}")
+        for pft in pfts
     ] + [
         Patch(label="Community", **community_style(LEGEND_GREY)),
         Patch(label="Monoculture", **monoculture_style(LEGEND_GREY)),
@@ -91,17 +84,12 @@ def draw_figure(comm_mat, mono_mat):
     return fig
 
 
-# =============================================================================
-# Figures
-# =============================================================================
+def main():
+    config.apply_style()
+    fig = draw_figure(read_matrix("comm_mat.csv"), read_matrix("mono_mat.csv"))
+    config.save_figure(fig, OUT_PNG)
+    plt.close(fig)
 
-_config.apply_style()
 
-output_dir = ensure_dir(FIGURES_MAIN)
-
-fig = draw_figure(read_matrix("comm_mat.csv"), read_matrix("mono_mat.csv"))
-_config.save_figure(
-    fig,
-    os.path.join(output_dir, "fig2_community_vs_monoculture.png"),
-)
-plt.close(fig)
+if __name__ == "__main__":
+    main()
