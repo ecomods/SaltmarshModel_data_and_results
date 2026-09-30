@@ -1,27 +1,8 @@
-# -*- coding: utf-8 -*-
-
-# =============================================================================
-# SCRIPT OVERVIEW
-# =============================================================================
-# Purpose
-# -------
-# This module defines all important repository paths in one place. Every script
-# should import paths from here instead of hard-coding ../data/... or ../figures/...
-# paths. This makes the workflow robust when scripts are started from different
-# working directories or from an IDE.
-#
-# Key idea
-# --------
-# REPO_ROOT is calculated from this file location. All other paths are then built
-# from REPO_ROOT. This avoids ambiguity about whether a relative path refers to the
-# repository root, the source/ folder, or the current shell directory.
-# =============================================================================
-
 """
-Central repository paths for the manuscript workflow.
+Central paths of the repository.
 
-All paths are resolved from the repository root so scripts can be started
-from the top-level directory, from source/, or from an IDE.
+All paths are built from the repository root, so scripts work from any
+working directory.
 """
 
 from pathlib import Path
@@ -47,8 +28,8 @@ DERIVED_FIGURE_DATA = DATA / "derived_figure_data"
 FIGURES_MAIN = FIGURES / "main"
 FIGURES_APPENDIX = FIGURES / "appendix"
 
-# Expected pyMANGA location relative to this repository. Adjust in run_model.py
-# if pyMANGA is stored elsewhere.
+# pyMANGA is expected next to this repository. Change DEFAULT_MANGA_DIR if it
+# is stored elsewhere, then rerun create_setups.py.
 DEFAULT_MANGA_DIR = REPO_ROOT.parent / "pyMANGA"
 DEFAULT_MANGA_SCRIPT = DEFAULT_MANGA_DIR / "MANGA.py"
 

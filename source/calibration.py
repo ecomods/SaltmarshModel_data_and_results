@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 """
 Calibration of PFT-specific maintenance factors for the Saltmarsh model.
 

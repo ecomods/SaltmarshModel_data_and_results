@@ -1,74 +1,17 @@
-# -*- coding: utf-8 -*-
-
-
-# =============================================================================
-# SCRIPT OVERVIEW
-# =============================================================================
-# Purpose
-# -------
-# This is the first main entry-point of the repository. It creates all pyMANGA
-# XML control files and, importantly, all output folders that pyMANGA later writes
-# into. You should run it whenever the repository is moved, renamed, or whenever
-# one of the setup definitions is changed.
-#
-# What this script does in practice
-# ---------------------------------
-# 1. Defines the complete simulation design in the CONFIG dictionary:
-#    - static salinity levels,
-#    - dynamic salinity scenarios,
-#    - replicate numbers,
-#    - PFT numbers,
-#    - domain size,
-#    - time-loop settings,
-#    - output settings,
-#    - population settings.
-# 2. Converts local repository paths into paths that are valid from pyMANGA's
-#    working directory. This is necessary because run_model.py starts MANGA.py
-#    from the pyMANGA-1 folder, not from this repository folder.
-# 3. Writes one XML file for each individual simulation setup.
-# 4. Creates the corresponding data_raw/... output directories before pyMANGA is
-#    started.
-#
-# Typical usage
-# -------------
-# Run from the repository root:
-#     python create_setups.py
-#
-# Expected result
-# ---------------
-# - 300 XML files in data_model_input/xml_control_files/.
-# - One random_seed tag per XML file.
-# - Matching empty output folders in data_raw/.
-# =============================================================================
-
 """
-Created March 2026
+Create the pyMANGA XML control files and output folders for all simulations.
 
-Generalized XML control-file generator for Saltmarsh parameter studies.
+Writes one XML file per run to data_model_input/xml_control_files/ (300 runs:
+community static and dynamic, monoculture static, one plant static and
+dynamic) and creates the matching output folders in data_raw/. The random
+seed of a run is its replicate number (1 for one-plant runs).
 
-This script generates XML control files for:
-- community static
-- community dynamic
-- monoculture static
-- one plant static
-- one plant dynamic
+Paths in the XML files are relative to the pyMANGA folder, because
+run_model.py starts pyMANGA from there. Rerun this script after moving or
+renaming the repository or pyMANGA.
 
-It also creates all output directories in data_raw/ that are referenced
-by the XML files.
-
-Current pyMANGA SaltmarshModel compatibility:
-- growth outputs:
-    aboveground_resources
-    belowground_resources
-    res_ag
-    res_bg
-    res_eff
-    grow
-    maint
-    volume
-    age
-    salinity
-    transpiration
+Usage (from the repository root):
+    python create_setups.py
 """
 
 import os

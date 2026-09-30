@@ -1,40 +1,11 @@
-# -*- coding: utf-8 -*-
-
-# =============================================================================
-# SCRIPT OVERVIEW
-# =============================================================================
-# Purpose
-# -------
-# This manuscript figure script visualizes the porewater salinity scenarios used
-# as model input. It reads the dynamic salinity CSV files from data_model_input/
-# salinity/ and compares them with the static V0 reference conditions.
-#
-# Figure layout
-# -------------
-# One panel per mean salinity (35, 70, 105 ppt), stacked with a shared time
-# axis. Each panel shows the static regime (V0, horizontal line), seasonal
-# variation (V1) and seasonal variation with tide (V2) over one year, in the
-# same regime colours as Fig. 4.
-#
-# Figure role in the manuscript
-# -----------------------------
-# This is a model-input/parameterization figure. It explains what the plants
-# experience as salinity forcing before any model output is analyzed.
-#
-# Output
-# ------
-# The figure is written directly to figures/appendix/ as PNG.
-# =============================================================================
-
 """
-Plot porewater salinity input scenarios.
+Figure S2: porewater salinity in the three salinity regimes.
 
-This script creates the conceptual/input-data figure for the static and
-dynamic porewater salinity scenarios used in the model setup.
+One panel per mean salinity (35, 70, 105 ppt), showing the first year of the
+static (constant), seasonal (V1) and seasonal + tide (V2) input.
 
-Outputs
--------
-figures/appendix/figS2_porewater_salinity.png
+Input:  data_model_input/salinity/{35,70,105}_{V1,V2}.csv
+Output: figures/appendix/figS2_porewater_salinity.png
 """
 
 import matplotlib.pyplot as plt
@@ -82,8 +53,7 @@ def read_salinity_file(salinity, regime):
     if len(value_columns) == 0:
         raise ValueError(f"No salinity value column found in {input_path}")
 
-    # The files contain one or more salinity value columns. For plotting the
-    # scenario, use the first non-time column, as in the original script.
+    # The files have two identical salinity columns; plot the first.
     value_column = value_columns[0]
 
     return df["t_step"] / SECONDS_PER_DAY, df[value_column] * 1000.0

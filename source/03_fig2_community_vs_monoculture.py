@@ -1,31 +1,12 @@
-# -*- coding: utf-8 -*-
-
-# =============================================================================
-# SCRIPT OVERVIEW
-# =============================================================================
-# Purpose
-# -------
-# This script creates the main static community-vs-monoculture total biovolume
-# figure. Community simulations are shown as stacked PFT contributions in full
-# colour, while monoculture simulations are shown as pale PFT-specific bars.
-#
-# Data basis
-# ----------
-# The script reads the mean total biovolume matrices (salinity x PFT)
-# prepared by 01_prepare_figure_data.py in data/derived_figure_data/:
-#     comm_mat.csv, mono_mat.csv
-#
-# Output
-# ------
-# The PNG is written to figures/main/.
-# =============================================================================
-
 """
-Manuscript Figure 2:
-Static salinity - community (stacked) vs monoculture (pale bars)
+Figure 2: total biovolume of community and monocultures under static salinity.
 
-Output:
-    figures/main/fig2_community_vs_monoculture.png
+Community runs are shown as stacked PFT contributions, monocultures as pale
+PFT bars. Values are means of the ten replicates of the mean total biovolume
+in years 5-10.
+
+Input:  data/derived_figure_data/comm_mat.csv, mono_mat.csv
+Output: figures/main/fig2_community_vs_monoculture.png
 """
 
 import os
