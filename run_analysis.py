@@ -12,11 +12,10 @@ Usage (from the repository root):
 """
 
 import argparse
-import os
 import subprocess
 import sys
 
-from source.utils.paths import REPO_ROOT, ensure_directories
+from source.paths import REPO_ROOT
 
 PIPELINE_SCRIPTS = [
     "01_prepare_figure_data.py",
@@ -31,29 +30,11 @@ PIPELINE_SCRIPTS = [
 
 
 def run_script(script_name):
-    script_path = REPO_ROOT / "source" / script_name
-    if not script_path.is_file():
-        raise FileNotFoundError(f"Missing analysis script: {script_path}")
-
     print(f"\nRunning: {script_name}")
-
-    # Make sure scripts in source/ can import modules such as
-    # source.utils.paths when they are executed as subprocesses.
-    env = os.environ.copy()
-    existing_pythonpath = env.get("PYTHONPATH", "")
-    repo_root_str = str(REPO_ROOT)
-    if existing_pythonpath:
-        env["PYTHONPATH"] = repo_root_str + os.pathsep + existing_pythonpath
-    else:
-        env["PYTHONPATH"] = repo_root_str
-
     result = subprocess.run(
-        [sys.executable, str(script_path)],
+        [sys.executable, str(REPO_ROOT / "source" / script_name)],
         cwd=REPO_ROOT,
-        text=True,
-        env=env,
     )
-
     if result.returncode != 0:
         raise RuntimeError(f"Script failed: {script_name}")
 
@@ -72,9 +53,6 @@ def main():
         help="Render all figures from existing figure data without preparing or changing any tables.",
     )
     args = parser.parse_args()
-
-    if not args.figures_only:
-        ensure_directories()
 
     scripts = PIPELINE_SCRIPTS
     if args.prepare_data_only:

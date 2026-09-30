@@ -6,7 +6,7 @@ data_raw/logs/, and data_raw/logs/simulation_log.csv records its exit status.
 Runs marked OK in that file are skipped unless --include-done is given.
 
 pyMANGA is expected next to this repository (../pyMANGA/MANGA.py). The
-location is set in source/utils/paths.py.
+location is set in source/paths.py.
 
 Usage (from the repository root):
     python run_model.py --list-only       # show the selected runs
@@ -26,7 +26,7 @@ import csv
 import fnmatch
 import sys
 
-from source.utils.paths import (
+from source.paths import (
     XML_CONTROL_FILES,
     LOG_DIR as DEFAULT_LOG_DIR,
     SIMULATION_LOG,

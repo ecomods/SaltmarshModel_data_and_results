@@ -2,18 +2,18 @@
 Central paths of the repository.
 
 All paths are built from the repository root, so scripts work from any
-working directory.
+working directory. Scripts in source/ use `import paths`, scripts in the
+repository root `from source.paths import ...`.
 """
 
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 DATA_MODEL_INPUT = REPO_ROOT / "data_model_input"
 DATA_RAW = REPO_ROOT / "data_raw"
 DATA = REPO_ROOT / "data"
 FIGURES = REPO_ROOT / "figures"
-SOURCE = REPO_ROOT / "source"
 
 PLANT_DISTRIBUTION_DIR = DATA_MODEL_INPUT / "plant_distribution"
 SALINITY_DIR = DATA_MODEL_INPUT / "salinity"

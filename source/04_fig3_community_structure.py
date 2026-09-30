@@ -11,96 +11,60 @@ Input:  data/derived_figure_data/grouped_pft_static.csv, grouped_all_static.csv
 Output: figures/main/fig3_community_structure.png
 """
 
-import os
-
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 
-import figure_config as _config
-import figure_utils as _utils
+import figure_config as config
+import figure_utils as utils
+from paths import DERIVED_FIGURE_DATA, FIGURES_MAIN
 
-DERIVED_DIR = _config.DERIVED_DIR
-FIGURES_MAIN = _config.FIGURES_MAIN
+OUT_PNG = FIGURES_MAIN / "fig3_community_structure.png"
 
-
-# =============================================================================
-# Settings
-# =============================================================================
-
-metrics_comm = {
+YLABELS = {
     "volume_per_plant": "Biovolume per plant (m³)",
     "h_ag": "Aboveground height (m)",
     "ag_bg_ratio": "AG/BG ratio (–)",
     "num_plants": "Number of plants",
 }
 
-panel_order = [
-    "volume_per_plant",
-    "h_ag",
-    "ag_bg_ratio",
-    "num_plants",
-]
+PANEL_ORDER = ["volume_per_plant", "h_ag", "ag_bg_ratio", "num_plants"]
 
 
-# =============================================================================
-# Helper functions
-# =============================================================================
-
-def read_table(filename):
-    """Read a derived figure table with numeric salinity and PFT columns."""
-    df = pd.read_csv(os.path.join(DERIVED_DIR, filename))
-    df["salinity"] = pd.to_numeric(df["salinity"], errors="coerce")
-    if "pft" in df.columns:
-        df["pft"] = pd.to_numeric(df["pft"], errors="coerce").astype("Int64")
-    return df
-
-
-def mean_summaries():
+def mean_summaries(grouped_pft, grouped_all):
     """
     Replicate mean and standard deviation for all metrics.
 
     The tables contain one mean-over-time value per replicate and scenario,
     so standard deviations are calculated across replicates.
     """
-    grouped_pft_static = read_table("grouped_pft_static.csv")
-    grouped_all_static = read_table("grouped_all_static.csv")
-
     summaries = {}
-    for metric in panel_order:
-        summary_pft = _utils.summary_mean_std(
-            grouped_pft_static, ["salinity", "pft"], metric
-        )
-        summary_all = _utils.summary_mean_std(
-            grouped_all_static, ["salinity"], metric
-        )
+    for metric in PANEL_ORDER:
+        summary_pft = utils.summary_mean_std(grouped_pft, ["salinity", "pft"], metric)
+        summary_all = utils.summary_mean_std(grouped_all, ["salinity"], metric)
         summaries[metric] = tuple(
             s.rename(columns={"mean_value": "value"})
             for s in (summary_pft, summary_all)
         )
+    return summaries
 
-    return summaries, grouped_pft_static
+
+def main():
+    config.apply_style()
+
+    grouped_pft = pd.read_csv(DERIVED_FIGURE_DATA / "grouped_pft_static.csv")
+    grouped_all = pd.read_csv(DERIVED_FIGURE_DATA / "grouped_all_static.csv")
+
+    fig = utils.draw_structure_figure(
+        mean_summaries(grouped_pft, grouped_all),
+        salinity_levels=sorted(grouped_pft["salinity"].unique()),
+        pft_levels=sorted(grouped_pft["pft"].unique()),
+        ylabels=YLABELS,
+        panel_order=PANEL_ORDER,
+    )
+
+    config.save_figure(fig, OUT_PNG)
+    plt.close(fig)
 
 
-# =============================================================================
-# Figure
-# =============================================================================
-
-_config.apply_style()
-
-output_dir = _utils.ensure_dir(FIGURES_MAIN)
-
-summaries, grouped_pft_static = mean_summaries()
-
-fig = _utils.draw_structure_figure(
-    summaries,
-    salinity_levels=sorted(grouped_pft_static["salinity"].dropna().unique()),
-    pft_levels=sorted(grouped_pft_static["pft"].dropna().unique()),
-    ylabels=metrics_comm,
-    panel_order=panel_order,
-)
-
-_config.save_figure(
-    fig,
-    os.path.join(output_dir, "fig3_community_structure.png"),
-)
-plt.close(fig)
+if __name__ == "__main__":
+    main()

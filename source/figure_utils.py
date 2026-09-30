@@ -3,7 +3,7 @@ Reusable helper functions for data preparation and figure generation.
 
 The helper functions fall into four groups:
 
-1. Small IO helpers such as ensure_dir().
+1. Species parameters: load_species_parameters() and forman_response().
 2. Plant data: load_static_community(), load_static_monoculture() and
    load_dynamic_community() return the cleaned plant rows of the model runs
    and can be used for new analyses and figures.
@@ -11,24 +11,33 @@ The helper functions fall into four groups:
 4. Shared plotting functions used by several figure scripts.
 """
 
-import os
+import importlib.util
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-import figure_config as _config
-from source.utils.paths import DATA_RAW
+import figure_config as config
+from paths import DATA_RAW, SPECIES_DIR
 
 
 # =============================================================================
-# Basic IO
+# Species parameters
 # =============================================================================
 
-def ensure_dir(path):
-    """Create a directory if it does not exist and return the path object/string."""
-    os.makedirs(path, exist_ok=True)
-    return path
+def load_species_parameters(pft):
+    """Return the parameter dictionary of the model input Saltmarsh_<pft>.py."""
+    path = SPECIES_DIR / f"Saltmarsh_{pft}.py"
+    spec = importlib.util.spec_from_file_location(path.stem, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    _geometry, parameter = module.createPlant()
+    return parameter
+
+
+def forman_response(salinity, u_i, d):
+    """Belowground resource factor (Forman logistic function); salinity in ppt."""
+    return 1.0 / (1.0 + np.exp(d * (u_i - salinity)))
 
 
 # =============================================================================
@@ -71,7 +80,7 @@ def clean_plant_data(df):
 def load_static_community():
     """Cleaned plant rows of the static community runs, with salinity and n."""
     tables = []
-    for salinity in _config.SAL_STATIC:
+    for salinity in config.SAL_STATIC:
         for n in REPLICATES:
             path = (DATA_RAW / "community" / "static" / f"{salinity / 1000:.3f}"
                     / f"{n:02d}" / "Population.csv")
@@ -82,8 +91,8 @@ def load_static_community():
 def load_static_monoculture():
     """Cleaned plant rows of the static monoculture runs, with salinity and n."""
     tables = []
-    for salinity in _config.SAL_STATIC:
-        for pft in _config.PFTS:
+    for salinity in config.SAL_STATIC:
+        for pft in config.PFTS:
             for n in REPLICATES:
                 path = (DATA_RAW / "monoculture" / "static" / f"{salinity / 1000:.3f}"
                         / f"PFT_{pft}" / f"{n:02d}" / "Population.csv")
@@ -97,7 +106,7 @@ def load_dynamic_community():
     salinity (mean of the scenario), variant, version (e.g. "35_V1") and n.
     """
     tables = []
-    for salinity in _config.SAL_DYN:
+    for salinity in config.SAL_DYN:
         for variant in DYNAMIC_VARIANTS:
             version = f"{salinity}_{variant}"
             for n in REPLICATES:
@@ -234,8 +243,7 @@ def center_label_under(fig, axes_row, label):
 
 
 def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
-                          panel_order, show_community=True, group_spacing=3.8,
-                          pft_colors=None):
+                          panel_order, show_community=True, group_spacing=3.8):
     """
     Draw the 2 x 2 point/error-bar figure of plant-structure metrics
     (Figs. 3 and S3) in the shared style and return the figure.
@@ -247,10 +255,7 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
     the order community (optional), PFT 1, ..., PFT 4. Salinity groups are
     separated only by a wider gap (group_spacing), not by lines. Panels are labelled
     a)-d) in panel_order; the legend sits in the top-right panel.
-    pft_colors defaults to the shared PFT palette.
     """
-    pft_color_map = pft_colors or _config.pft_color_map
-
     x_group = np.arange(len(salinity_levels)) * group_spacing
     sal_to_x = {sal: x_group[i] for i, sal in enumerate(salinity_levels)}
 
@@ -276,7 +281,7 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
     fig, axes = plt.subplots(
         nrows=2,
         ncols=2,
-        figsize=_config.figsize_mm(_config.WIDTH_FULL_MM, 110),
+        figsize=config.figsize_mm(config.WIDTH_FULL_MM, 110),
         sharex=True,
     )
 
@@ -290,7 +295,7 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
             dfp = summary_pft[summary_pft["pft"] == pft]
             if dfp.empty:
                 continue
-            color = pft_color_map[int(pft)]
+            color = config.pft_color_map[int(pft)]
             draw_series(ax, dfp, within_offsets[i], color, f"PFT {int(pft)}")
 
         ax.set_xticks(group_centers, [str(int(s)) for s in salinity_levels])
@@ -302,7 +307,7 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
         ax.set_axisbelow(True)
         ax.grid(axis="y", linewidth=0.5, alpha=0.4)
 
-    _config.add_panel_labels(axes.ravel())
+    config.add_panel_labels(axes.ravel())
 
     # Legend inside the top-right panel, using the handles drawn there.
     axes[0, 1].legend(loc="upper right")

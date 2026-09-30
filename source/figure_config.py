@@ -6,25 +6,11 @@ figsize_mm() and save with save_figure(). The scenario and PFT order is also
 used by 01_prepare_figure_data.py.
 """
 
+from pathlib import Path
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgb
-
-
-# Add the repository root to sys.path so this module works when executed
-# directly and when called through run_analysis.py.
-import sys
-from pathlib import Path
-
-REPO_ROOT_BOOTSTRAP = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT_BOOTSTRAP) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT_BOOTSTRAP))
-
-from source.utils.paths import (
-    DERIVED_FIGURE_DATA,
-    FIGURES_APPENDIX,
-    FIGURES_MAIN,
-)
 
 # =============================================================================
 # Figure sizes
@@ -102,9 +88,9 @@ def add_panel_labels(axes, labels="abcdefghijklmnopqrstuvwxyz"):
 
 def save_figure(fig, path):
     """Save a figure at its exact size, without trimming or padding."""
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path)
     print(f"Saved: {path}")
-
 
 
 # =============================================================================
@@ -115,12 +101,6 @@ SAL_STATIC = [35, 70, 105, 140]
 SAL_DYN = [35, 70, 105]
 PFTS = [1, 2, 3, 4]
 VARIANT_LEVELS = ["V0", "V1", "V2"]
-
-# =============================================================================
-# Shared paths
-# =============================================================================
-
-DERIVED_DIR = DERIVED_FIGURE_DATA
 
 # =============================================================================
 # Colors
@@ -141,6 +121,7 @@ def pale(color, strength=0.62):
     colour (Fig. 2).
     """
     return tuple(1 - strength * (1 - c) for c in to_rgb(color))
+
 
 # Salinity regimes (static V0, seasonal V1, seasonal + tide V2): display names
 # and line colours, shared by Figs. 4 and S2. Three lightness steps (black ->

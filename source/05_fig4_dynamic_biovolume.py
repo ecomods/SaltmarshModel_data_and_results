@@ -10,41 +10,28 @@ Input:  data/derived_figure_data/ts_total_volume.csv, summary_pft_tv.csv
 Output: figures/main/fig4_dynamic_biovolume.png
 """
 
-import os
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
-import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
-import figure_config as _config
-import figure_utils as _utils
+import figure_config as config
+import figure_utils as utils
+from paths import DERIVED_FIGURE_DATA, FIGURES_MAIN
 
-PFTS = _config.PFTS
-VARIANT_LEVELS = _config.VARIANT_LEVELS
-pft_color_map = _config.pft_color_map
-DERIVED_DIR = _config.DERIVED_DIR
-FIGURES_MAIN = _config.FIGURES_MAIN
-ensure_dir = _utils.ensure_dir
+OUT_PNG = FIGURES_MAIN / "fig4_dynamic_biovolume.png"
 
-
-# =============================================================================
-# Paths and settings
-# =============================================================================
-
-output_dir = ensure_dir(FIGURES_MAIN)
-
-sal_levels = [35, 70, 105]
-variant_levels = VARIANT_LEVELS
+PFTS = config.PFTS
+SALINITIES = config.SAL_DYN
+VARIANTS = config.VARIANT_LEVELS
 
 # Regime colours and display names are shared with Fig. S2 (figure_config);
 # data keys stay V0/V1/V2.
 variant_style = {
-    var: {"color": color, "linestyle": "-", "linewidth": _config.REGIME_LINEWIDTH}
-    for var, color in _config.regime_color_map.items()
+    var: {"color": color, "linestyle": "-", "linewidth": config.REGIME_LINEWIDTH}
+    for var, color in config.regime_color_map.items()
 }
-VARIANT_LABELS = _config.REGIME_LABELS
 
 DAYS_PER_YEAR = 365
 YEAR_TICKS = [5, 6, 7, 8, 9, 10]
@@ -112,7 +99,7 @@ def build_total_volume_lookup(summary_pft_tv):
 def add_pft_legend(fig):
     """PFT colours in one column, above the figure at the top right."""
     pft_handles = [
-        Patch(facecolor=pft_color_map[pft], edgecolor="none", label=f"PFT {pft}")
+        Patch(facecolor=config.pft_color_map[pft], edgecolor="none", label=f"PFT {pft}")
         for pft in PFTS
     ]
     return fig.legend(handles=pft_handles, loc="outside upper right")
@@ -125,8 +112,8 @@ def add_variant_legend(fig, pft_legend):
     the figure edge, same top). Call after the layout is frozen.
     """
     variant_handles = [
-        Line2D([], [], label=VARIANT_LABELS[var], **variant_style[var])
-        for var in variant_levels
+        Line2D([], [], label=config.REGIME_LABELS[var], **variant_style[var])
+        for var in VARIANTS
     ]
     pft_box = pft_legend.get_window_extent().transformed(fig.transFigure.inverted())
     legend = fig.legend(
@@ -143,10 +130,8 @@ def add_variant_legend(fig, pft_legend):
 # Plot
 # =============================================================================
 
-def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, out_png):
-    """
-    Create the dynamic total biovolume figure.
-    """
+def draw_figure(ts_total_volume, summary_pft_tv):
+    """Draw the time series and stacked bars and return the figure."""
     dfm = add_salinity_and_variant_columns(ts_total_volume)
     dfm["time_years"] = dfm["time_days"] / DAYS_PER_YEAR
     tv_lookup = build_total_volume_lookup(summary_pft_tv)
@@ -154,20 +139,19 @@ def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, out_png):
     y_lim = get_y_limits(ts_total_volume, bar_totals)
 
     fig, axes = plt.subplots(
-        nrows=len(sal_levels),
+        nrows=len(SALINITIES),
         ncols=len(PFTS) + 1,
-        figsize=_config.figsize_mm(_config.WIDTH_FULL_MM, 135),
+        figsize=config.figsize_mm(config.WIDTH_FULL_MM, 135),
         sharey=True,
         gridspec_kw={"width_ratios": [1, 1, 1, 1, 1.05]},
     )
 
     # Time series of each PFT (columns 0-3).
-
-    for row_i, sal in enumerate(sal_levels):
+    for row_i, sal in enumerate(SALINITIES):
         for col_i, pft in enumerate(PFTS):
             ax = axes[row_i, col_i]
 
-            for var in variant_levels:
+            for var in VARIANTS:
                 sub = dfm[
                     (dfm["salinity"] == sal) &
                     (dfm["pft"] == pft) &
@@ -185,18 +169,17 @@ def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, out_png):
             ax.set_xticks(YEAR_TICKS)
 
     # Time mean per regime, stacked by PFT (column 4).
-
-    for row_i, sal in enumerate(sal_levels):
+    for row_i, sal in enumerate(SALINITIES):
         axb = axes[row_i, 4]
-        x = np.arange(len(variant_levels))
-        bottom = np.zeros(len(variant_levels), dtype=float)
+        x = np.arange(len(VARIANTS))
+        bottom = np.zeros(len(VARIANTS), dtype=float)
 
         for pft in PFTS:
             vals_bar = np.array(
-                [float(tv_lookup.get((sal, var), {}).get(pft, 0.0)) for var in variant_levels],
+                [float(tv_lookup.get((sal, var), {}).get(pft, 0.0)) for var in VARIANTS],
                 dtype=float,
             )
-            axb.bar(x, vals_bar, bottom=bottom, color=pft_color_map[pft], linewidth=0)
+            axb.bar(x, vals_bar, bottom=bottom, color=config.pft_color_map[pft], linewidth=0)
             bottom += vals_bar
 
         if row_i == 0:
@@ -204,7 +187,7 @@ def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, out_png):
 
         # Tilted labels: the column is too narrow for horizontal names.
         axb.set_xticks(
-            x, [VARIANT_LABELS[var] for var in variant_levels],
+            x, [config.REGIME_LABELS[var] for var in VARIANTS],
             rotation=40, ha="right", rotation_mode="anchor",
         )
 
@@ -225,21 +208,21 @@ def plot_dynamic_biovolume(ts_total_volume, summary_pft_tv, out_png):
 
     fig.supylabel("Total biovolume (m³)", fontsize="medium")
     pft_legend = add_pft_legend(fig)
-    _utils.center_label_under(fig, axes[-1, :len(PFTS)], "Time (years)")
+    utils.center_label_under(fig, axes[-1, :len(PFTS)], "Time (years)")
     add_variant_legend(fig, pft_legend)
 
-    _config.save_figure(fig, out_png)
+    return fig
+
+
+def main():
+    config.apply_style()
+    fig = draw_figure(
+        pd.read_csv(DERIVED_FIGURE_DATA / "ts_total_volume.csv"),
+        pd.read_csv(DERIVED_FIGURE_DATA / "summary_pft_tv.csv"),
+    )
+    config.save_figure(fig, OUT_PNG)
     plt.close(fig)
 
 
-# =============================================================================
-# Main
-# =============================================================================
-
-_config.apply_style()
-
-plot_dynamic_biovolume(
-    pd.read_csv(os.path.join(DERIVED_DIR, "ts_total_volume.csv")),
-    pd.read_csv(os.path.join(DERIVED_DIR, "summary_pft_tv.csv")),
-    os.path.join(output_dir, "fig4_dynamic_biovolume.png"),
-)
+if __name__ == "__main__":
+    main()
