@@ -3,4 +3,4 @@
 __pycache__/
 
 # Model run logs (written by run_model.py)
-data_raw/logs/
+model_output/logs/

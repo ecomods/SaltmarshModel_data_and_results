@@ -1,9 +1,9 @@
 """
 Create the pyMANGA XML control files and output folders for all simulations.
 
-Writes one XML file per run to data_model_input/xml_control_files/ (300 runs:
+Writes one XML file per run to model_input/xml_control_files/ (300 runs:
 community static and dynamic, monoculture static, one plant static and
-dynamic) and creates the matching output folders in data_raw/. The random
+dynamic) and creates the matching output folders in model_output/. The random
 seed of a run is its replicate number (1 for one-plant runs).
 
 Paths in the XML files are relative to the pyMANGA folder, because
@@ -20,7 +20,7 @@ from xml.dom import minidom
 from pathlib import Path
 
 from source.paths import (
-    DATA_RAW,
+    MODEL_OUTPUT,
     SPECIES_DIR,
     SALINITY_DIR,
     PLANT_DISTRIBUTION_DIR,
@@ -47,19 +47,19 @@ def path_for_xml(path):
 
 def make_output_dir(*parts):
     """
-    Create an output directory under data_raw/ and return its XML path.
+    Create an output directory under model_output/ and return its XML path.
 
     Parameters
     ----------
     *parts : str
-        Path components below DATA_RAW.
+        Path components below MODEL_OUTPUT.
 
     Returns
     -------
     str
         POSIX-style path relative to pyMANGA's working directory.
     """
-    output_dir = DATA_RAW.joinpath(*[str(p) for p in parts])
+    output_dir = MODEL_OUTPUT.joinpath(*[str(p) for p in parts])
     output_dir.mkdir(parents=True, exist_ok=True)
     return path_for_xml(output_dir)
 
@@ -563,7 +563,7 @@ def main():
 
     print("Done: create_setups.py")
     print(f"XML files written to: {XML_CONTROL_FILES}")
-    print(f"Output directories created under: {DATA_RAW}")
+    print(f"Output directories created under: {MODEL_OUTPUT}")
 
 
 if __name__ == "__main__":

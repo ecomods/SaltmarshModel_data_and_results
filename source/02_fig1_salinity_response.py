@@ -5,7 +5,7 @@ Plots the belowground resource limitation (Forman logistic function) over
 salinity, with the parameters read from the species files. Vertical lines
 mark the static salinities of the simulations.
 
-Input:  data_model_input/species/Saltmarsh_{1-4}.py
+Input:  model_input/species/Saltmarsh_{1-4}.py
 Output: figures/main/fig1_salinity_response.png
 """
 

@@ -10,17 +10,17 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-DATA_MODEL_INPUT = REPO_ROOT / "data_model_input"
-DATA_RAW = REPO_ROOT / "data_raw"
-DATA = REPO_ROOT / "data"
+MODEL_INPUT = REPO_ROOT / "model_input"
+MODEL_OUTPUT = REPO_ROOT / "model_output"
+FIGURE_DATA = REPO_ROOT / "figure_data"
 FIGURES = REPO_ROOT / "figures"
 
-PLANT_DISTRIBUTION_DIR = DATA_MODEL_INPUT / "plant_distribution"
-SALINITY_DIR = DATA_MODEL_INPUT / "salinity"
-SPECIES_DIR = DATA_MODEL_INPUT / "species"
-XML_CONTROL_FILES = DATA_MODEL_INPUT / "xml_control_files"
+PLANT_DISTRIBUTION_DIR = MODEL_INPUT / "plant_distribution"
+SALINITY_DIR = MODEL_INPUT / "salinity"
+SPECIES_DIR = MODEL_INPUT / "species"
+XML_CONTROL_FILES = MODEL_INPUT / "xml_control_files"
 
-LOG_DIR = DATA_RAW / "logs"
+LOG_DIR = MODEL_OUTPUT / "logs"
 SIMULATION_LOG = LOG_DIR / "simulation_log.csv"
 
 FIGURES_MAIN = FIGURES / "main"

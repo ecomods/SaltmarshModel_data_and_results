@@ -5,7 +5,7 @@ Same panels and statistics as Figure 3, for each PFT grown alone (no
 community point). Full PFT colours are used, because no community results
 are shown next to them (unlike Figure 2).
 
-Input:  data/grouped_pft_mono_static.csv
+Input:  figure_data/grouped_pft_mono_static.csv
 Output: figures/appendix/figS3_monoculture_structure.png
 """
 
@@ -14,7 +14,7 @@ import pandas as pd
 
 import figure_config as config
 import figure_utils as utils
-from paths import DATA, FIGURES_APPENDIX
+from paths import FIGURE_DATA, FIGURES_APPENDIX
 
 OUT_PNG = FIGURES_APPENDIX / "figS3_monoculture_structure.png"
 
@@ -51,7 +51,7 @@ def mean_summaries(grouped_pft):
 def main():
     config.apply_style()
 
-    grouped_pft = pd.read_csv(DATA / "grouped_pft_mono_static.csv")
+    grouped_pft = pd.read_csv(FIGURE_DATA / "grouped_pft_mono_static.csv")
     summaries = mean_summaries(grouped_pft)
 
     fig = utils.draw_structure_figure(

@@ -7,7 +7,7 @@ replicate, plant values are averaged per output step and then over years
 5-10. Points show the mean of the ten replicates, error bars one standard
 deviation.
 
-Input:  data/grouped_pft_static.csv, grouped_all_static.csv
+Input:  figure_data/grouped_pft_static.csv, grouped_all_static.csv
 Output: figures/main/fig3_community_structure.png
 """
 
@@ -16,7 +16,7 @@ import pandas as pd
 
 import figure_config as config
 import figure_utils as utils
-from paths import DATA, FIGURES_MAIN
+from paths import FIGURE_DATA, FIGURES_MAIN
 
 OUT_PNG = FIGURES_MAIN / "fig3_community_structure.png"
 
@@ -51,8 +51,8 @@ def mean_summaries(grouped_pft, grouped_all):
 def main():
     config.apply_style()
 
-    grouped_pft = pd.read_csv(DATA / "grouped_pft_static.csv")
-    grouped_all = pd.read_csv(DATA / "grouped_all_static.csv")
+    grouped_pft = pd.read_csv(FIGURE_DATA / "grouped_pft_static.csv")
+    grouped_all = pd.read_csv(FIGURE_DATA / "grouped_all_static.csv")
 
     fig = utils.draw_structure_figure(
         mean_summaries(grouped_pft, grouped_all),

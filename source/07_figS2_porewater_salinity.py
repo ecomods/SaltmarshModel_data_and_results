@@ -4,7 +4,7 @@ Figure S2: porewater salinity in the three salinity regimes.
 One panel per mean salinity (35, 70, 105 ppt), showing the first year of the
 static (constant), seasonal (V1) and seasonal + tide (V2) input.
 
-Input:  data_model_input/salinity/{35,70,105}_{V1,V2}.csv
+Input:  model_input/salinity/{35,70,105}_{V1,V2}.csv
 Output: figures/appendix/figS2_porewater_salinity.png
 """
 
