@@ -33,21 +33,3 @@ FIGURES_APPENDIX = FIGURES / "appendix"
 DEFAULT_MANGA_DIR = REPO_ROOT.parent / "pyMANGA"
 DEFAULT_MANGA_SCRIPT = DEFAULT_MANGA_DIR / "MANGA.py"
 
-
-def ensure_directories():
-    """Create the standard output directories if they do not exist."""
-    for path in [
-        DATA_MODEL_INPUT,
-        DATA_RAW,
-        DATA,
-        FIGURES,
-        PLANT_DISTRIBUTION_DIR,
-        SALINITY_DIR,
-        SPECIES_DIR,
-        XML_CONTROL_FILES,
-        LOG_DIR,
-        DERIVED_FIGURE_DATA,
-        FIGURES_MAIN,
-        FIGURES_APPENDIX,
-    ]:
-        path.mkdir(parents=True, exist_ok=True)

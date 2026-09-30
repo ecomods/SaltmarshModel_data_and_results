@@ -31,7 +31,6 @@ from source.paths import (
     LOG_DIR as DEFAULT_LOG_DIR,
     SIMULATION_LOG,
     DEFAULT_MANGA_SCRIPT,
-    ensure_directories,
 )
 
 # ======================================================
@@ -78,25 +77,21 @@ CATEGORY_PATTERNS = {
 # ======================================================
 
 def run_simulation(xml_file):
-    ensure_directories()
+    """Run pyMANGA for one XML file from the pyMANGA folder; output goes to a log file."""
     xml_file = os.path.abspath(xml_file)
     xml_name = os.path.splitext(os.path.basename(xml_file))[0]
     log_path = os.path.join(str(LOG_DIR), f"{xml_name}.log")
 
-    os.makedirs(LOG_DIR, exist_ok=True)
-
     manga_dir = os.path.abspath(os.path.dirname(str(MANGA_PATH)))
     manga_py = os.path.abspath(str(MANGA_PATH))
-    command = f'"{PYTHON_EXEC}" "{manga_py}" -i "{xml_file}"'
 
     start_time = datetime.now()
     with open(log_path, "w", encoding="utf-8") as logfile:
         process = subprocess.run(
-            command,
-            shell=True,
+            [PYTHON_EXEC, manga_py, "-i", xml_file],
             cwd=manga_dir,
             stdout=logfile,
-            stderr=logfile
+            stderr=logfile,
         )
     end_time = datetime.now()
     duration = (end_time - start_time).total_seconds()
@@ -119,16 +114,16 @@ def read_logfile():
         return list(csv.DictReader(f))
 
 
-def write_results_to_csv(results, mode='a'):
+def append_to_logfile(result):
+    """Append one run result to the CSV log (written as soon as a run finishes)."""
     file_exists = os.path.isfile(str(CSV_LOGFILE))
-    with open(str(CSV_LOGFILE), mode, newline='', encoding='utf-8') as f:
+    with open(str(CSV_LOGFILE), "a", newline="", encoding="utf-8") as f:
         fieldnames = ["xml_file", "log_file", "start_time", "end_time",
                       "duration_sec", "exit_code", "status"]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
-        if not file_exists or mode == 'w':
+        if not file_exists:
             writer.writeheader()
-        for res in results:
-            writer.writerow(res)
+        writer.writerow(result)
 
 
 def list_all_xml():
@@ -184,27 +179,25 @@ def select_xml_files(
     Selection steps:
     1. Start from all XML files in the XML folder.
     2. Apply optional category filters.
-    3. If retry_only is enabled, keep only files with a non-OK log status.
-    4. Unless include_done is enabled, skip files already marked as OK.
+    3. If retry_only is enabled, keep only files whose latest status is not OK.
+    4. Unless include_done is enabled, skip files whose latest status is OK.
     """
     all_xml = list_all_xml()
     filtered = filter_by_categories(all_xml, only_categories, exclude_categories)
 
-    log = read_logfile()
-    abs_filtered = {os.path.abspath(f) for f in filtered}
+    # The log only grows; later rows overwrite earlier ones for the same file.
+    latest_status = {os.path.abspath(row["xml_file"]): row["status"] for row in read_logfile()}
 
     if retry_only:
-        failed = {os.path.abspath(row["xml_file"]) for row in log if row["status"] != "OK"}
-        # Keep failed files only if they also pass the category filter.
-        return sorted(f for f in filtered if os.path.abspath(f) in failed)
+        return sorted(
+            f for f in filtered
+            if latest_status.get(os.path.abspath(f), "OK") != "OK"
+        )
 
     if include_done:
-        # Do not skip any selected file based on the log.
         return filtered
 
-    # Default behavior: skip files already marked as OK.
-    done = {os.path.abspath(row["xml_file"]) for row in log if row["status"] == "OK"}
-    return [f for f in filtered if os.path.abspath(f) not in done]
+    return [f for f in filtered if latest_status.get(os.path.abspath(f)) != "OK"]
 
 
 # ======================================================
@@ -264,19 +257,17 @@ def main():
 
     print(f"\nRunning {len(xml_files)} simulations with up to {MAX_WORKERS} parallel threads...\n")
 
-    results = []
+    os.makedirs(LOG_DIR, exist_ok=True)
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        future_to_file = {executor.submit(run_simulation, xml): xml for xml in xml_files}
-        for future in as_completed(future_to_file):
+        futures = [executor.submit(run_simulation, xml) for xml in xml_files]
+        for future in as_completed(futures):
             res = future.result()
-            results.append(res)
+            append_to_logfile(res)
             name = os.path.basename(res["xml_file"])
             if res["status"] == "OK":
                 print(f"OK: {name} finished in {res['duration_sec']:.1f}s")
             else:
                 print(f"ERROR: {name} failed (exit code: {res['exit_code']})")
-
-    write_results_to_csv(results)
 
 
 if __name__ == "__main__":

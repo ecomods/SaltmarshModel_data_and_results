@@ -212,6 +212,7 @@ data_and_results/
 │   ├── figure_utils.py
 │   └── paths.py
 │
+├── calibrate_maintenance.py
 ├── create_setups.py
 ├── run_model.py
 ├── run_analysis.py
@@ -350,7 +351,13 @@ data_raw/community/dynamic/
 data_raw/monoculture/static/
 ```
 
-The one-plant outputs are generated for reference but are not used by the current main analysis pipeline.
+The one-plant runs simulate a single plant of each PFT without competition
+(static: 4 salinities, dynamic: 6 scenarios, one run each, output every
+day). No analysis script reads them. They document the single-plant
+behaviour behind the calibration: at 70 ppt all four PFTs reach the same
+steady aboveground height (about 1.022 m, reached within 200 days; see
+`calibrate_maintenance.py`). In these runs the plant is removed after about
+420-460 days, and PFTs 1-3 do not survive at 140 ppt.
 
 #### `data_raw/logs/`
 
@@ -603,6 +610,23 @@ The script runs these source scripts in order:
 07_figS2_porewater_salinity.py
 08_figS3_monoculture_structure.py
 ```
+
+### 4.4 `calibrate_maintenance.py`
+
+Documents how the PFT-specific maintenance factors `p_maint` in
+`data_model_input/species/Saltmarsh_*.py` were obtained. A single plant is
+grown for 200 days at 70 ppt with a re-implementation of the pyMANGA
+Saltmarsh growth step. PFT 1 keeps `p_maint = 1.5e-6`; for PFTs 2-4,
+`p_maint` is found by bisection so that the plant reaches the same
+aboveground height as PFT 1. The script only prints its results:
+
+```powershell
+python calibrate_maintenance.py
+```
+
+Result: 1.500e-6, 1.867e-6, 2.216e-6 and 2.517e-6 (rounded to four digits
+in the species files). It is not part of the simulation or analysis
+pipeline.
 
 ---
 
