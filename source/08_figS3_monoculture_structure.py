@@ -70,108 +70,25 @@ GROUP_SPACING = 3.25
 
 
 # =============================================================================
-# Input data
-# =============================================================================
-
-def read_mono_prepared():
-    """Read the monoculture plant table with numeric key columns."""
-    df_mono_prepared = pd.read_csv(
-        os.path.join(DERIVED_DIR, "df_mono_prepared.csv")
-    )
-
-    df_mono_prepared["salinity"] = pd.to_numeric(
-        df_mono_prepared["salinity"], errors="coerce"
-    )
-
-    df_mono_prepared["pft"] = pd.to_numeric(
-        df_mono_prepared["pft"], errors="coerce"
-    ).astype("Int64")
-
-    if "n" in df_mono_prepared.columns:
-        df_mono_prepared["n"] = pd.to_numeric(
-            df_mono_prepared["n"], errors="coerce"
-        ).astype("Int64")
-
-    # In individual-plant data, one row corresponds to one plant.
-    # Therefore, volume_per_plant is identical to the plant's own volume.
-    if "volume_per_plant" not in df_mono_prepared.columns:
-        if "volume" in df_mono_prepared.columns:
-            df_mono_prepared["volume_per_plant"] = df_mono_prepared["volume"]
-        else:
-            raise KeyError(
-                "Neither 'volume_per_plant' nor 'volume' was found in "
-                "df_mono_prepared.csv."
-            )
-
-    return df_mono_prepared
-
-
-# =============================================================================
 # Summaries
 # =============================================================================
 
-def build_replicate_level_means(df):
+def mean_summaries():
     """
-    Create one mean-over-time value per salinity, PFT, replicate, and metric.
+    Replicate mean and standard deviation for all metrics.
 
-    Plant-level metrics are first averaged across plants within each timestep.
-    The resulting timestep values are then averaged over time for each replicate.
-    Plant number is counted per timestep and then averaged over time for each
-    replicate.
+    The table contains one mean-over-time value per salinity, PFT and
+    replicate (see replicate_time_means() in figure_utils.py), so standard
+    deviations are calculated across replicates.
     """
-    required_cols = ["salinity", "pft", "n", "time"]
-    missing_cols = [col for col in required_cols if col not in df.columns]
-    if missing_cols:
-        raise KeyError(
-            "Missing required columns for monoculture summary: "
-            + ", ".join(missing_cols)
-        )
-
-    dfc = df.copy().dropna(subset=required_cols)
-
-    plant_metrics = (
-        dfc.groupby(["salinity", "pft", "n", "time"], as_index=False)
-        .agg({
-            "volume_per_plant": "mean",
-            "h_ag": "mean",
-            "ag_bg_ratio": "mean",
-        })
-    )
-
-    plant_counts = (
-        dfc.groupby(["salinity", "pft", "n", "time"], as_index=False)
-        .size()
-        .rename(columns={"size": "num_plants"})
-    )
-
-    per_timestep = plant_metrics.merge(
-        plant_counts,
-        on=["salinity", "pft", "n", "time"],
-        how="left",
-    )
-
-    replicate_means = (
-        per_timestep.groupby(["salinity", "pft", "n"], as_index=False)
-        .agg({
-            "volume_per_plant": "mean",
-            "h_ag": "mean",
-            "ag_bg_ratio": "mean",
-            "num_plants": "mean",
-        })
-    )
-
-    return replicate_means
-
-
-def mean_summaries(df_mono_prepared):
-    """Replicate mean and standard deviation for all metrics."""
-    replicate_level_means = build_replicate_level_means(df_mono_prepared)
-    return {
+    grouped_pft = pd.read_csv(os.path.join(DERIVED_DIR, "grouped_pft_mono_static.csv"))
+    summaries = {
         metric: _utils.summary_mean_std(
-            replicate_level_means, ["salinity", "pft"], metric
+            grouped_pft, ["salinity", "pft"], metric
         ).rename(columns={"mean_value": "value"})
         for metric in panel_order
     }
+    return summaries, grouped_pft
 
 
 # =============================================================================
@@ -181,14 +98,13 @@ def mean_summaries(df_mono_prepared):
 def main():
     _config.apply_style()
     output_dir = _utils.ensure_dir(FIGURES_APPENDIX)
-    df_mono_prepared = read_mono_prepared()
 
-    summaries = mean_summaries(df_mono_prepared)
+    summaries, grouped_pft = mean_summaries()
 
     fig = _utils.draw_structure_figure(
         {metric: (summary, None) for metric, summary in summaries.items()},
-        salinity_levels=sorted(df_mono_prepared["salinity"].dropna().unique()),
-        pft_levels=sorted(df_mono_prepared["pft"].dropna().unique()),
+        salinity_levels=sorted(grouped_pft["salinity"].unique()),
+        pft_levels=sorted(grouped_pft["pft"].unique()),
         ylabels=metrics_mono,
         panel_order=panel_order,
         show_community=False,
