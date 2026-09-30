@@ -25,6 +25,7 @@ from datetime import datetime
 import csv
 import fnmatch
 import sys
+from pathlib import PureWindowsPath
 
 from source.paths import (
     XML_CONTROL_FILES,
@@ -185,19 +186,25 @@ def select_xml_files(
     all_xml = list_all_xml()
     filtered = filter_by_categories(all_xml, only_categories, exclude_categories)
 
-    # The log only grows; later rows overwrite earlier ones for the same file.
-    latest_status = {os.path.abspath(row["xml_file"]): row["status"] for row in read_logfile()}
+    # Match by file name, so the log stays valid when the repository is moved
+    # or renamed. The log only grows; later rows overwrite earlier ones.
+    latest_status = {xml_name(row["xml_file"]): row["status"] for row in read_logfile()}
 
     if retry_only:
         return sorted(
             f for f in filtered
-            if latest_status.get(os.path.abspath(f), "OK") != "OK"
+            if latest_status.get(xml_name(f), "OK") != "OK"
         )
 
     if include_done:
         return filtered
 
-    return [f for f in filtered if latest_status.get(os.path.abspath(f)) != "OK"]
+    return [f for f in filtered if latest_status.get(xml_name(f)) != "OK"]
+
+
+def xml_name(path):
+    """File name of an XML path; handles both / and \\ separators on any system."""
+    return PureWindowsPath(path).name
 
 
 # ======================================================
