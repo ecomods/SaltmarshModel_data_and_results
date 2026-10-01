@@ -129,7 +129,7 @@ def pale(color, strength=0.62):
 # greyscale; the change of hue between the two dynamic regimes keeps them apart
 # in colour and with red-green colour blindness. Purple and magenta do not
 # occur in the PFT palette.
-REGIME_LABELS = {"V0": "Static", "V1": "Seasonal", "V2": "Seasonal + tide"}
+REGIME_LABELS = {"V0": "Static (V0)", "V1": "Seasonal (V1)", "V2": "Seasonal + tide (V2)"}
 regime_color_map = {"V0": "black", "V1": "#8E44AD", "V2": "#E78AC3"}
 REGIME_LINEWIDTH = 1.2
 
