@@ -1,11 +1,13 @@
 """
 Figure 2: total biovolume of community and monocultures under static salinity.
 
-Community runs are shown as stacked PFT contributions, monocultures as pale
-PFT bars. Values are means of the ten replicates of the mean total biovolume
-in years 5-10; output steps without plants count as 0.
+Community runs are shown as stacked PFT contributions, monocultures as striped
+PFT bars. Values are means of the ten replicate time means in years 5-10;
+output steps without plants count as 0. Error bars show one sample SD across
+replicate time means, drawn behind bars. Community SD uses replicate totals.
 
-Input:  figure_data/comm_mat.csv, mono_mat.csv
+Input:  figure_data/comm_mat.csv, mono_mat.csv,
+        grouped_all_static.csv, grouped_pft_mono_static.csv
 Output: figures/main/fig2_community_vs_monoculture.png
 """
 
@@ -37,12 +39,28 @@ def community_style(color):
 
 
 def monoculture_style(color):
-    """Pale colour, no outline."""
-    return {"facecolor": config.pale(color), "linewidth": 0}
+    """Opaque PFT colour with translucent white stripes and no outline."""
+    return {"facecolor": color, "edgecolor": (1, 1, 1, 0.60),
+            "hatch": "////", "linewidth": 0}
 
 
-def draw_figure(comm_mat, mono_mat):
-    """Draw community (stacked) and monoculture (pale) bars per salinity."""
+def read_replicate_stats():
+    """Mean and sample SD of community totals or individual monocultures."""
+    data = pd.concat([
+        pd.read_csv(FIGURE_DATA / "grouped_all_static.csv"),
+        pd.read_csv(FIGURE_DATA / "grouped_pft_mono_static.csv"),
+    ], ignore_index=True)
+    if data.duplicated(["salinity", "pft", "n"]).any():
+        raise ValueError("Duplicate replicate identifiers in Figure 2 inputs.")
+    stats = data.groupby(["salinity", "pft"]).total_volume.agg(
+        mean="mean", sd="std", n="count").reset_index()
+    if not (stats.n == 10).all():
+        raise ValueError("Figure 2 requires ten replicate time means per bar.")
+    return stats
+
+
+def draw_figure(comm_mat, mono_mat, stats):
+    """Draw stacked communities and striped monocultures with SD behind bars."""
     salinities = config.SAL_STATIC
     pfts = config.PFTS
     colors = config.pft_color_map
@@ -66,9 +84,18 @@ def draw_figure(comm_mat, mono_mat):
         ax.bar(x_base + offsets[i], mono_mat.loc[salinities, pft].values, width,
                **monoculture_style(colors[pft]))
 
+    for i, pft in enumerate([0, *pfts]):
+        sub = stats[stats.pft == pft].set_index("salinity").loc[salinities]
+        # Do not draw error-cap marks for absent PFTs with zero mean and SD.
+        visible = (sub["mean"] != 0) | (sub["sd"] != 0)
+        ax.errorbar((x_base + offsets[i])[visible], sub["mean"][visible],
+                    yerr=sub["sd"][visible], fmt="none", ecolor="0.15",
+                    elinewidth=0.65, capsize=1.6, capthick=0.65, zorder=0.8)
+
     ax.set_xticks(x_base + offsets.mean(), [str(s) for s in salinities])
     ax.set_xlabel("Salinity (ppt)")
     ax.set_ylabel("Total biovolume (m³)")
+    ax.set_ylim(0, float((stats["mean"] + stats.sd).max()) * 1.05)
     ax.set_axisbelow(True)
     ax.grid(axis="y", linewidth=0.5, alpha=0.4)
 
@@ -86,7 +113,9 @@ def draw_figure(comm_mat, mono_mat):
 
 def main():
     config.apply_style()
-    fig = draw_figure(read_matrix("comm_mat.csv"), read_matrix("mono_mat.csv"))
+    plt.rcParams["hatch.linewidth"] = 0.45
+    fig = draw_figure(read_matrix("comm_mat.csv"), read_matrix("mono_mat.csv"),
+                      read_replicate_stats())
     config.save_figure(fig, OUT_PNG)
     plt.close(fig)
 
