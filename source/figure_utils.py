@@ -290,8 +290,9 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
     pft. summary_all is the community reference and is only used when
     show_community is True. Within each salinity group, points are placed in
     the order community (optional), PFT 1, ..., PFT 4. Salinity groups are
-    separated only by a wider gap (group_spacing), not by lines. Panels are labelled
-    a)-d) in panel_order; the legend sits in the top-right panel.
+    separated by a wider gap (group_spacing) and alternating light-grey
+    background bands. Panels are labelled a)-d) in panel_order; the legend
+    sits in the top-right panel.
     """
     x_group = np.arange(len(salinity_levels)) * group_spacing
     sal_to_x = {sal: x_group[i] for i, sal in enumerate(salinity_levels)}
@@ -348,5 +349,17 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
 
     # Legend inside the top-right panel, using the handles drawn there.
     axes[0, 1].legend(loc="upper right")
+
+    # Add bands after all series have set the shared x-limits. Boundaries lie
+    # halfway between scenario centres; shading must not expand the axes.
+    xlim = axes[0, 0].get_xlim()
+    boundaries = np.r_[xlim[0], (group_centers[:-1] + group_centers[1:]) / 2, xlim[1]]
+    for ax in axes.ravel():
+        ax.set_xlim(xlim)
+    for ax in axes.ravel():
+        for index in range(0, len(group_centers), 2):
+            band = ax.axvspan(boundaries[index], boundaries[index + 1],
+                             facecolor="0.95", edgecolor="none", zorder=-1)
+            band.set_in_layout(False)
 
     return fig
