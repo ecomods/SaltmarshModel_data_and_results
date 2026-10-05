@@ -2,8 +2,8 @@
 Figure 1: salinity response curves of the four PFTs.
 
 Plots the belowground resource limitation (Forman logistic function) over
-salinity, with the parameters read from the species files. Vertical lines
-mark the static salinities of the simulations.
+salinity, with the parameters read from the species files. Coloured vertical
+lines and labels mark the static salinities of the simulations.
 
 Input:  model_input/species/Saltmarsh_{1-4}.py
 Output: figures/main/fig1_salinity_response.png
@@ -40,7 +40,12 @@ def main():
     # Reference lines at the simulated static salinities. The grid is
     # horizontal only, so these are the only vertical lines.
     for salinity in config.SAL_STATIC:
-        ax.axvline(salinity, color="0.6", linewidth=0.6, zorder=1)
+        ax.axvline(salinity, color=config.salinity_color_map[salinity], linewidth=1.0, zorder=1)
+        ax.annotate(
+            f"{salinity} ppt", xy=(salinity, 1), xycoords=("data", "axes fraction"),
+            xytext=(0, 4), textcoords="offset points", ha="center", va="bottom",
+            fontsize=plt.rcParams["xtick.labelsize"], annotation_clip=False,
+        )
 
     ax.set_xlabel("Salinity (ppt)")
     ax.set_ylabel(r"$f_{\mathrm{reslim\_bg,Forman}}$ (–)")
