@@ -62,6 +62,45 @@ git checkout 20dcbfcd993af54000d6bdb421c459ceac7a4c05
 See the [pyMANGA documentation](https://pymanga.forst.tu-dresden.de/docs/getting_started/installation/)
 for details. A different location can be set in `source/paths.py`.
 
+## Recreating the salinity inputs
+
+`source/create_salinity_scenarios.py` generates the six dynamic salinity inputs
+from `source/salinity_from_model.npz`. It uses NumPy, pandas and Matplotlib,
+which are included in `requirements.txt`; no R installation is needed.
+
+Run from the repository folder using the existing Python environment:
+
+```powershell
+.\.venv\Scripts\python.exe -B source\create_salinity_scenarios.py
+```
+
+The script estimates seasonal amplitudes from first-layer hourly extrema,
+generates seasonal and tidal curves, and adjusts them to mean salinities of
+35, 70 and 105 ppt within a 0-200 ppt range. Calculations retain full numerical
+precision. It writes six CSVs to `model_input/salinity/`, replacing the existing
+files. Each file has 7,300 daily timestamps and two identical salinity columns.
+One final Matplotlib figure shows the three salinity panels and V0/V1/V2 curves
+as in Figure S2. Close the plot window to finish; the manuscript PNG is not
+replaced. Preserve the existing CSVs before regeneration when comparing
+versions. Ctrl+C stops execution; rerun from the start to finish exports.
+
+The NPZ is a compressed NumPy archive containing the same values as the RData
+file. To inspect it directly:
+
+```python
+import numpy as np
+
+with np.load("source/salinity_from_model.npz") as data:
+    salinity = data["clay_array"]  # 27 elevations x 8,760 hours x 3 soil layers
+    day = data["day"]             # time in days, at hourly intervals
+    heights = data["heightlevels"]  # elevation in metres
+```
+
+Salinity is in kg/kg. The archive also includes the three original dimension
+label arrays as `clay_array_dimnames_1`, `_2` and `_3`. All numeric values and
+dimension labels were preserved exactly. `source/create_salinity_scenarios.R`
+is retained as an optional R reference and reads the original RData file.
+
 ## Recreating the figures
 
 To create all figures from the committed tables in `figure_data/`:
