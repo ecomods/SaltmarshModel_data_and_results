@@ -164,10 +164,7 @@ def panel_title(pft, p_maint):
 
 
 def add_growth_legend(fig):
-    """
-    Salinity colours under the header "Potential growth at", below the
-    panels. Added before the layout is frozen so its space is reserved.
-    """
+    """Potential-growth legend below the panels; call before freezing the layout."""
     growth_handles = [
         Line2D([], [], color=SALINITY_COLORS[sal], label=f"{sal} ppt")
         for sal in SALINITIES
@@ -183,10 +180,7 @@ def add_growth_legend(fig):
 
 
 def add_maintenance_legend(fig, growth_legend):
-    """
-    Black maintenance line as a second legend block; both blocks are then
-    centred side by side below the panels. Call after the layout is frozen.
-    """
+    """Maintenance legend, centred with the growth legend; call after freezing."""
     maintenance_legend = fig.legend(
         handles=[Line2D([], [], color="black", label="Maintenance")],
         loc="lower left",

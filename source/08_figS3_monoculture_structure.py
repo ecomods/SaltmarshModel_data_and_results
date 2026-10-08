@@ -17,8 +17,7 @@ from paths import FIGURE_DATA, FIGURES_APPENDIX
 
 OUT_PNG = FIGURES_APPENDIX / "figS3_monoculture_structure.png"
 
-# Four points per salinity group (no community point): smaller group spacing
-# than Fig. 3 gives the same gap between groups.
+# No community point, so less spacing than Fig. 3 for the same gaps.
 GROUP_SPACING = 3.25
 
 

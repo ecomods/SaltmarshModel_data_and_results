@@ -17,8 +17,7 @@ import matplotlib.pyplot as plt
 
 MM_TO_INCH = 1 / 25.4
 
-# Figure widths for an A4 document with about 160 mm text width. Figures are
-# drawn at these sizes so that font sizes are the same in every figure.
+# Figure widths (mm) for a 160 mm text width.
 WIDTH_HALF_MM = 80
 WIDTH_MEDIUM_MM = 120
 WIDTH_FULL_MM = 160
@@ -37,12 +36,8 @@ def apply_style(base_size=8):
     """
     Apply the shared manuscript figure style.
 
-    All text sizes are relative to base_size, so changing it scales all text
-    together. Figures use constrained layout, so they keep their exact size
-    and labels are not cut off. Scripts should not set absolute font sizes.
-
-    Axes, ticks and text are thin and dark grey, without top and right axis
-    lines, so that the data stand out.
+    All text sizes are relative to base_size; scripts should not set absolute
+    font sizes.
     """
     small_size = base_size * 7 / 8
     text_color = "0.15"
@@ -70,8 +65,7 @@ def apply_style(base_size=8):
         "ytick.major.width": 0.6,
         "xtick.major.size": 3,
         "ytick.major.size": 3,
-        # White legend background without border, so gridlines do not show
-        # through the legend.
+        # Opaque legend background without border.
         "legend.edgecolor": "none",
         "legend.framealpha": 1,
         "figure.constrained_layout.use": True,
@@ -105,24 +99,15 @@ VARIANT_LEVELS = ["V0", "V1", "V2"]
 # Colors
 # =============================================================================
 
-# PFT 1-4: scico "batlow" (Crameri) sampled at 0.10, 0.32, 0.54 and 0.76 of the
-# scale. The very light end is left out so that PFT 4 keeps full visual weight.
-# Chosen from previews with red-green colour-blindness and greyscale checks.
-# Fixed hex values, so the cmcrameri package is not needed.
+# PFT colours: scico "batlow" (Crameri) at 0.10, 0.32, 0.54 and 0.76.
 pft_color_map = {1: "#0f3c5f", 2: "#376b58", 3: "#95872c", 4: "#f49f72"}
 
-# Salinity regimes (static V0, seasonal V1, seasonal + tide V2): display names
-# and line colours, shared by Figs. 4 and S2. Three lightness steps (black ->
-# medium purple -> light magenta), so the regimes are also distinguishable in
-# greyscale; the change of hue between the two dynamic regimes keeps them apart
-# in colour and with red-green colour blindness. Purple and magenta do not
-# occur in the PFT palette.
+# Salinity regimes (Figs. 4 and S2).
 REGIME_LABELS = {"V0": "Static (V0)", "V1": "Seasonal (V1)", "V2": "Seasonal + tide (V2)"}
 regime_color_map = {"V0": "black", "V1": "#8E44AD", "V2": "#E78AC3"}
 REGIME_LINEWIDTH = 1.2
 
-# Ordered blue scale for the salinity levels in Fig. S1 (light = low,
-# dark = high). The darkest shade stays distinguishable from black.
+# Static salinities from light (low) to dark blue (high) (Figs. 1 and S1).
 _blues = plt.get_cmap("Blues")
 salinity_color_map = {
     sal: _blues(level) for sal, level in zip(SAL_STATIC, [0.35, 0.55, 0.75, 0.9])

@@ -23,8 +23,7 @@ from paths import FIGURE_DATA, FIGURES_MAIN
 
 OUT_PNG = FIGURES_MAIN / "fig4_dynamic_biovolume.png"
 
-# Regime colours and display names are shared with Fig. S2 (figure_config);
-# data keys stay V0/V1/V2.
+# Line style per salinity regime.
 variant_style = {
     var: {"color": color, "linestyle": "-", "linewidth": config.REGIME_LINEWIDTH}
     for var, color in config.regime_color_map.items()
@@ -75,7 +74,7 @@ def build_total_volume_lookup(summary_pft_tv):
 
 
 def add_pft_legend(fig):
-    """PFT colours in one column, above the figure at the top right."""
+    """PFT legend above the panels at the top right."""
     pft_handles = [
         Patch(facecolor=config.pft_color_map[pft], edgecolor="none", label=f"PFT {pft}")
         for pft in config.PFTS
@@ -85,9 +84,8 @@ def add_pft_legend(fig):
 
 def add_variant_legend(fig, pft_legend):
     """
-    Salinity-regime lines in one column with a left-aligned header, placed at
-    the top left, mirroring the PFT legend at the top right (same distance to
-    the figure edge, same top). Call after the layout is frozen.
+    Salinity-regime legend at the top left, mirroring the PFT legend. Call
+    after the layout is frozen.
     """
     variant_handles = [
         Line2D([], [], label=config.REGIME_LABELS[var], **variant_style[var])

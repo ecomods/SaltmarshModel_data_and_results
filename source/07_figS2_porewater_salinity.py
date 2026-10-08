@@ -56,7 +56,7 @@ def main():
                     linewidth=config.REGIME_LINEWIDTH)
             y_max = max(y_max, salinity_ppt.max())
 
-        # Mean salinity as a row label at the right edge (as in Fig. 4).
+        # Mean salinity as a row label at the right edge.
         ax.yaxis.set_label_position("right")
         ax.set_ylabel(f"{salinity} ppt", rotation=270, va="bottom")
 
@@ -80,7 +80,6 @@ def main():
                linewidth=config.REGIME_LINEWIDTH, label=config.REGIME_LABELS[regime])
         for regime in REGIMES
     ]
-    # Legend below the panels, as in Fig. S1.
     legend = fig.legend(handles=handles, title="Salinity regime",
                         loc="outside lower center", ncols=len(handles))
     legend.set_alignment("left")

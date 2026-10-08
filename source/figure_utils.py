@@ -149,14 +149,11 @@ def output_times():
 
 def fill_missing_steps(per_step, levels):
     """
-    Add the output steps without plants to a per-step table.
+    Add the output steps without plants (no rows in Population.csv) to a
+    per-step table indexed by the names in levels, n and time.
 
-    pyMANGA writes one row per living plant, so an output step without plants
-    (after removing seedlings) has no rows and would be skipped in time means.
-    per_step is indexed by the names in levels, n and time; levels maps each
-    name to all its values (e.g. {"salinity": [35, 70], "pft": [1, 2]}). The
-    added steps get 0 total biovolume and 0 plants; per-plant metrics stay
-    NaN, because they are undefined without plants.
+    levels maps each name to all its values, e.g. {"salinity": [35, 70]}.
+    Added steps get 0 total biovolume and 0 plants; per-plant metrics stay NaN.
     """
     index = pd.MultiIndex.from_product(
         [*levels.values(), REPLICATES, output_times()],
@@ -176,14 +173,10 @@ def replicate_time_means(df, levels):
     One mean-over-time value per scenario, PFT and replicate.
 
     levels maps the scenario columns to all their values, e.g.
-    {"salinity": config.SAL_STATIC}. For each output step: total biovolume
-    (sum over plants), mean biovolume per plant, mean height and mean AG/BG
-    ratio of the plants, and number of plants. Steps without plants count as
-    0 total biovolume and 0 plants; the per-plant metrics are averaged only
-    over steps with plants. The values are then averaged over the output
-    steps of each replicate. Returns the table by PFT and the table for the
-    whole community (pft = 0). summary_mean_std() then summarises across
-    replicates.
+    {"salinity": config.SAL_STATIC}. Metrics per output step are averaged over
+    the steps of each replicate; steps without plants count as 0 total
+    biovolume and 0 plants, per-plant means use only steps with plants.
+    Returns the table by PFT and the community table (pft = 0).
     """
     def per_replicate(group_levels):
         group_cols = list(group_levels)
@@ -226,11 +219,8 @@ def summary_minmax_mean(grouped_df, keys, metric):
 
 def summary_mean_std(grouped_df, keys, metric):
     """
-    Calculate mean and standard deviation across replicate-level values.
-
-    The input table must contain one value per replicate and scenario. The
-    returned error bars are symmetric and represent one standard deviation
-    across the available replicates.
+    Mean and standard deviation across replicates; the input has one value
+    per replicate and scenario.
     """
     summary = (
         grouped_df.groupby(keys)[metric]
@@ -260,9 +250,7 @@ def center_label_under(fig, axes_row, label):
     """
     Replace the x-axis labels of axes_row by one label centred below them.
 
-    Must be called after all other layout elements exist: the figure is laid
-    out once, then the layout is frozen so the space reserved for the
-    (now hidden) axis labels is kept.
+    Call after all other layout elements exist; it freezes the layout.
     """
     for ax in axes_row:
         ax.set_xlabel(label)
@@ -373,11 +361,10 @@ def draw_structure_figure(summaries, group_spacing=3.8):
 
     config.add_panel_labels(axes.ravel())
 
-    # Legend inside the top-right panel, using the handles drawn there.
+    # Legend in the top-right panel.
     axes[0, 1].legend(loc="upper right")
 
-    # Add bands after all series have set the shared x-limits. Boundaries lie
-    # halfway between scenario centres; shading must not expand the axes.
+    # Background bands, added last so they use the final x-limits.
     xlim = axes[0, 0].get_xlim()
     boundaries = np.r_[xlim[0], (group_centers[:-1] + group_centers[1:]) / 2, xlim[1]]
     for ax in axes.ravel():

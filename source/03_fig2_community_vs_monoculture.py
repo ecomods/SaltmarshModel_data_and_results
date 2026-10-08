@@ -4,8 +4,7 @@ Figure 2: total biovolume of community and monocultures under static salinity.
 Community runs are shown as stacked PFT contributions, monocultures as striped
 PFT bars. Values are means of the ten replicate time means in years 5-10;
 output steps without plants count as 0. Error bars show one sample SD across
-the replicate time means and are drawn behind the bars. For the community,
-the SD is calculated from the replicate totals over all PFTs.
+the replicate time means; for the community, of the totals over all PFTs.
 
 Input:  figure_data/comm_mat.csv, mono_mat.csv,
         grouped_all_static.csv, grouped_pft_mono_static.csv
@@ -85,7 +84,7 @@ def draw_figure(comm_mat, mono_mat, stats):
 
     for i, pft in enumerate([0, *pfts]):
         sub = stats[stats.pft == pft].set_index("salinity").loc[salinities]
-        # Do not draw error-cap marks for absent PFTs with zero mean and SD.
+        # No error bars for absent PFTs.
         visible = (sub["mean"] != 0) | (sub["sd"] != 0)
         ax.errorbar((x_base + offsets[i])[visible], sub["mean"][visible],
                     yerr=sub["sd"][visible], fmt="none", ecolor="0.15",

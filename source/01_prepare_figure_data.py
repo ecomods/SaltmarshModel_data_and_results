@@ -53,8 +53,7 @@ def prepare_static_community(output_dir):
 def prepare_static_monoculture(output_dir):
     """Tables for Figs. 2 and S3."""
     df = utils.load_static_monoculture()
-    # Each monoculture run has one PFT, but all four PFTs are run at every
-    # salinity, so the same salinity x PFT x replicate grid applies.
+    # All four PFTs are run alone at every salinity, so the full grid applies.
     grouped_pft, _ = utils.replicate_time_means(df, {"salinity": config.SAL_STATIC})
     save(total_volume_matrix(grouped_pft), output_dir, "mono_mat.csv", index=True)
     save(grouped_pft, output_dir, "grouped_pft_mono_static.csv")
