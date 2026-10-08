@@ -172,9 +172,9 @@ lines in Figure 4 are the mean across replicates at each output step.
    restarted. Useful options:
 
    ```powershell
-   python run_model.py --override-only community_static   # one category
-   python run_model.py --retry-errors                     # only failed runs
-   python run_model.py --include-done                     # also completed runs
+   python run_model.py --only community_static   # one or more categories
+   python run_model.py --retry-errors            # only failed runs
+   python run_model.py --include-done            # also completed runs
    ```
 
 3. Recreate the tables and figures with `python run_analysis.py`.

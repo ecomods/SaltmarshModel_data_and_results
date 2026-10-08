@@ -2,53 +2,34 @@
 Run pyMANGA for the XML control files created by create_setups.py.
 
 Runs are executed in parallel (MAX_WORKERS). Each run writes a log file to
-model_output/logs/, and model_output/logs/simulation_log.csv records its exit status.
-Runs marked OK in that file are skipped unless --include-done is given.
+model_output/logs/, and model_output/logs/simulation_log.csv records its exit
+status. Runs marked OK there are skipped unless --include-done is given.
 
 pyMANGA is expected next to this repository (../pyMANGA/MANGA.py). The
 location is set in source/paths.py.
 
 Usage (from the repository root):
-    python run_model.py --list-only       # show the selected runs
-    python run_model.py                   # run CATEGORIES_TO_RUN
-    python run_model.py --override-only community_static
-    python run_model.py --retry-errors    # rerun failed runs
-    python run_model.py --include-done    # also rerun completed runs
+    python run_model.py --list-only               # show the selected runs
+    python run_model.py                           # run all categories
+    python run_model.py --only community_static   # one or more categories
+    python run_model.py --retry-errors            # rerun failed runs
+    python run_model.py --include-done            # also rerun completed runs
 """
 
-import os
-import glob
-import subprocess
 import argparse
+import csv
+import subprocess
+import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
-import csv
-import fnmatch
-import sys
-from pathlib import PureWindowsPath
+from pathlib import Path, PureWindowsPath
 
-from source.paths import (
-    XML_CONTROL_FILES,
-    LOG_DIR as DEFAULT_LOG_DIR,
-    SIMULATION_LOG,
-    DEFAULT_MANGA_SCRIPT,
-)
+from source.paths import DEFAULT_MANGA_SCRIPT, LOG_DIR, SIMULATION_LOG, XML_CONTROL_FILES
 
-# ======================================================
-# === USER CONFIGURATION ===============================
-# ======================================================
-
-MANGA_PATH = DEFAULT_MANGA_SCRIPT
-XML_FOLDER = XML_CONTROL_FILES
-PYTHON_EXEC = sys.executable
 MAX_WORKERS = 6
-LOG_DIR = DEFAULT_LOG_DIR
-CSV_LOGFILE = SIMULATION_LOG
 
-# Simulation categories selected for execution. Use ["all"] to run every XML file.
-# Valid categories are community_static, community_dynamic, monoculture_static,
-# oneplant_static, and oneplant_dynamic.
-CATEGORIES_TO_RUN = [
+# Simulation categories are the XML file name prefixes.
+CATEGORIES = [
     "community_static",
     "community_dynamic",
     "monoculture_static",
@@ -56,225 +37,113 @@ CATEGORIES_TO_RUN = [
     "oneplant_dynamic",
 ]
 
-# Set to True to run XML files even if they are marked as OK in the CSV log.
-RECOMPUTE_COMPLETED = False
+LOG_FIELDS = ["xml_file", "log_file", "start_time", "end_time",
+              "duration_sec", "exit_code", "status"]
 
-# ======================================================
-# === INTERNAL CONFIG ==================================
-# ======================================================
-
-CATEGORY_PATTERNS = {
-    "community_dynamic":    "community_dynamic*.xml",
-    "community_static":     "community_static*.xml",
-    "monoculture_static":   "monoculture_static*.xml",
-    "oneplant_static":      "oneplant_static*.xml",
-    "oneplant_dynamic":     "oneplant_dynamic*.xml",
-    "all":                  "*.xml",
-}
-
-
-# ======================================================
-# === CORE FUNCTIONS ===================================
-# ======================================================
 
 def run_simulation(xml_file):
     """Run pyMANGA for one XML file from the pyMANGA folder; output goes to a log file."""
-    xml_file = os.path.abspath(xml_file)
-    xml_name = os.path.splitext(os.path.basename(xml_file))[0]
-    log_path = os.path.join(str(LOG_DIR), f"{xml_name}.log")
-
-    manga_dir = os.path.abspath(os.path.dirname(str(MANGA_PATH)))
-    manga_py = os.path.abspath(str(MANGA_PATH))
-
+    log_path = LOG_DIR / f"{xml_file.stem}.log"
     start_time = datetime.now()
     with open(log_path, "w", encoding="utf-8") as logfile:
         process = subprocess.run(
-            [PYTHON_EXEC, manga_py, "-i", xml_file],
-            cwd=manga_dir,
+            [sys.executable, str(DEFAULT_MANGA_SCRIPT), "-i", str(xml_file)],
+            cwd=DEFAULT_MANGA_SCRIPT.parent,
             stdout=logfile,
             stderr=logfile,
         )
     end_time = datetime.now()
-    duration = (end_time - start_time).total_seconds()
 
     return {
-        "xml_file": xml_file,
-        "log_file": log_path,
+        "xml_file": str(xml_file),
+        "log_file": str(log_path),
         "start_time": start_time.isoformat(),
         "end_time": end_time.isoformat(),
-        "duration_sec": duration,
+        "duration_sec": (end_time - start_time).total_seconds(),
         "exit_code": process.returncode,
         "status": "OK" if process.returncode == 0 else "ERROR",
     }
 
 
-def read_logfile():
-    if not os.path.isfile(str(CSV_LOGFILE)):
-        return []
-    with open(str(CSV_LOGFILE), newline='', encoding='utf-8') as f:
-        return list(csv.DictReader(f))
+def latest_status():
+    """Latest logged status per XML file name; later rows overwrite earlier ones."""
+    if not SIMULATION_LOG.is_file():
+        return {}
+    with open(SIMULATION_LOG, newline="", encoding="utf-8") as f:
+        # Match by file name, so the log stays valid when the repository is
+        # moved. PureWindowsPath reads both / and \ separators.
+        return {PureWindowsPath(row["xml_file"]).name: row["status"]
+                for row in csv.DictReader(f)}
 
 
-def append_to_logfile(result):
-    """Append one run result to the CSV log (written as soon as a run finishes)."""
-    file_exists = os.path.isfile(str(CSV_LOGFILE))
-    with open(str(CSV_LOGFILE), "a", newline="", encoding="utf-8") as f:
-        fieldnames = ["xml_file", "log_file", "start_time", "end_time",
-                      "duration_sec", "exit_code", "status"]
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        if not file_exists:
+def append_to_log(result):
+    """Append one run result to the CSV log as soon as the run finishes."""
+    new_file = not SIMULATION_LOG.is_file()
+    with open(SIMULATION_LOG, "a", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=LOG_FIELDS)
+        if new_file:
             writer.writeheader()
         writer.writerow(result)
 
 
-def list_all_xml():
-    return sorted(glob.glob(os.path.join(str(XML_FOLDER), "*.xml")))
-
-
-def _patterns_for(cats):
-    pats = []
-    for c in cats:
-        pat = CATEGORY_PATTERNS.get(c)
-        if pat is not None:
-            pats.append(os.path.join(str(XML_FOLDER), pat))
-    return pats
-
-
-def filter_by_categories(files, only_categories=None, exclude_categories=None):
-    """Filter XML files by simulation category using glob patterns."""
-    if not files:
-        return []
-
-    selected = files
-
-    # Keep only the selected categories.
-    if only_categories:
-        # The category "all" keeps the complete selected file list.
-        if "all" not in only_categories:
-            only_pats = _patterns_for(only_categories)
-            selected = [
-                f for f in selected
-                if any(fnmatch.fnmatch(f, pat) for pat in only_pats)
-            ]
-
-    # Remove excluded categories.
-    if exclude_categories:
-        excl_pats = _patterns_for(exclude_categories)
-        selected = [
-            f for f in selected
-            if not any(fnmatch.fnmatch(f, pat) for pat in excl_pats)
-        ]
-
-    return selected
-
-
-def select_xml_files(
-    retry_only=False,
-    only_categories=None,
-    exclude_categories=None,
-    include_done=False
-):
+def select_xml_files(categories, retry_only=False, include_done=False):
     """
-    Select XML files for execution.
+    Select XML files by category and latest logged status.
 
-    Selection steps:
-    1. Start from all XML files in the XML folder.
-    2. Apply optional category filters.
-    3. If retry_only is enabled, keep only files whose latest status is not OK.
-    4. Unless include_done is enabled, skip files whose latest status is OK.
+    retry_only selects only files with a logged status other than OK and takes
+    priority over include_done. Otherwise files marked OK are skipped unless
+    include_done is set; files without a log entry are selected.
     """
-    all_xml = list_all_xml()
-    filtered = filter_by_categories(all_xml, only_categories, exclude_categories)
-
-    # Match by file name, so the log stays valid when the repository is moved
-    # or renamed. The log only grows; later rows overwrite earlier ones.
-    latest_status = {xml_name(row["xml_file"]): row["status"] for row in read_logfile()}
-
+    files = [p for p in sorted(XML_CONTROL_FILES.glob("*.xml"))
+             if p.name.startswith(tuple(categories))]
+    status = latest_status()
     if retry_only:
-        return sorted(
-            f for f in filtered
-            if latest_status.get(xml_name(f), "OK") != "OK"
-        )
-
+        return [p for p in files if status.get(p.name, "OK") != "OK"]
     if include_done:
-        return filtered
+        return files
+    return [p for p in files if status.get(p.name) != "OK"]
 
-    return [f for f in filtered if latest_status.get(xml_name(f)) != "OK"]
-
-
-def xml_name(path):
-    """File name of an XML path; handles both / and \\ separators on any system."""
-    return PureWindowsPath(path).name
-
-
-# ======================================================
-# === MAIN =============================================
-# ======================================================
 
 def main():
-    # Include "all" in the allowed command-line category choices.
-    choices = list(CATEGORY_PATTERNS.keys())
-
-    parser = argparse.ArgumentParser(description="MANGA simulation controller")
+    parser = argparse.ArgumentParser(description="Run pyMANGA for the XML control files.")
+    parser.add_argument("--only", nargs="+", choices=CATEGORIES, default=CATEGORIES,
+                        metavar="CATEGORY",
+                        help=f"Run only these categories ({', '.join(CATEGORIES)})")
     parser.add_argument("--retry-errors", action="store_true",
-                        help="Rerun only failed simulations")
-    parser.add_argument("--exclude", nargs="+", choices=[c for c in choices if c != "all"],
-                        default=[],
-                        help="Exclude these categories")
-    parser.add_argument("--list-only", action="store_true",
-                        help="Only list selected XMLs and exit")
-    parser.add_argument("--override-only", nargs="+", choices=choices,
-                        help="Override CATEGORIES_TO_RUN temporarily (supports 'all')")
+                        help="Run only simulations that failed")
     parser.add_argument("--include-done", action="store_true",
-                        help="Include files already marked as OK in the log (recompute completed)")
-
+                        help="Also run simulations marked OK in the log")
+    parser.add_argument("--list-only", action="store_true",
+                        help="Only list the selected simulations")
     args = parser.parse_args()
 
-    # Determine the category selection.
-    only_categories = args.override_only if args.override_only else CATEGORIES_TO_RUN
-    # Use all categories if the configured category list is empty.
-    if not only_categories:
-        only_categories = ["all"]
-
-    # The command-line flag takes precedence over the in-script setting.
-    include_done = args.include_done or RECOMPUTE_COMPLETED
-
-    xml_files = select_xml_files(
-        retry_only=args.retry_errors,
-        only_categories=only_categories,
-        exclude_categories=args.exclude,
-        include_done=include_done
-    )
-
+    xml_files = select_xml_files(args.only, args.retry_errors, args.include_done)
     if not xml_files:
-        print("No XML files to run (selection empty or all done).")
+        print("No simulations selected (selection empty or all done).")
         return
 
-    print("Categories used:", ", ".join(only_categories))
-    if args.exclude:
-        print("Excluded:", ", ".join(args.exclude))
-    print(f"Include completed (OK in log): {include_done}")
+    print("Categories:", ", ".join(args.only))
+    print(f"Include completed (OK in log): {args.include_done}")
     print("Selection:")
-    for f in xml_files:
-        print(" -", os.path.relpath(f, str(XML_FOLDER)))
+    for path in xml_files:
+        print(" -", path.name)
 
     if args.list_only:
-        print(f"\n{len(xml_files)} XML file(s) selected (list-only).")
+        print(f"\n{len(xml_files)} simulation(s) selected (list-only).")
         return
 
-    print(f"\nRunning {len(xml_files)} simulations with up to {MAX_WORKERS} parallel threads...\n")
-
-    os.makedirs(LOG_DIR, exist_ok=True)
+    print(f"\nRunning {len(xml_files)} simulations, up to {MAX_WORKERS} in parallel...\n")
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = [executor.submit(run_simulation, xml) for xml in xml_files]
+        futures = [executor.submit(run_simulation, path) for path in xml_files]
         for future in as_completed(futures):
-            res = future.result()
-            append_to_logfile(res)
-            name = os.path.basename(res["xml_file"])
-            if res["status"] == "OK":
-                print(f"OK: {name} finished in {res['duration_sec']:.1f}s")
+            result = future.result()
+            append_to_log(result)
+            name = Path(result["xml_file"]).name
+            if result["status"] == "OK":
+                print(f"OK: {name} finished in {result['duration_sec']:.1f}s")
             else:
-                print(f"ERROR: {name} failed (exit code: {res['exit_code']})")
+                print(f"ERROR: {name} failed (exit code: {result['exit_code']})")
 
 
 if __name__ == "__main__":
