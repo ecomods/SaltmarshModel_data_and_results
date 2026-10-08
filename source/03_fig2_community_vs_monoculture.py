@@ -84,7 +84,7 @@ def draw_figure(comm_mat, mono_mat, stats):
 
     for i, pft in enumerate([0, *pfts]):
         sub = stats[stats.pft == pft].set_index("salinity").loc[salinities]
-        # No error bars for absent PFTs.
+        # Omit error bars when both mean and SD are zero.
         visible = (sub["mean"] != 0) | (sub["sd"] != 0)
         ax.errorbar((x_base + offsets[i])[visible], sub["mean"][visible],
                     yerr=sub["sd"][visible], fmt="none", ecolor="0.15",

@@ -36,7 +36,7 @@ tidal_weight = (((days + 7) % period) / (period - 1)) ** tidal_exponent
 
 
 def rescale_salinity(values, target_mean):
-    """Set the annual mean and the largest amplitude within 0-200 ppt."""
+    """Shift to target_mean and scale to the largest amplitude within 0-0.2 kg/kg."""
     centered = values - values.mean()
     scale = min(target_mean / -centered.min(), (0.2 - target_mean) / centered.max())
     return target_mean + scale * centered

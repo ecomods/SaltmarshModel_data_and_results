@@ -1,14 +1,8 @@
 """
-Reusable helper functions for data preparation and figure generation.
+Species parameters, plant-data loading, replicate summaries and shared plotting.
 
-The helper functions fall into four groups:
-
-1. Species parameters: load_species_parameters() and forman_response().
-2. Plant data: load_static_community(), load_static_monoculture() and
-   load_dynamic_community() return the cleaned plant rows of the model runs
-   and can be used for new analyses and figures.
-3. Summary functions used to create derived figure tables and error bars.
-4. Shared plotting functions used by several figure scripts.
+The load_* functions return the cleaned plant rows of the model runs, also
+for new analyses.
 """
 
 import functools
@@ -149,11 +143,11 @@ def output_times():
 
 def fill_missing_steps(per_step, levels):
     """
-    Add the output steps without plants (no rows in Population.csv) to a
+    Add the output steps without plants (after removing seedlings) to a
     per-step table indexed by the names in levels, n and time.
 
     levels maps each name to all its values, e.g. {"salinity": [35, 70]}.
-    Added steps get 0 total biovolume and 0 plants; per-plant metrics stay NaN.
+    Missing steps get 0 total biovolume and 0 plants; per-plant metrics stay NaN.
     """
     index = pd.MultiIndex.from_product(
         [*levels.values(), REPLICATES, output_times()],

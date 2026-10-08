@@ -2,9 +2,9 @@
 Figure S1: potential growth and maintenance costs over plant height.
 
 For each PFT, daily potential growth at the four static salinities and daily
-maintenance costs are calculated for a single plant with fixed geometry
-(radii and belowground height proportional to aboveground height). Points
-mark where growth equals maintenance (potential height, Table S1).
+maintenance costs are calculated over aboveground height, with radii
+proportional to height and belowground height equal to aboveground height.
+Points mark where growth equals maintenance (potential height, Table S1).
 
 Input:  model_input/species/Saltmarsh_{1-4}.py
 Output: figures/appendix/figS1_growth_vs_maintenance.png
