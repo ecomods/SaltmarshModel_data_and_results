@@ -16,6 +16,7 @@ pyMANGA.
 model_input/          model input
     species/              parameters of the four PFTs (Saltmarsh_1.py to _4.py)
     salinity/             dynamic salinity scenarios (35, 70, 105 ppt; V1, V2)
+    salinity_from_model.npz  hourly model salinity behind these scenarios
     plant_distribution/   initial position of the single plant (one-plant runs)
     xml_control_files/    one pyMANGA control file per simulation (300)
 model_output/         pyMANGA output: one Population.csv per simulation
@@ -27,6 +28,7 @@ create_setups.py          write the XML control files
 run_model.py              run the simulations with pyMANGA
 run_analysis.py           prepare the figure tables and create all figures
 calibrate_maintenance.py  calibration of the PFT maintenance factors
+create_salinity_scenarios.py  generation of the salinity scenarios
 ```
 
 The workflow is `create_setups.py` → `run_model.py` → `run_analysis.py`.
@@ -62,45 +64,21 @@ git checkout 20dcbfcd993af54000d6bdb421c459ceac7a4c05
 See the [pyMANGA documentation](https://pymanga.forst.tu-dresden.de/docs/getting_started/installation/)
 for details. A different location can be set in `source/paths.py`.
 
-## Recreating the salinity inputs
+## Salinity scenarios
 
-`source/create_salinity_scenarios.py` generates the six dynamic salinity inputs
-from `source/salinity_from_model.npz`. It uses NumPy, pandas and Matplotlib,
-which are included in `requirements.txt`; no R installation is needed.
-
-Run from the repository folder using the existing Python environment:
+The six files in `model_input/salinity/` are the salinity inputs of the
+published simulations. `create_salinity_scenarios.py` generates them from the
+hourly model salinity in `model_input/salinity_from_model.npz` and can be used
+for new scenarios:
 
 ```powershell
-.\.venv\Scripts\python.exe -B source\create_salinity_scenarios.py
+python create_salinity_scenarios.py
 ```
 
 The script estimates seasonal amplitudes from first-layer hourly extrema,
 generates seasonal and tidal curves, and adjusts them to mean salinities of
-35, 70 and 105 ppt within a 0-200 ppt range. Calculations retain full numerical
-precision. It writes six CSVs to `model_input/salinity/`, replacing the existing
-files. Each file has 7,300 daily timestamps and two identical salinity columns.
-One final Matplotlib figure shows the three salinity panels and V0/V1/V2 curves
-as in Figure S2. Close the plot window to finish; the manuscript PNG is not
-replaced. Preserve the existing CSVs before regeneration when comparing
-versions. Ctrl+C stops execution; rerun from the start to finish exports.
-
-The NPZ is a compressed NumPy archive containing the same values as the RData
-file. To inspect it directly:
-
-```python
-import numpy as np
-
-with np.load("source/salinity_from_model.npz") as data:
-    salinity = data["clay_array"]  # 27 elevations x 8,760 hours x 3 soil layers
-    day = data["day"]             # time in days, at hourly intervals
-    heights = data["heightlevels"]  # elevation in metres
-```
-
-Salinity is in kg/kg. The archive also includes the three original dimension
-label arrays as `clay_array_dimnames_1`, `_2` and `_3`. All numeric values and
-dimension labels were preserved exactly. `source/create_salinity_scenarios.R`
-is retained as an optional R reference and reads the original RData file.
-
+35, 70 and 105 ppt within a 0-200 ppt range. It writes six CSVs (7,300 daily
+values, two identical boundary columns) to `model_input/salinity/`
 ## Recreating the figures
 
 To create all figures from the committed tables in `figure_data/`:
