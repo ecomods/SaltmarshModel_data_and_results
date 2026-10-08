@@ -12,13 +12,14 @@ time step and a maximum duration of 10 years. The analysis uses the
 | `one_plant/static/<salinity>/PFT_<pft>/` | 16 | single plant | daily |
 | `one_plant/dynamic/<scenario>/PFT_<pft>/` | 24 | single plant | daily |
 
-Static salinities are 0.035, 0.070, 0.105 and 0.140 kg/kg; dynamic scenarios
-are `35_V1` to `105_V2` (mean salinity in ppt, seasonal V1 or seasonal with
+Static salinities are 35, 70, 105 and 140 ppt, stored in folders named
+`0.035`, `0.070`, `0.105` and `0.140`. Dynamic scenarios
+are `35_V1` to `105_V2` (mean salinity, seasonal V1 or seasonal with
 tides V2). Replicates are `01` to `10`.
 
 ## `Population.csv`
 
-Tab-separated, one row per plant and output step:
+Model output in separate folders per scenario. Tab-separated, one row per plant and output step:
 
 - `plant`: `Saltmarsh_<pft>_<id>`
 - `time`: s

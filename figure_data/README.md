@@ -13,5 +13,9 @@ Seven tables used by the figure scripts, written by
 | `summary_pft_tv.csv` | 4 | static and dynamic community runs: mean, minimum and maximum across replicates of the time-mean total biovolume per salinity, regime (`variant` V0-V2) and PFT |
 | `ts_total_volume.csv` | 4 | static and dynamic community runs: mean total biovolume across replicates per PFT and output day (`time_days`); `version` is salinity and regime, e.g. `35_V1` |
 
+The analysis uses output from years 5-10 and excludes plants younger than
+10 days. After filtering, steps without plants count as zero total biovolume
+and zero plants; per-plant means exclude these steps.
+
 Per-plant values are blank when no plants aged at least 10 days occur in
 that PFT or community during the replicate's analysis period.

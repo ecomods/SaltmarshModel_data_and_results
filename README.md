@@ -1,43 +1,43 @@
 # Salinity tolerance trade-offs in salt-marsh plant communities
 
-Model setup, simulation output and analysis code for the manuscript
-"Salinity tolerance trade-offs shape plant communities across static and
-dynamic salinity regimes: insights from an individual-based model" (in
-review). <!-- TODO: final title and reference after acceptance -->
+Model setup, simulation output and analysis code for the manuscript:
+
+Vollhüter, J., Baldauf, S., Wimmler, M.-C., Berger, U., Peters, R.,
+Mehlig, U., & Tietjen, B. (submitted). Salinity tolerance trade-offs shape plant communities across static and dynamic salinity regimes: insights from an individual-based model.
 
 The simulations use the individual-based model
 [pyMANGA](https://github.com/pymanga/pyMANGA) with four plant functional
 types (PFTs) that differ only in salinity tolerance and maintenance costs.
 All figures of the manuscript and the supplement can be recreated from this
-repository. Rerunning the simulations also requires pyMANGA.
+repository. Rerunning the simulations also requires downloading [pyMANGA v3.3.0](https://github.com/pymanga/pyMANGA/releases/tag/v3.3.0).
 
-Authors: Jonas Vollhüter, Selina Baldauf
+Code authors: Jonas Vollhüter, Selina Baldauf
 
-Contact: <!-- TODO: contact email -->
+Contact: selina.baldauf@fu-berlin.de
 
-## Contents
+## Repository contents
 
 ```text
 model_input/      species parameters, salinity scenarios, XML control files
 model_output/     pyMANGA output, one Population.csv per simulation
-figure_data/      seven tables used by the figure scripts
+figure_data/      seven model output summary tables used by the figure scripts
 figures/          main/ (Figures 1-4) and appendix/ (Figures S1-S3)
-source/           figure-table preparation, figure scripts, shared modules
+source/           figure-table preparation, figure scripts, shared functions
 
-create_setups.py              write the XML control files
+create_setups.py              write the XML control files for the simulations
 run_model.py                  run the simulations with pyMANGA
 run_analysis.py               create the figure tables and figures
 calibrate_maintenance.py      calibrate the PFT maintenance factors
 create_salinity_scenarios.py  create the salinity scenarios
 ```
 
-File descriptions are in [model_output/README.md](model_output/README.md)
-and [figure_data/README.md](figure_data/README.md).
+Detailed data file descriptions are in [model_output/README.md](model_output/README.md) and [figure_data/README.md](figure_data/README.md).
 
 ## Installation
 
 The results were produced with Python 3.13.1 and the package versions in
-`requirements.txt`. Run these commands from the repository root:
+`requirements.txt`. Run these commands from the repository root to set up
+an environment and install the dependencies:
 
 ```powershell
 python -m venv .venv
@@ -45,24 +45,18 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-pyMANGA is only needed to rerun the simulations. Place it next to this
-repository in a folder called `pyMANGA` (another location can be set in
-`source/paths.py`). The simulations were run with commit `20dcbfc`:
-
-```powershell
-cd ..
-git clone https://github.com/pymanga/pyMANGA.git
-cd pyMANGA
-git checkout 20dcbfcd993af54000d6bdb421c459ceac7a4c05
-cd ../vollhueter_saltmarsh_model
-```
-
 ## Recreating the figures
+
+Run the following scripts to re-create the figures
 
 ```powershell
 python run_analysis.py --figures-only   # figures from the tables in figure_data/
 python run_analysis.py                  # first recreate figure_data/ from model_output/ (about 30 s)
 ```
+
+`source/01_prepare_figure_data.py` creates the seven tables in `figure_data/`
+from the simulation output. See [figure_data/README.md](figure_data/README.md)
+for their contents and summary methods.
 
 | Figure | Script in `source/` | Output in `figures/` |
 | --- | --- | --- |
@@ -74,14 +68,11 @@ python run_analysis.py                  # first recreate figure_data/ from model
 | S2 | `07_figS2_porewater_salinity.py` | `appendix/figS2_porewater_salinity.png` |
 | S3 | `08_figS3_monoculture_structure.py` | `appendix/figS3_monoculture_structure.png` |
 
-`source/01_prepare_figure_data.py` uses output from years 5-10 and excludes
-plants younger than 10 days. Figures 2, 3 and S3 show means and standard
-deviations across ten replicate time means. After filtering, steps without
-plants count as zero total biovolume and zero plants; per-plant means exclude
-these steps. Figure 4 shows replicate means at each output time and
-time-averaged bars.
-
 ## Rerunning the simulations
+
+To re-run the simulation, you need to download the pyMANGA model and place it next to this
+repository in a folder called `pyMANGA` (another location can be set in
+`source/paths.py`). The simulations were run with pyMANGA v3.3.0 and you can download the official release [here](https://github.com/pymanga/pyMANGA/releases/tag/v3.3.0):
 
 ```powershell
 python create_setups.py   # write the XML control files
@@ -91,13 +82,12 @@ python run_analysis.py    # recreate the tables and figures
 
 The XML files contain paths relative to the pyMANGA folder, so run
 `create_setups.py` again after moving or renaming this repository or
-pyMANGA. With 6 parallel runs, all simulations take about 1 hour. Completed
+pyMANGA. With 6 parallel runs, all simulations take about 1-2 hours. Completed
 runs are logged in `model_output/logs/` and skipped, so an interrupted batch
 can be restarted. `python run_model.py --help` lists the options.
 
 The random seed of each simulation is its replicate number, so reruns give
-identical output. The committed XML files differ from the ones used for the
-simulations only in the folder names in their paths.
+identical output.
 
 The 40 one-plant runs are not used by the figures. They show the single-plant
 behaviour behind the calibration: at 70 ppt all four PFTs reach the same
@@ -108,11 +98,10 @@ aboveground height (about 1.022 m) within 200 days.
 `model_input/salinity/` contains the daily porewater salinity of the dynamic
 scenarios: seasonal (V1) and seasonal with tides (V2), with mean salinities
 of 35, 70 and 105 ppt. They were derived from the hourly porewater salinity in
-`model_input/salinity_from_model.npz`, simulated with
-<!-- TODO: model, site and reference of the hourly salinity data -->.
+`model_input/salinity_from_model.npz`.
 
 `create_salinity_scenarios.py` generates and plots salinity scenarios.
-Run it only to generate new inputs; it overwrites `model_input/salinity/`.
+Run it only to generate new salinity inputs; it overwrites `model_input/salinity/`.
 
 ## Calibration of the maintenance factors
 
@@ -130,7 +119,7 @@ figures in the species files).
 
 ## How to cite
 
-<!-- TODO: citation and DOI of the paper and of the archived repository -->
+*Will be added after acceptance*
 
 ## License
 
