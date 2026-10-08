@@ -49,7 +49,7 @@ this repository in a folder called `pyMANGA`:
 
 ```text
 pyMANGA/
-data_and_results/       this repository (any folder name)
+vollhueter_saltmarsh_model/   this repository (any folder name)
 ```
 
 The simulations were run with pyMANGA commit `20dcbfc` (branch `master`,
@@ -159,9 +159,8 @@ lines in Figure 4 are the mean across replicates at each output step.
 
 The random seed of each simulation is its replicate number, so reruns give
 identical output. The XML files in this repository were regenerated after
-the folders were renamed (from `data_model_input`, `data_raw` and `data`);
-apart from these paths they are identical to the files used for the
-simulations.
+the folders and the repository were renamed; apart from these paths they are
+identical to the files used for the simulations.
 
 ### Simulations
 
