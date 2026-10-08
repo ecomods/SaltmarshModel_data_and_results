@@ -16,69 +16,41 @@ Usage (from the repository root):
 
 import os
 import xml.etree.ElementTree as ET
-from xml.dom import minidom
 from pathlib import Path
+from xml.dom import minidom
 
 from source.paths import (
-    MODEL_OUTPUT,
-    SPECIES_DIR,
-    SALINITY_DIR,
-    PLANT_DISTRIBUTION_DIR,
-    XML_CONTROL_FILES,
     DEFAULT_MANGA_DIR,
+    MODEL_OUTPUT,
+    PLANT_DISTRIBUTION_DIR,
+    SALINITY_DIR,
+    SPECIES_DIR,
+    XML_CONTROL_FILES,
 )
 
 
 def path_for_xml(path):
-    """
-    Return a POSIX-style path for XML files, relative to pyMANGA's cwd.
-
-    pyMANGA is started from DEFAULT_MANGA_DIR. Therefore all file paths written
-    into XML files must be valid relative to DEFAULT_MANGA_DIR.
-    """
+    """POSIX path relative to the pyMANGA folder (absolute on another drive)."""
     path = Path(path).resolve()
-    base = DEFAULT_MANGA_DIR.resolve()
-
     try:
-        return Path(os.path.relpath(path, start=base)).as_posix()
+        return Path(os.path.relpath(path, start=DEFAULT_MANGA_DIR.resolve())).as_posix()
     except ValueError:
         return path.as_posix()
 
 
 def make_output_dir(*parts):
-    """
-    Create an output directory under model_output/ and return its XML path.
-
-    Parameters
-    ----------
-    *parts : str
-        Path components below MODEL_OUTPUT.
-
-    Returns
-    -------
-    str
-        POSIX-style path relative to pyMANGA's working directory.
-    """
-    output_dir = MODEL_OUTPUT.joinpath(*[str(p) for p in parts])
+    """Create an output folder below model_output/ and return its XML path."""
+    output_dir = MODEL_OUTPUT.joinpath(*parts)
     output_dir.mkdir(parents=True, exist_ok=True)
     return path_for_xml(output_dir)
 
 
-# ================================================================
-# CONFIGURATION
-# ================================================================
+# =============================================================================
+# Configuration
+# =============================================================================
 
 CONFIG = {
-    "enabled_setups": {
-        "community_static": True,
-        "community_dynamic": True,
-        "monoculture_static": True,
-        "oneplant_static": True,
-        "oneplant_dynamic": True,
-    },
-
     "paths": {
-        "xml_dir": str(XML_CONTROL_FILES),
         "species_dir": path_for_xml(SPECIES_DIR),
         "salinity_dir": path_for_xml(SALINITY_DIR),
         "oneplant_distribution_file": path_for_xml(
@@ -120,7 +92,6 @@ CONFIG = {
 
     "population": {
         "community": {
-            "group_count": 4,
             "mortality": "Memory Random SizeThreshold",
             "n_recruitment_per_step": 4,
             "n_individuals": 40,
@@ -168,110 +139,64 @@ CONFIG = {
 }
 
 
-# ================================================================
-# HELPERS
-# ================================================================
-
-def prettify(elem):
-    rough_string = ET.tostring(elem, "utf-8")
-    return minidom.parseString(rough_string).toprettyxml(indent="    ")
-
+# =============================================================================
+# XML elements
+# =============================================================================
 
 def add_domain(parent):
     d = CONFIG["domain"]
-
     domain = ET.SubElement(parent, "domain")
-    ET.SubElement(domain, "x_1").text = str(d["x_1"])
-    ET.SubElement(domain, "y_1").text = str(d["y_1"])
-    ET.SubElement(domain, "x_2").text = str(d["x_2"])
-    ET.SubElement(domain, "y_2").text = str(d["y_2"])
-
-
-def add_random_seed(project, seed):
-    """Add the random seed as the first project-level XML element."""
-    seed_element = ET.Element("random_seed")
-    seed_element.text = str(seed)
-    project.insert(0, seed_element)
+    for key in ["x_1", "y_1", "x_2", "y_2"]:
+        ET.SubElement(domain, key).text = str(d[key])
 
 
 def add_resources(project, salinity_text):
+    d = CONFIG["domain"]
+    bg_cfg = CONFIG["belowground"]
     resources = ET.SubElement(project, "resources")
 
     ag = ET.SubElement(resources, "aboveground")
     ET.SubElement(ag, "type").text = CONFIG["aboveground"]["type"]
     add_domain(ag)
-    ET.SubElement(ag, "x_resolution").text = str(CONFIG["domain"]["x_resolution"])
-    ET.SubElement(ag, "y_resolution").text = str(CONFIG["domain"]["y_resolution"])
+    ET.SubElement(ag, "x_resolution").text = str(d["x_resolution"])
+    ET.SubElement(ag, "y_resolution").text = str(d["y_resolution"])
 
     bg = ET.SubElement(resources, "belowground")
-    ET.SubElement(bg, "type").text = CONFIG["belowground"]["type"]
-    ET.SubElement(bg, "modules").text = CONFIG["belowground"]["modules"]
+    ET.SubElement(bg, "type").text = bg_cfg["type"]
+    ET.SubElement(bg, "modules").text = bg_cfg["modules"]
     add_domain(bg)
-    ET.SubElement(bg, "x_resolution").text = str(CONFIG["domain"]["x_resolution"])
-    ET.SubElement(bg, "y_resolution").text = str(CONFIG["domain"]["y_resolution"])
-    ET.SubElement(bg, "variant").text = str(CONFIG["belowground"]["variant"])
-    ET.SubElement(bg, "min_x").text = str(CONFIG["belowground"]["min_x"])
-    ET.SubElement(bg, "max_x").text = str(CONFIG["belowground"]["max_x"])
+    ET.SubElement(bg, "x_resolution").text = str(d["x_resolution"])
+    ET.SubElement(bg, "y_resolution").text = str(d["y_resolution"])
+    for key in ["variant", "min_x", "max_x"]:
+        ET.SubElement(bg, key).text = str(bg_cfg[key])
     ET.SubElement(bg, "salinity").text = salinity_text
 
 
-def add_group_core(group, pft_idx, pop_cfg):
-    paths = CONFIG["paths"]
-
-    ET.SubElement(group, "name").text = f"Saltmarsh_{pft_idx}"
-    ET.SubElement(group, "species").text = (
-        f"{paths['species_dir']}/Saltmarsh_{pft_idx}.py"
-    )
+def add_group(population, pft, pop_cfg):
+    """One plant group (PFT); one-plant runs read the plant from a file."""
+    group = ET.SubElement(population, "group")
+    ET.SubElement(group, "name").text = f"Saltmarsh_{pft}"
+    ET.SubElement(group, "species").text = f"{CONFIG['paths']['species_dir']}/Saltmarsh_{pft}.py"
     ET.SubElement(group, "vegetation_model_type").text = "Saltmarsh"
     ET.SubElement(group, "mortality").text = pop_cfg["mortality"]
     ET.SubElement(group, "period").text = pop_cfg["period"]
     ET.SubElement(group, "threshold").text = pop_cfg["threshold"]
-
     if "probability" in pop_cfg:
         ET.SubElement(group, "probability").text = pop_cfg["probability"]
-
     add_domain(group)
 
-
-def add_random_group(population, pft_idx, population_key):
-    pop_cfg = CONFIG["population"][population_key]
-
-    group = ET.SubElement(population, "group")
-    add_group_core(group, pft_idx, pop_cfg)
-
     initial_population = ET.SubElement(group, "initial_population")
     ET.SubElement(initial_population, "type").text = pop_cfg["initial_population_type"]
-    ET.SubElement(initial_population, "n_individuals").text = str(
-        pop_cfg["n_individuals"]
-    )
+    if pop_cfg["initial_population_type"] == "FromFile":
+        ET.SubElement(initial_population, "filename").text = (
+            CONFIG["paths"]["oneplant_distribution_file"]
+        )
+    else:
+        ET.SubElement(initial_population, "n_individuals").text = str(pop_cfg["n_individuals"])
 
     production = ET.SubElement(group, "production")
     ET.SubElement(production, "type").text = pop_cfg["production_type"]
-    ET.SubElement(production, "per_model_area").text = str(
-        pop_cfg["n_recruitment_per_step"]
-    )
-
-    dispersal = ET.SubElement(group, "dispersal")
-    ET.SubElement(dispersal, "type").text = pop_cfg["dispersal_type"]
-
-
-def add_oneplant_group(population, pft_idx):
-    pop_cfg = CONFIG["population"]["oneplant"]
-
-    group = ET.SubElement(population, "group")
-    add_group_core(group, pft_idx, pop_cfg)
-
-    initial_population = ET.SubElement(group, "initial_population")
-    ET.SubElement(initial_population, "type").text = pop_cfg["initial_population_type"]
-    ET.SubElement(initial_population, "filename").text = (
-        CONFIG["paths"]["oneplant_distribution_file"]
-    )
-
-    production = ET.SubElement(group, "production")
-    ET.SubElement(production, "type").text = pop_cfg["production_type"]
-    ET.SubElement(production, "per_model_area").text = str(
-        pop_cfg["n_recruitment_per_step"]
-    )
+    ET.SubElement(production, "per_model_area").text = str(pop_cfg["n_recruitment_per_step"])
 
     dispersal = ET.SubElement(group, "dispersal")
     ET.SubElement(dispersal, "type").text = pop_cfg["dispersal_type"]
@@ -279,37 +204,26 @@ def add_oneplant_group(population, pft_idx):
 
 def add_time_loop(project):
     t = CONFIG["time"]
-
     loop = ET.SubElement(project, "time_loop")
     ET.SubElement(loop, "type").text = "Simple"
-    ET.SubElement(loop, "t_start").text = str(t["t_start"])
-    ET.SubElement(loop, "t_end").text = str(t["t_end"])
-    ET.SubElement(loop, "delta_t").text = str(t["delta_t"])
-    ET.SubElement(loop, "terminal_print").text = t["terminal_print"]
+    for key in ["t_start", "t_end", "delta_t", "terminal_print"]:
+        ET.SubElement(loop, key).text = str(t[key])
 
 
-def add_visualization(project):
-    vis = ET.SubElement(project, "visualization")
-    ET.SubElement(vis, "type").text = "NONE"
-
-
-def add_output(project, output_dir, output_range, output_each_nth_timestep):
+def add_output(project, output_dir, run_type):
+    """Output settings; run_type "oneplant" or "community" (also monocultures)."""
     out_cfg = CONFIG["output"]
-
     output = ET.SubElement(project, "output")
     ET.SubElement(output, "type").text = "OneFile"
-    ET.SubElement(output, "output_time_range").text = output_range
-    ET.SubElement(output, "allow_previous_output").text = str(
-        out_cfg["allow_previous_output"]
-    )
+    ET.SubElement(output, "output_time_range").text = out_cfg[f"{run_type}_output_range"]
+    ET.SubElement(output, "allow_previous_output").text = str(out_cfg["allow_previous_output"])
     ET.SubElement(output, "output_each_nth_timestep").text = (
-        f"[0,{output_each_nth_timestep}]"
+        f"[0,{out_cfg[f'{run_type}_output_each_nth_timestep']}]"
     )
     ET.SubElement(output, "output_dir").text = output_dir
 
     for g in ["r_ag", "h_ag", "r_bg", "h_bg"]:
         ET.SubElement(output, "geometry_output").text = g
-
     for g in [
         "aboveground_resources",
         "belowground_resources",
@@ -326,244 +240,81 @@ def add_output(project, output_dir, output_range, output_each_nth_timestep):
         ET.SubElement(output, "growth_output").text = g
 
 
-def write_xml(filepath, project):
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(prettify(project))
+# =============================================================================
+# Setups
+# =============================================================================
+
+def static_salinity(salinity):
+    """Constant salinity (kg/kg) at both ends of the domain."""
+    return f"{salinity:.3f} {salinity:.3f}"
 
 
-# ================================================================
-# SETUP WRITERS
-# ================================================================
+def salinity_file(salinity_id):
+    """Salinity input file, e.g. 35_V1."""
+    return f"{CONFIG['paths']['salinity_dir']}/{salinity_id}.csv"
 
-def write_community_static(filepath, salinity, replicate):
+
+def write_setup(name, salinity_text, population_key, pfts, seed, output_parts):
+    """Write one XML control file and create its output folder."""
     project = ET.Element("MangaProject")
-    add_random_seed(project, replicate)
-    add_resources(project, f"{salinity:.3f} {salinity:.3f}")
+    ET.SubElement(project, "random_seed").text = str(seed)
+    add_resources(project, salinity_text)
 
     population = ET.SubElement(project, "population")
-
-    for pft_idx in range(1, CONFIG["population"]["community"]["group_count"] + 1):
-        add_random_group(population, pft_idx, "community")
-
-    add_time_loop(project)
-    add_visualization(project)
-
-    output_dir = make_output_dir(
-        "community",
-        "static",
-        f"{salinity:.3f}",
-        f"{replicate:02d}",
-    )
-
-    add_output(
-        project,
-        output_dir,
-        CONFIG["output"]["community_output_range"],
-        CONFIG["output"]["community_output_each_nth_timestep"],
-    )
-
-    write_xml(filepath, project)
-
-
-def write_community_dynamic(filepath, salinity_id, replicate):
-    project = ET.Element("MangaProject")
-    add_random_seed(project, replicate)
-    add_resources(project, f"{CONFIG['paths']['salinity_dir']}/{salinity_id}.csv")
-
-    population = ET.SubElement(project, "population")
-
-    for pft_idx in range(1, CONFIG["population"]["community"]["group_count"] + 1):
-        add_random_group(population, pft_idx, "community")
+    for pft in pfts:
+        add_group(population, pft, CONFIG["population"][population_key])
 
     add_time_loop(project)
-    add_visualization(project)
+    ET.SubElement(ET.SubElement(project, "visualization"), "type").text = "NONE"
+    run_type = "oneplant" if population_key == "oneplant" else "community"
+    add_output(project, make_output_dir(*output_parts), run_type)
 
-    output_dir = make_output_dir(
-        "community",
-        "dynamic",
-        salinity_id,
-        f"{replicate:02d}",
-    )
+    xml = minidom.parseString(ET.tostring(project, "utf-8")).toprettyxml(indent="    ")
+    with open(XML_CONTROL_FILES / f"{name}.xml", "w", encoding="utf-8") as f:
+        f.write(xml)
 
-    add_output(
-        project,
-        output_dir,
-        CONFIG["output"]["community_output_range"],
-        CONFIG["output"]["community_output_each_nth_timestep"],
-    )
-
-    write_xml(filepath, project)
-
-
-def write_monoculture_static(filepath, salinity, replicate, pft_idx):
-    project = ET.Element("MangaProject")
-    add_random_seed(project, replicate)
-    add_resources(project, f"{salinity:.3f} {salinity:.3f}")
-
-    population = ET.SubElement(project, "population")
-    add_random_group(population, pft_idx, "monoculture")
-
-    add_time_loop(project)
-    add_visualization(project)
-
-    output_dir = make_output_dir(
-        "monoculture",
-        "static",
-        f"{salinity:.3f}",
-        f"PFT_{pft_idx}",
-        f"{replicate:02d}",
-    )
-
-    add_output(
-        project,
-        output_dir,
-        CONFIG["output"]["community_output_range"],
-        CONFIG["output"]["community_output_each_nth_timestep"],
-    )
-
-    write_xml(filepath, project)
-
-
-def write_oneplant_static(filepath, salinity, pft_idx):
-    project = ET.Element("MangaProject")
-    add_random_seed(project, 1)
-    add_resources(project, f"{salinity:.3f} {salinity:.3f}")
-
-    population = ET.SubElement(project, "population")
-    add_oneplant_group(population, pft_idx)
-
-    add_time_loop(project)
-    add_visualization(project)
-
-    output_dir = make_output_dir(
-        "one_plant",
-        "static",
-        f"{salinity:.3f}",
-        f"PFT_{pft_idx}",
-    )
-
-    add_output(
-        project,
-        output_dir,
-        CONFIG["output"]["oneplant_output_range"],
-        CONFIG["output"]["oneplant_output_each_nth_timestep"],
-    )
-
-    write_xml(filepath, project)
-
-
-def write_oneplant_dynamic(filepath, salinity, version, pft_idx):
-    project = ET.Element("MangaProject")
-    add_random_seed(project, 1)
-    add_resources(project, f"{CONFIG['paths']['salinity_dir']}/{salinity}_{version}.csv")
-
-    population = ET.SubElement(project, "population")
-    add_oneplant_group(population, pft_idx)
-
-    add_time_loop(project)
-    add_visualization(project)
-
-    output_dir = make_output_dir(
-        "one_plant",
-        "dynamic",
-        f"{salinity}_{version}",
-        f"PFT_{pft_idx}",
-    )
-
-    add_output(
-        project,
-        output_dir,
-        CONFIG["output"]["oneplant_output_range"],
-        CONFIG["output"]["oneplant_output_each_nth_timestep"],
-    )
-
-    write_xml(filepath, project)
-
-
-# ================================================================
-# GENERATORS
-# ================================================================
-
-def generate_community_static():
-    for salinity in CONFIG["study"]["static_salinities"]:
-        for replicate in CONFIG["study"]["replicates"]:
-            xml_path = (
-                f"{CONFIG['paths']['xml_dir']}/"
-                f"community_static_{salinity:.3f}_{replicate:02d}.xml"
-            )
-            write_community_static(xml_path, salinity, replicate)
-
-
-def generate_community_dynamic():
-    for salinity in CONFIG["study"]["dynamic_salinities"]:
-        for variant in CONFIG["study"]["dynamic_variants"]:
-            salinity_id = f"{salinity}_{variant}"
-
-            for replicate in CONFIG["study"]["replicates"]:
-                xml_path = (
-                    f"{CONFIG['paths']['xml_dir']}/"
-                    f"community_dynamic_{salinity_id}_{replicate:02d}.xml"
-                )
-                write_community_dynamic(xml_path, salinity_id, replicate)
-
-
-def generate_monoculture_static():
-    for salinity in CONFIG["study"]["static_salinities"]:
-        for pft_idx in CONFIG["study"]["pfts"]:
-            for replicate in CONFIG["study"]["replicates"]:
-                xml_path = (
-                    f"{CONFIG['paths']['xml_dir']}/"
-                    f"monoculture_static_pft{pft_idx}_{salinity:.3f}_{replicate:02d}.xml"
-                )
-                write_monoculture_static(xml_path, salinity, replicate, pft_idx)
-
-
-def generate_oneplant_static():
-    for salinity in CONFIG["study"]["static_salinities"]:
-        for pft_idx in CONFIG["study"]["pfts"]:
-            xml_path = (
-                f"{CONFIG['paths']['xml_dir']}/"
-                f"oneplant_static_{salinity:.3f}_pft{pft_idx}.xml"
-            )
-            write_oneplant_static(xml_path, salinity, pft_idx)
-
-
-def generate_oneplant_dynamic():
-    for salinity in CONFIG["study"]["dynamic_salinities"]:
-        for variant in CONFIG["study"]["dynamic_variants"]:
-            for pft_idx in CONFIG["study"]["pfts"]:
-                xml_path = (
-                    f"{CONFIG['paths']['xml_dir']}/"
-                    f"oneplant_dynamic_{salinity}_{variant}_pft{pft_idx}.xml"
-                )
-                write_oneplant_dynamic(xml_path, salinity, variant, pft_idx)
-
-
-# ================================================================
-# MAIN
-# ================================================================
 
 def main():
+    study = CONFIG["study"]
     XML_CONTROL_FILES.mkdir(parents=True, exist_ok=True)
 
-    if CONFIG["enabled_setups"]["community_static"]:
-        generate_community_static()
+    for sal in study["static_salinities"]:
+        for n in study["replicates"]:
+            write_setup(f"community_static_{sal:.3f}_{n:02d}", static_salinity(sal),
+                        "community", study["pfts"], n,
+                        ["community", "static", f"{sal:.3f}", f"{n:02d}"])
 
-    if CONFIG["enabled_setups"]["community_dynamic"]:
-        generate_community_dynamic()
+    for sal in study["dynamic_salinities"]:
+        for variant in study["dynamic_variants"]:
+            salinity_id = f"{sal}_{variant}"
+            for n in study["replicates"]:
+                write_setup(f"community_dynamic_{salinity_id}_{n:02d}",
+                            salinity_file(salinity_id), "community", study["pfts"], n,
+                            ["community", "dynamic", salinity_id, f"{n:02d}"])
 
-    if CONFIG["enabled_setups"]["monoculture_static"]:
-        generate_monoculture_static()
+    for sal in study["static_salinities"]:
+        for pft in study["pfts"]:
+            for n in study["replicates"]:
+                write_setup(f"monoculture_static_pft{pft}_{sal:.3f}_{n:02d}",
+                            static_salinity(sal), "monoculture", [pft], n,
+                            ["monoculture", "static", f"{sal:.3f}", f"PFT_{pft}", f"{n:02d}"])
 
-    if CONFIG["enabled_setups"]["oneplant_static"]:
-        generate_oneplant_static()
+    for sal in study["static_salinities"]:
+        for pft in study["pfts"]:
+            write_setup(f"oneplant_static_{sal:.3f}_pft{pft}", static_salinity(sal),
+                        "oneplant", [pft], 1,
+                        ["one_plant", "static", f"{sal:.3f}", f"PFT_{pft}"])
 
-    if CONFIG["enabled_setups"]["oneplant_dynamic"]:
-        generate_oneplant_dynamic()
+    for sal in study["dynamic_salinities"]:
+        for variant in study["dynamic_variants"]:
+            salinity_id = f"{sal}_{variant}"
+            for pft in study["pfts"]:
+                write_setup(f"oneplant_dynamic_{salinity_id}_pft{pft}",
+                            salinity_file(salinity_id), "oneplant", [pft], 1,
+                            ["one_plant", "dynamic", salinity_id, f"PFT_{pft}"])
 
-    print("Done: create_setups.py")
     print(f"XML files written to: {XML_CONTROL_FILES}")
-    print(f"Output directories created under: {MODEL_OUTPUT}")
+    print(f"Output folders created under: {MODEL_OUTPUT}")
 
 
 if __name__ == "__main__":
