@@ -269,8 +269,9 @@ output step, add them as zeros with `figure_utils.fill_missing_steps()`.
 `p_maint` in the species files were obtained. A single plant is grown for 200
 days at 70 ppt with a re-implementation of the pyMANGA Saltmarsh growth step.
 PFT 1 keeps `p_maint = 1.5e-6`; for PFTs 2-4, `p_maint` is found by bisection
-so that the plant reaches the same aboveground height as PFT 1. The script
-prints its results and runs in about a second:
+so that the plant reaches the same aboveground height as PFT 1. All other
+parameters are read from the species files. The script prints its results
+and runs in about a second:
 
 ```powershell
 python calibrate_maintenance.py

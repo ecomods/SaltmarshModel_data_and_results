@@ -10,16 +10,20 @@ tolerance salt_effect_ui.
 
 The growth step re-implements pyMANGA's Saltmarsh plant model
 (PlantModelLib/Saltmarsh/Saltmarsh.py) with the FixedSalinity Forman response.
-Parameter values are the ones in model_input/species/Saltmarsh_*.py; the
-printed p_maint values were rounded to four digits for those files.
+Geometry and parameters are read from model_input/species/Saltmarsh_*.py,
+except p_maint of PFTs 2-4, which is calibrated here. The printed p_maint
+values were rounded to four digits for those files.
 
 Usage (from the repository root):
     python calibrate_maintenance.py
 """
 
+import importlib.util
 import math
 
 import numpy as np
+
+from source.paths import SPECIES_DIR
 
 
 # =============================================================================
@@ -32,8 +36,11 @@ DT_SECONDS = 86400.0
 # Salinity in kg/kg as used by FixedSalinity (0.070 kg/kg = 70 ppt).
 CALIBRATION_SALINITY = 0.070
 
+PFTS = [1, 2, 3, 4]
 REFERENCE_PFT = 1
-REFERENCE_P_MAINT = 1.5e-6
+
+# A single plant has the full aboveground resources (no competition).
+ABOVEGROUND_FACTOR = 1.0
 
 # Search range and number of bisection steps for p_maint (1/s).
 P_MAINT_MIN = 1e-8
@@ -43,40 +50,13 @@ BISECTION_ITERATIONS = 200
 OUTPUT_DIGITS = 6
 
 
-# =============================================================================
-# Model parameters (as in the species files)
-# =============================================================================
-
-PARAMETER = {
-    "p_sun": 1361.0,
-    "p_conv,bg": 1.5,
-    "p_grow": 5e-9,
-    "p_dieback": 1.0,
-    "p_ratio_ag_bg": 0.5,
-    "p_ratio_ag": 0.5,
-    "p_ratio_bg": 0.5,
-    "p_transpiration": 1.5e-5,
-    "r_salinity": "forman",
-    "salt_effect_d": -0.045,
-    "aboveground_factor": 1.0,
-}
-
-GEOMETRY = {
-    "r_ag": 0.05,
-    "r_ag_thr": 0.05,
-    "h_ag": 0.1,
-    "r_bg": 0.05,
-    "r_bg_thr": 0.05,
-    "h_bg": 0.1,
-    "volume_thr": 0.0015708,
-}
-
-PFTS = {
-    1: {"name": "Saltmarsh_1", "salt_effect_ui": 60.0},
-    2: {"name": "Saltmarsh_2", "salt_effect_ui": 70.0},
-    3: {"name": "Saltmarsh_3", "salt_effect_ui": 80.0},
-    4: {"name": "Saltmarsh_4", "salt_effect_ui": 90.0},
-}
+def load_pft(pft):
+    """Return geometry and parameters of a PFT from its species file."""
+    path = SPECIES_DIR / f"Saltmarsh_{pft}.py"
+    spec = importlib.util.spec_from_file_location(path.stem, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.createPlant()
 
 
 # =============================================================================
@@ -146,19 +126,17 @@ def update_geometry_from_volume(V_ag, V_bg, parameter):
     return r_ag, h_ag, r_bg, h_bg
 
 
-def simulate_plant(pft, p_maint, days):
+def simulate_plant(geometry, parameter, p_maint, days):
     """Grow one isolated plant for the given days; return its final state."""
-    parameter = PARAMETER
+    r_ag = geometry["r_ag"]
+    h_ag = geometry["h_ag"]
+    r_bg = geometry["r_bg"]
+    h_bg = geometry["h_bg"]
 
-    r_ag = GEOMETRY["r_ag"]
-    h_ag = GEOMETRY["h_ag"]
-    r_bg = GEOMETRY["r_bg"]
-    h_bg = GEOMETRY["h_bg"]
-
-    aboveground_factor = parameter["aboveground_factor"]
+    aboveground_factor = ABOVEGROUND_FACTOR
     belowground_factor = calculate_belowground_factor(
         salinity=CALIBRATION_SALINITY,
-        salt_effect_ui=pft["salt_effect_ui"],
+        salt_effect_ui=parameter["salt_effect_ui"],
         salt_effect_d=parameter["salt_effect_d"],
     )
 
@@ -217,13 +195,13 @@ def simulate_plant(pft, p_maint, days):
 # Calibration
 # =============================================================================
 
-def calibrate_p_maint(pft, target_h_ag):
+def calibrate_p_maint(geometry, parameter, target_h_ag):
     """Find p_maint by bisection so that the plant reaches target_h_ag (m)."""
     lo = P_MAINT_MIN
     hi = P_MAINT_MAX
 
-    h_lo = simulate_plant(pft, lo, DAYS)["h_ag_final"]
-    h_hi = simulate_plant(pft, hi, DAYS)["h_ag_final"]
+    h_lo = simulate_plant(geometry, parameter, lo, DAYS)["h_ag_final"]
+    h_hi = simulate_plant(geometry, parameter, hi, DAYS)["h_ag_final"]
 
     if not (h_lo >= target_h_ag >= h_hi):
         raise RuntimeError(
@@ -236,7 +214,7 @@ def calibrate_p_maint(pft, target_h_ag):
 
     for _ in range(BISECTION_ITERATIONS):
         mid = 0.5 * (lo + hi)
-        if simulate_plant(pft, mid, DAYS)["h_ag_final"] > target_h_ag:
+        if simulate_plant(geometry, parameter, mid, DAYS)["h_ag_final"] > target_h_ag:
             lo = mid
         else:
             hi = mid
@@ -248,21 +226,23 @@ def calibrate_p_maint(pft, target_h_ag):
 # Output
 # =============================================================================
 
-def print_species_file_block(pft, p_maint):
+def print_species_file_block(pft, parameter, p_maint):
     """Print the parameter lines for a species file."""
-    print(f"# {pft['name']}")
+    print(f"# Saltmarsh_{pft}")
     print(f"parameter['p_maint'] = {p_maint:.{OUTPUT_DIGITS}e}")
-    print(f"parameter['p_grow'] = {PARAMETER['p_grow']:.{OUTPUT_DIGITS}e}")
-    print(f"parameter['p_dieback'] = {PARAMETER['p_dieback']:.{OUTPUT_DIGITS}g}")
-    print(f"parameter['p_ratio_ag_bg'] = {PARAMETER['p_ratio_ag_bg']:.{OUTPUT_DIGITS}g}")
-    print(f"parameter['p_ratio_ag'] = {PARAMETER['p_ratio_ag']:.{OUTPUT_DIGITS}g}")
-    print(f"parameter['p_ratio_bg'] = {PARAMETER['p_ratio_bg']:.{OUTPUT_DIGITS}g}")
-    print(f"parameter['salt_effect_d'] = {PARAMETER['salt_effect_d']:.{OUTPUT_DIGITS}g}")
-    print(f"parameter['salt_effect_ui'] = {pft['salt_effect_ui']:.{OUTPUT_DIGITS}g}")
+    print(f"parameter['p_grow'] = {parameter['p_grow']:.{OUTPUT_DIGITS}e}")
+    for key in ["p_dieback", "p_ratio_ag_bg", "p_ratio_ag", "p_ratio_bg",
+                "salt_effect_d", "salt_effect_ui"]:
+        print(f"parameter['{key}'] = {parameter[key]:.{OUTPUT_DIGITS}g}")
     print()
 
 
 def main():
+    geometries, parameters = {}, {}
+    for pft in PFTS:
+        geometries[pft], parameters[pft] = load_pft(pft)
+    reference_p_maint = parameters[REFERENCE_PFT]["p_maint"]
+
     print("============================================================")
     print("Saltmarsh PFT maintenance-factor calibration")
     print("============================================================")
@@ -274,12 +254,12 @@ def main():
     print(f"salinity              = {CALIBRATION_SALINITY:.6f} kg/kg")
     print(f"salinity              = {CALIBRATION_SALINITY * 1000.0:.1f} ppt")
     print(f"reference PFT         = PFT {REFERENCE_PFT}")
-    print(f"reference p_maint     = {REFERENCE_P_MAINT:.6e}")
-    print(f"p_grow                = {PARAMETER['p_grow']:.6e}")
+    print(f"reference p_maint     = {reference_p_maint:.6e}")
+    print(f"p_grow                = {parameters[REFERENCE_PFT]['p_grow']:.6e}")
     print()
 
     target_h_ag = simulate_plant(
-        PFTS[REFERENCE_PFT], REFERENCE_P_MAINT, DAYS
+        geometries[REFERENCE_PFT], parameters[REFERENCE_PFT], reference_p_maint, DAYS
     )["h_ag_final"]
 
     print("Reference target")
@@ -288,14 +268,14 @@ def main():
     print()
 
     calibrated = {}
-    for pft_id, pft in PFTS.items():
-        if pft_id == REFERENCE_PFT:
-            p_maint = REFERENCE_P_MAINT
+    for pft in PFTS:
+        if pft == REFERENCE_PFT:
+            p_maint = reference_p_maint
         else:
-            p_maint = calibrate_p_maint(pft, target_h_ag)
-        calibrated[pft_id] = {
+            p_maint = calibrate_p_maint(geometries[pft], parameters[pft], target_h_ag)
+        calibrated[pft] = {
             "p_maint": p_maint,
-            "result": simulate_plant(pft, p_maint, DAYS),
+            "result": simulate_plant(geometries[pft], parameters[pft], p_maint, DAYS),
         }
 
     print("Calibration results")
@@ -306,13 +286,13 @@ def main():
     )
     print("-" * 75)
 
-    for pft_id, pft in PFTS.items():
-        p_maint = calibrated[pft_id]["p_maint"]
-        result = calibrated[pft_id]["result"]
+    for pft in PFTS:
+        p_maint = calibrated[pft]["p_maint"]
+        result = calibrated[pft]["result"]
         h_error = result["h_ag_final"] - target_h_ag
         print(
-            f"{pft_id:>3d}  "
-            f"{pft['salt_effect_ui']:>4.0f}  "
+            f"{pft:>3d}  "
+            f"{parameters[pft]['salt_effect_ui']:>4.0f}  "
             f"{result['belowground_factor']:>11.6f}  "
             f"{p_maint:>14.6e}  "
             f"{result['h_ag_final']:>14.9f}  "
@@ -323,13 +303,13 @@ def main():
     print("Species-file parameter blocks")
     print("-----------------------------")
     print()
-    for pft_id, pft in PFTS.items():
-        print_species_file_block(pft, calibrated[pft_id]["p_maint"])
+    for pft in PFTS:
+        print_species_file_block(pft, parameters[pft], calibrated[pft]["p_maint"])
 
     print("Copy-paste summary")
     print("------------------")
-    for pft_id, pft in PFTS.items():
-        print(f"{pft['name']}: p_maint = {calibrated[pft_id]['p_maint']:.{OUTPUT_DIGITS}e}")
+    for pft in PFTS:
+        print(f"Saltmarsh_{pft}: p_maint = {calibrated[pft]['p_maint']:.{OUTPUT_DIGITS}e}")
 
 
 if __name__ == "__main__":
