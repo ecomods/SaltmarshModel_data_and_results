@@ -40,8 +40,8 @@ def community_style(color):
 
 def monoculture_style(color):
     """Opaque PFT colour with translucent white stripes and no outline."""
-    return {"facecolor": color, "edgecolor": (1, 1, 1, 0.60),
-            "hatch": "////", "linewidth": 0}
+    return {"facecolor": color, "edgecolor": (1, 1, 1, 0.75),
+            "hatch": "/////", "linewidth": 0}
 
 
 def read_replicate_stats():
@@ -111,7 +111,7 @@ def draw_figure(comm_mat, mono_mat, stats):
 
 def main():
     config.apply_style()
-    plt.rcParams["hatch.linewidth"] = 0.45
+    plt.rcParams["hatch.linewidth"] = 0.50
     fig = draw_figure(read_matrix("comm_mat.csv"), read_matrix("mono_mat.csv"),
                       read_replicate_stats())
     config.save_figure(fig, OUT_PNG)
