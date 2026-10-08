@@ -123,6 +123,6 @@ figures in the species files).
 
 ## License
 
-The code is licensed under the MIT License, see `LICENSE`.
-<!-- TODO: license for model_input/, model_output/, figure_data/ and figures/
-(proposed: CC BY 4.0), to be agreed with Jonas -->
+The code is licensed under the MIT License, see `LICENSE`. The data in
+`model_input/`, `model_output/`, `figure_data/` and `figures/` are licensed
+under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
