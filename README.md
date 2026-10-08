@@ -20,7 +20,7 @@ Contact: <!-- TODO: contact email -->
 ```text
 model_input/      species parameters, salinity scenarios, XML control files
 model_output/     pyMANGA output, one Population.csv per simulation
-figure_data/      the 7 tables behind the figures
+figure_data/      seven tables used by the figure scripts
 figures/          main/ (Figures 1-4) and appendix/ (Figures S1-S3)
 source/           figure-table preparation, figure scripts, shared modules
 
@@ -31,17 +31,17 @@ calibrate_maintenance.py      calibrate the PFT maintenance factors
 create_salinity_scenarios.py  create the salinity scenarios
 ```
 
-The files in `model_output/` and `figure_data/` are described in the README
-of each folder.
+File descriptions are in [model_output/README.md](model_output/README.md)
+and [figure_data/README.md](figure_data/README.md).
 
 ## Installation
 
 The results were produced with Python 3.13.1 and the package versions in
-`requirements.txt`:
+`requirements.txt`. Run these commands from the repository root:
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
+.\.venv\Scripts\Activate.ps1    # macOS/Linux: source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
@@ -50,9 +50,11 @@ repository in a folder called `pyMANGA` (another location can be set in
 `source/paths.py`). The simulations were run with commit `20dcbfc`:
 
 ```powershell
+cd ..
 git clone https://github.com/pymanga/pyMANGA.git
 cd pyMANGA
 git checkout 20dcbfcd993af54000d6bdb421c459ceac7a4c05
+cd ../vollhueter_saltmarsh_model
 ```
 
 ## Recreating the figures
@@ -72,12 +74,12 @@ python run_analysis.py                  # first recreate figure_data/ from model
 | S2 | `07_figS2_porewater_salinity.py` | `appendix/figS2_porewater_salinity.png` |
 | S3 | `08_figS3_monoculture_structure.py` | `appendix/figS3_monoculture_structure.png` |
 
-The tables in `figure_data/` are written by `source/01_prepare_figure_data.py`.
-It uses output from years 5-10 (every 10th day) and excludes plants younger
-than 10 days. For each replicate, values are summarised per output step and
-then averaged over time. Steps without plants count as 0 biovolume and 0
-plants; per-plant values are averaged only over steps with plants. Figures
-show the mean of the ten replicates, error bars one standard deviation.
+`source/01_prepare_figure_data.py` uses output from years 5-10 and excludes
+plants younger than 10 days. Figures 2, 3 and S3 show means and standard
+deviations across ten replicate time means. After filtering, steps without
+plants count as zero total biovolume and zero plants; per-plant means exclude
+these steps. Figure 4 shows replicate means at each output time and
+time-averaged bars.
 
 ## Rerunning the simulations
 
@@ -109,8 +111,8 @@ of 35, 70 and 105 ppt. They were derived from the hourly porewater salinity in
 `model_input/salinity_from_model.npz`, simulated with
 <!-- TODO: model, site and reference of the hourly salinity data -->.
 
-`create_salinity_scenarios.py` shows how the scenarios were created and can be
-used for new ones. It overwrites the files in `model_input/salinity/`.
+`create_salinity_scenarios.py` generates and plots salinity scenarios.
+Run it only to generate new inputs; it overwrites `model_input/salinity/`.
 
 ## Calibration of the maintenance factors
 
@@ -123,8 +125,8 @@ plant reaches the same height as PFT 1.
 python calibrate_maintenance.py
 ```
 
-Result: 1.500e-6, 1.867e-6, 2.216e-6 and 2.517e-6 (rounded to four digits in
-the species files).
+Result: 1.500e-6, 1.867e-6, 2.216e-6 and 2.517e-6 (rounded to four significant
+figures in the species files).
 
 ## How to cite
 

@@ -1,8 +1,8 @@
 # Model output
 
-pyMANGA output of the 300 simulations, written by `run_model.py`. All
-simulations cover 10 years with a daily time step on a 2 m x 2 m plot. The
-analysis uses the 260 community and monoculture runs.
+Output from 300 pyMANGA simulations on a 2 m x 2 m plot, using a daily
+time step and a maximum duration of 10 years. The analysis uses the
+260 community and monoculture runs.
 
 | Folder | Runs | Setup | Output steps |
 | --- | --- | --- | --- |
@@ -25,13 +25,15 @@ Tab-separated, one row per plant and output step:
 - `x`, `y`: position (m)
 - `r_ag`, `h_ag`, `r_bg`, `h_bg`: radius and height of the above- and
   belowground cylinder (m)
-- `aboveground_resources`, `belowground_resources`, `res_ag`, `res_bg`,
-  `res_eff`, `grow`, `maint`: resource and growth variables of the pyMANGA
-  Saltmarsh model
+- `aboveground_resources`, `belowground_resources`: resource availability
+  factors (dimensionless)
+- `res_ag`, `res_bg`, `res_eff`: aboveground, belowground and limiting
+  resource supply (J per time step)
+- `grow`, `maint`: net growth and maintenance cost (m³ per time step)
 - `volume`: plant volume (m³)
 - `age`: s
 - `salinity`: porewater salinity at the plant (kg/kg)
-- `transpiration`
+- `transpiration`: soil water uptake (m³ per time step)
 
-The one-plant runs also contain `Population_group_died.csv`, written by
-pyMANGA when the plant dies, with the same columns.
+The one-plant runs stop when the plant dies. pyMANGA then writes
+`Population_group_died.csv` with the same columns.
