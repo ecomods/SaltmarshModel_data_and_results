@@ -4,7 +4,8 @@ Figure 2: total biovolume of community and monocultures under static salinity.
 Community runs are shown as stacked PFT contributions, monocultures as striped
 PFT bars. Values are means of the ten replicate time means in years 5-10;
 output steps without plants count as 0. Error bars show one sample SD across
-replicate time means, drawn behind bars. Community SD uses replicate totals.
+the replicate time means and are drawn behind the bars. For the community,
+the SD is calculated from the replicate totals over all PFTs.
 
 Input:  figure_data/comm_mat.csv, mono_mat.csv,
         grouped_all_static.csv, grouped_pft_mono_static.csv
@@ -45,18 +46,16 @@ def monoculture_style(color):
 
 
 def read_replicate_stats():
-    """Mean and sample SD of community totals or individual monocultures."""
+    """
+    Mean and sample SD of the community totals (pft 0) and of each
+    monoculture, across replicates.
+    """
     data = pd.concat([
         pd.read_csv(FIGURE_DATA / "grouped_all_static.csv"),
         pd.read_csv(FIGURE_DATA / "grouped_pft_mono_static.csv"),
     ], ignore_index=True)
-    if data.duplicated(["salinity", "pft", "n"]).any():
-        raise ValueError("Duplicate replicate identifiers in Figure 2 inputs.")
-    stats = data.groupby(["salinity", "pft"]).total_volume.agg(
-        mean="mean", sd="std", n="count").reset_index()
-    if not (stats.n == 10).all():
-        raise ValueError("Figure 2 requires ten replicate time means per bar.")
-    return stats
+    return data.groupby(["salinity", "pft"]).total_volume.agg(
+        mean="mean", sd="std").reset_index()
 
 
 def draw_figure(comm_mat, mono_mat, stats):

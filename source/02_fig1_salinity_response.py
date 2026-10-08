@@ -37,8 +37,7 @@ def main():
             label=f"PFT {pft}",
         )
 
-    # Reference lines at the simulated static salinities. The grid is
-    # horizontal only, so these are the only vertical lines.
+    # Vertical lines and labels at the simulated static salinities.
     for salinity in config.SAL_STATIC:
         ax.axvline(salinity, color=config.salinity_color_map[salinity], linewidth=1.0, zorder=1)
         ax.annotate(

@@ -45,7 +45,7 @@ def main():
     mode.add_argument(
         "--prepare-data-only",
         action="store_true",
-        help="Prepare the 7 figure tables directly from raw model output; do not render figures.",
+        help="Prepare the 7 figure tables from the model output in model_output/; do not render figures.",
     )
     mode.add_argument(
         "--figures-only",

@@ -10,7 +10,6 @@ from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.colors import to_rgb
 
 # =============================================================================
 # Figure sizes
@@ -111,17 +110,6 @@ VARIANT_LEVELS = ["V0", "V1", "V2"]
 # Chosen from previews with red-green colour-blindness and greyscale checks.
 # Fixed hex values, so the cmcrameri package is not needed.
 pft_color_map = {1: "#0f3c5f", 2: "#376b58", 3: "#95872c", 4: "#f49f72"}
-
-
-def pale(color, strength=0.62):
-    """
-    Opaque mix of a colour with white; strength 1 = original colour.
-
-    Used for monocultures where they appear next to community results in full
-    colour (Fig. 2).
-    """
-    return tuple(1 - strength * (1 - c) for c in to_rgb(color))
-
 
 # Salinity regimes (static V0, seasonal V1, seasonal + tide V2): display names
 # and line colours, shared by Figs. 4 and S2. Three lightness steps (black ->

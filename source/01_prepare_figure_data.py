@@ -1,10 +1,16 @@
-"""Prepare the 7 manuscript figure tables from pyMANGA Population.csv files.
+"""
+Prepare the 7 manuscript figure tables from pyMANGA Population.csv files.
 
 The plant rows of the three setup families are loaded and cleaned with the
 load_* functions in figure_utils.py and summarised per replicate. Only the
 small tables read by the plotting scripts are written; the plant rows are
-not saved. Use --output-dir to build a candidate without touching the
-current figure data.
+not saved. --output-dir writes the tables to another folder, for example
+for comparisons.
+
+Input:  model_output/community/static, community/dynamic, monoculture/static
+Output: figure_data/comm_mat.csv, grouped_pft_static.csv,
+        grouped_all_static.csv, mono_mat.csv, grouped_pft_mono_static.csv,
+        summary_pft_tv.csv, ts_total_volume.csv
 """
 
 import argparse
@@ -18,6 +24,7 @@ from paths import FIGURE_DATA
 
 
 def save(df, output_dir, filename, *, index=False):
+    """Write one figure table as CSV and print its path."""
     path = output_dir / filename
     df.to_csv(path, index=index)
     print(f"Saved: {path}", flush=True)
@@ -34,6 +41,7 @@ def total_volume_matrix(grouped_pft):
 
 
 def prepare_static_community(output_dir):
+    """Tables for Figs. 2 and 3; returns the plant rows for prepare_dynamic()."""
     df = utils.load_static_community()
     grouped_pft, grouped_all = utils.replicate_time_means(df, {"salinity": config.SAL_STATIC})
     save(total_volume_matrix(grouped_pft), output_dir, "comm_mat.csv", index=True)
@@ -43,6 +51,7 @@ def prepare_static_community(output_dir):
 
 
 def prepare_static_monoculture(output_dir):
+    """Tables for Figs. 2 and S3."""
     df = utils.load_static_monoculture()
     # Each monoculture run has one PFT, but all four PFTs are run at every
     # salinity, so the same salinity x PFT x replicate grid applies.
@@ -52,6 +61,7 @@ def prepare_static_monoculture(output_dir):
 
 
 def prepare_dynamic(output_dir, static_community):
+    """Tables for Fig. 4 (V0 from the static runs, V1 and V2 from the dynamic runs)."""
     # The static runs at the dynamic mean salinities are the V0 regime.
     v0 = static_community[static_community["salinity"].isin(config.SAL_DYN)].copy()
     v0["variant"] = "V0"

@@ -23,10 +23,6 @@ from paths import FIGURE_DATA, FIGURES_MAIN
 
 OUT_PNG = FIGURES_MAIN / "fig4_dynamic_biovolume.png"
 
-PFTS = config.PFTS
-SALINITIES = config.SAL_DYN
-VARIANTS = config.VARIANT_LEVELS
-
 # Regime colours and display names are shared with Fig. S2 (figure_config);
 # data keys stay V0/V1/V2.
 variant_style = {
@@ -43,12 +39,7 @@ YEAR_TICKS = [5, 6, 7, 8, 9, 10]
 # =============================================================================
 
 def add_salinity_and_variant_columns(ts_df):
-    """
-    Add salinity and variant columns from the version label.
-
-    Expected version labels:
-        35_V0, 35_V1, 35_V2, 70_V0, ..., 105_V2
-    """
+    """Add salinity and variant columns from the version label (e.g. 35_V1)."""
     dfm = ts_df.copy()
     version = dfm["version"].astype(str)
     dfm["salinity"] = version.str.split("_").str[0].astype(int)
@@ -58,27 +49,15 @@ def add_salinity_and_variant_columns(ts_df):
 
 def get_y_limits(ts_df, bar_totals):
     """
-    Determine shared y-limits from the time-series values and the stacked
-    bar totals, so that no bar is cut off.
+    Shared y-limits from the time-series values and the stacked bar totals,
+    so that no bar is cut off, with 5 % padding.
     """
     vals = np.concatenate([
         ts_df["value"].to_numpy(dtype=float),
         np.asarray(bar_totals, dtype=float),
     ])
-    vals = vals[np.isfinite(vals)]
-
-    if len(vals) == 0:
-        return 0.0, 1.0
-
-    y_min = vals.min()
-    y_max = vals.max()
-
-    if y_max > y_min:
-        pad = 0.05 * (y_max - y_min)
-    else:
-        pad = 1.0
-
-    return y_min - pad, y_max + pad
+    pad = 0.05 * (vals.max() - vals.min())
+    return vals.min() - pad, vals.max() + pad
 
 
 def build_total_volume_lookup(summary_pft_tv):
@@ -87,13 +66,11 @@ def build_total_volume_lookup(summary_pft_tv):
         tv_lookup[(salinity, variant)][pft] = mean total biovolume
     """
     tv_lookup = {}
-
     for (sal, var), sub in summary_pft_tv.groupby(["salinity", "variant"]):
         tv_lookup[(int(sal), str(var))] = {
             int(row["pft"]): float(row["mean_value"])
             for _, row in sub.iterrows()
         }
-
     return tv_lookup
 
 
@@ -101,7 +78,7 @@ def add_pft_legend(fig):
     """PFT colours in one column, above the figure at the top right."""
     pft_handles = [
         Patch(facecolor=config.pft_color_map[pft], edgecolor="none", label=f"PFT {pft}")
-        for pft in PFTS
+        for pft in config.PFTS
     ]
     return fig.legend(handles=pft_handles, loc="outside upper right")
 
@@ -114,7 +91,7 @@ def add_variant_legend(fig, pft_legend):
     """
     variant_handles = [
         Line2D([], [], label=config.REGIME_LABELS[var], **variant_style[var])
-        for var in VARIANTS
+        for var in config.VARIANT_LEVELS
     ]
     pft_box = pft_legend.get_window_extent().transformed(fig.transFigure.inverted())
     legend = fig.legend(
@@ -140,28 +117,24 @@ def draw_figure(ts_total_volume, summary_pft_tv):
     y_lim = get_y_limits(ts_total_volume, bar_totals)
 
     fig, axes = plt.subplots(
-        nrows=len(SALINITIES),
-        ncols=len(PFTS) + 1,
+        nrows=len(config.SAL_DYN),
+        ncols=len(config.PFTS) + 1,
         figsize=config.figsize_mm(config.WIDTH_FULL_MM, 135),
         sharey=True,
         gridspec_kw={"width_ratios": [1, 1, 1, 1, 1.05]},
     )
 
     # Time series of each PFT (columns 0-3).
-    for row_i, sal in enumerate(SALINITIES):
-        for col_i, pft in enumerate(PFTS):
+    for row_i, sal in enumerate(config.SAL_DYN):
+        for col_i, pft in enumerate(config.PFTS):
             ax = axes[row_i, col_i]
 
-            for var in VARIANTS:
+            for var in config.VARIANT_LEVELS:
                 sub = dfm[
                     (dfm["salinity"] == sal) &
                     (dfm["pft"] == pft) &
                     (dfm["variant"] == var)
                 ].sort_values("time_years")
-
-                if sub.empty:
-                    continue
-
                 ax.plot(sub["time_years"], sub["value"], **variant_style[var])
 
             if row_i == 0:
@@ -170,16 +143,13 @@ def draw_figure(ts_total_volume, summary_pft_tv):
             ax.set_xticks(YEAR_TICKS)
 
     # Time mean per regime, stacked by PFT (column 4).
-    for row_i, sal in enumerate(SALINITIES):
+    for row_i, sal in enumerate(config.SAL_DYN):
         axb = axes[row_i, 4]
-        x = np.arange(len(VARIANTS))
-        bottom = np.zeros(len(VARIANTS), dtype=float)
+        x = np.arange(len(config.VARIANT_LEVELS))
+        bottom = np.zeros(len(config.VARIANT_LEVELS), dtype=float)
 
-        for pft in PFTS:
-            vals_bar = np.array(
-                [float(tv_lookup.get((sal, var), {}).get(pft, 0.0)) for var in VARIANTS],
-                dtype=float,
-            )
+        for pft in config.PFTS:
+            vals_bar = np.array([tv_lookup[(sal, var)][pft] for var in config.VARIANT_LEVELS])
             axb.bar(x, vals_bar, bottom=bottom, color=config.pft_color_map[pft], linewidth=0)
             bottom += vals_bar
 
@@ -188,7 +158,7 @@ def draw_figure(ts_total_volume, summary_pft_tv):
 
         # Tilted labels: the column is too narrow for horizontal names.
         axb.set_xticks(
-            x, [config.REGIME_LABELS[var] for var in VARIANTS],
+            x, [config.REGIME_LABELS[var] for var in config.VARIANT_LEVELS],
             rotation=40, ha="right", rotation_mode="anchor",
         )
 
@@ -209,7 +179,7 @@ def draw_figure(ts_total_volume, summary_pft_tv):
 
     fig.supylabel("Total biovolume (m³)", fontsize="medium")
     pft_legend = add_pft_legend(fig)
-    utils.center_label_under(fig, axes[-1, :len(PFTS)], "Time (years)")
+    utils.center_label_under(fig, axes[-1, :len(config.PFTS)], "Time (years)")
     add_variant_legend(fig, pft_legend)
 
     return fig

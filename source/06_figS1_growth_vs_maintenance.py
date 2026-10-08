@@ -48,8 +48,6 @@ def calculate_geometry(h_ag, p_ratio_ag, p_ratio_bg):
         "h_ag": h_ag,
         "r_ag": r_ag,
         "h_bg": h_bg,
-        "r_bg": r_bg,
-        "v_ag": v_ag,
         "v_bg": v_bg,
         "volume": volume,
     }
@@ -105,14 +103,11 @@ def find_intersection(x, y1, y2):
     if len(sign_change_idx) == 0:
         return None
 
+    # Linear interpolation between the two points around the sign change.
     idx = sign_change_idx[0]
     x0, x1 = x[idx], x[idx + 1]
     y0, y1_diff = diff[idx], diff[idx + 1]
-
-    if y1_diff == y0:
-        x_intersection = x0
-    else:
-        x_intersection = x0 - y0 * (x1 - x0) / (y1_diff - y0)
+    x_intersection = x0 - y0 * (x1 - x0) / (y1_diff - y0)
 
     y_intersection = np.interp(x_intersection, x, y1)
 
@@ -231,7 +226,7 @@ def main():
         for curve in result["growth_curves"].values():
             y_max = max(y_max, float(np.nanmax(curve)))
 
-    y_max = max(0.1, y_max * 1.08)
+    y_max *= 1.08
 
     fig, axes = plt.subplots(
         nrows=2,

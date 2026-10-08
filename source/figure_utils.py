@@ -279,21 +279,50 @@ def center_label_under(fig, axes_row, label):
              color=axes_row[0].xaxis.label.get_color())
 
 
-def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
-                          panel_order, show_community=True, group_spacing=3.8):
+# Plant-structure metrics of Figs. 3 and S3 and their y-axis labels, in panel
+# order a)-d).
+STRUCTURE_YLABELS = {
+    "volume_per_plant": "Biovolume per plant (m³)",
+    "h_ag": "Aboveground height (m)",
+    "ag_bg_ratio": "AG/BG ratio (–)",
+    "num_plants": "Number of plants",
+}
+
+
+def structure_summaries(grouped_pft, grouped_all=None):
+    """
+    Replicate mean and standard deviation of each plant-structure metric.
+
+    The tables contain one mean-over-time value per scenario and replicate
+    (see replicate_time_means()), so standard deviations are calculated
+    across replicates. Returns {metric: (summary_pft, summary_all)} for
+    draw_structure_figure(); summary_all is None without a community table.
+    """
+    summaries = {}
+    for metric in STRUCTURE_YLABELS:
+        summary_pft = summary_mean_std(grouped_pft, ["salinity", "pft"], metric)
+        summary_all = None
+        if grouped_all is not None:
+            summary_all = summary_mean_std(grouped_all, ["salinity"], metric)
+        summaries[metric] = (summary_pft, summary_all)
+    return summaries
+
+
+def draw_structure_figure(summaries, group_spacing=3.8):
     """
     Draw the 2 x 2 point/error-bar figure of plant-structure metrics
     (Figs. 3 and S3) in the shared style and return the figure.
 
-    summaries maps each metric to (summary_pft, summary_all). Both tables have
-    the columns salinity, value, err_lower and err_upper; summary_pft also has
-    pft. summary_all is the community reference and is only used when
-    show_community is True. Within each salinity group, points are placed in
-    the order community (optional), PFT 1, ..., PFT 4. Salinity groups are
-    separated by a wider gap (group_spacing) and alternating light-grey
-    background bands. Panels are labelled a)-d) in panel_order; the legend
+    summaries comes from structure_summaries(). Within each salinity group,
+    points are placed in the order community (if summary_all is given),
+    PFT 1, ..., PFT 4. Salinity groups are separated by a wider gap
+    (group_spacing) and alternating light-grey background bands. The legend
     sits in the top-right panel.
     """
+    salinity_levels = config.SAL_STATIC
+    pft_levels = config.PFTS
+    show_community = next(iter(summaries.values()))[1] is not None
+
     x_group = np.arange(len(salinity_levels)) * group_spacing
     sal_to_x = {sal: x_group[i] for i, sal in enumerate(salinity_levels)}
 
@@ -306,7 +335,7 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
     def draw_series(ax, summary, x_offset, color, label):
         ax.errorbar(
             summary["salinity"].map(sal_to_x) + x_offset,
-            summary["value"],
+            summary["mean_value"],
             yerr=[summary["err_lower"], summary["err_upper"]],
             fmt="o",
             markersize=4,
@@ -323,24 +352,21 @@ def draw_structure_figure(summaries, salinity_levels, pft_levels, ylabels,
         sharex=True,
     )
 
-    for i_panel, (ax, metric) in enumerate(zip(axes.ravel(), panel_order)):
+    for i_panel, (ax, metric) in enumerate(zip(axes.ravel(), STRUCTURE_YLABELS)):
         summary_pft, summary_all = summaries[metric]
 
         if show_community:
             draw_series(ax, summary_all, within_offsets[0], "black", "Community")
 
         for i, pft in enumerate(pft_levels, start=first_pft_slot):
-            dfp = summary_pft[summary_pft["pft"] == pft]
-            if dfp.empty:
-                continue
-            color = config.pft_color_map[int(pft)]
-            draw_series(ax, dfp, within_offsets[i], color, f"PFT {int(pft)}")
+            draw_series(ax, summary_pft[summary_pft["pft"] == pft], within_offsets[i],
+                        config.pft_color_map[pft], f"PFT {pft}")
 
-        ax.set_xticks(group_centers, [str(int(s)) for s in salinity_levels])
+        ax.set_xticks(group_centers, [str(s) for s in salinity_levels])
         # Only the bottom row gets an x-axis label.
         if i_panel >= 2:
             ax.set_xlabel("Salinity (ppt)")
-        ax.set_ylabel(ylabels[metric])
+        ax.set_ylabel(STRUCTURE_YLABELS[metric])
 
         ax.set_axisbelow(True)
         ax.grid(axis="y", linewidth=0.5, alpha=0.4)
