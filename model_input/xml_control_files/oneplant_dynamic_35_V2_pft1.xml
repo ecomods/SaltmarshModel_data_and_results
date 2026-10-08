@@ -27,13 +27,13 @@
             <variant>forman</variant>
             <min_x>0</min_x>
             <max_x>2</max_x>
-            <salinity>../data_and_results/model_input/salinity/35_V2.csv</salinity>
+            <salinity>../vollhueter_saltmarsh_model/model_input/salinity/35_V2.csv</salinity>
         </belowground>
     </resources>
     <population>
         <group>
             <name>Saltmarsh_1</name>
-            <species>../data_and_results/model_input/species/Saltmarsh_1.py</species>
+            <species>../vollhueter_saltmarsh_model/model_input/species/Saltmarsh_1.py</species>
             <vegetation_model_type>Saltmarsh</vegetation_model_type>
             <mortality>Memory Random SizeThreshold</mortality>
             <period>3.154e+7*1</period>
@@ -46,7 +46,7 @@
             </domain>
             <initial_population>
                 <type>FromFile</type>
-                <filename>../data_and_results/model_input/plant_distribution/one_plant.csv</filename>
+                <filename>../vollhueter_saltmarsh_model/model_input/plant_distribution/one_plant.csv</filename>
             </initial_population>
             <production>
                 <type>FixedRate</type>
@@ -72,7 +72,7 @@
         <output_time_range>[0,3.154e+8]</output_time_range>
         <allow_previous_output>True</allow_previous_output>
         <output_each_nth_timestep>[0,1]</output_each_nth_timestep>
-        <output_dir>../data_and_results/model_output/one_plant/dynamic/35_V2/PFT_1</output_dir>
+        <output_dir>../vollhueter_saltmarsh_model/model_output/one_plant/dynamic/35_V2/PFT_1</output_dir>
         <geometry_output>r_ag</geometry_output>
         <geometry_output>h_ag</geometry_output>
         <geometry_output>r_bg</geometry_output>

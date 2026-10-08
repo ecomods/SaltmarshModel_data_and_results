@@ -33,7 +33,7 @@
     <population>
         <group>
             <name>Saltmarsh_2</name>
-            <species>../data_and_results/model_input/species/Saltmarsh_2.py</species>
+            <species>../vollhueter_saltmarsh_model/model_input/species/Saltmarsh_2.py</species>
             <vegetation_model_type>Saltmarsh</vegetation_model_type>
             <mortality>Memory Random SizeThreshold</mortality>
             <period>3.154e+7*1</period>
@@ -73,7 +73,7 @@
         <output_time_range>[1.577e+8, 3.154e+8]</output_time_range>
         <allow_previous_output>True</allow_previous_output>
         <output_each_nth_timestep>[0,10]</output_each_nth_timestep>
-        <output_dir>../data_and_results/model_output/monoculture/static/0.105/PFT_2/05</output_dir>
+        <output_dir>../vollhueter_saltmarsh_model/model_output/monoculture/static/0.105/PFT_2/05</output_dir>
         <geometry_output>r_ag</geometry_output>
         <geometry_output>h_ag</geometry_output>
         <geometry_output>r_bg</geometry_output>
